@@ -1,0 +1,14 @@
+{
+  "name": "xh-hoist-ai",
+  "owner": {
+    "name": "Extremely Heavy Industries"
+  },
+  "plugins": [
+    {
+      "name": "hoist-ai",
+      "source": ".",
+      "description": "AI augmentation for Hoist application development",
+      "version": "1.0.0"
+    }
+  ]
+}
