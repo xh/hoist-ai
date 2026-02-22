@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "hoist-react": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["hoist-mcp"],
+      "env": {}
+    }
+  }
+}

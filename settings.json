@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__hoist-react__hoist-ping",
+      "mcp__hoist-react__hoist-search-docs",
+      "mcp__hoist-react__hoist-list-docs",
+      "mcp__hoist-react__hoist-search-symbols",
+      "mcp__hoist-react__hoist-get-symbol",
+      "mcp__hoist-react__hoist-get-members"
+    ]
+  }
+}
