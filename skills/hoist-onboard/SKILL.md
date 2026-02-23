@@ -18,6 +18,12 @@ Configure this Hoist project for AI-augmented development. Follow each phase in 
 5. Check for `yarn.lock` to confirm the package manager (all Hoist apps use Yarn).
 6. Check for an existing `CLAUDE.md` at the project root.
 7. Check for a `client-app/` subdirectory (indicates a monorepo/full-stack layout).
+8. Query npm for the latest stable `@xh/hoist` version:
+   ```bash
+   npm view @xh/hoist dist-tags.latest
+   ```
+   Compare the installed version (from step 1) to the latest available. Store both values for
+   use in Phase 2.
 
 ## Phase 2: Present Findings
 
@@ -26,7 +32,7 @@ Display a summary of what was detected:
 ```
 ## Project Detection Results
 
-- **Hoist version:** [version from package.json]
+- **Hoist version:** [version from package.json] ([up to date | upgrade available: v[latest]])
 - **Project type:** [Frontend-only | Full-stack (hoist-core detected)]
 - **Package manager:** Yarn [confirmed | not confirmed -- yarn.lock not found]
 - **Existing CLAUDE.md:** [Yes -- merge needed | No -- will create fresh]
@@ -36,6 +42,28 @@ Display a summary of what was detected:
 - [Create | Update] CLAUDE.md with Hoist conventions (~[N] lines)
 - Verify MCP server connectivity
 ```
+
+If the installed `@xh/hoist` version is behind the latest stable release, add this section after
+the detection summary and BEFORE the "Proceed with setup?" confirmation:
+
+```
+### Hoist Upgrade Available
+
+Your project is on @xh/hoist v[installed], but v[latest] is available.
+The MCP server and AI tooling work best with a recent Hoist version.
+
+**Recommendation:** Run `/hoist-upgrade` to upgrade before completing onboarding.
+```
+
+Then ask: **"Would you like to upgrade first? (yes = run /hoist-upgrade, no = continue with current version)"**
+
+- If yes: Tell the developer to run `/hoist-upgrade` (or `/hoist-ai:hoist-upgrade`). The
+  onboarding skill should stop here and instruct the developer to re-run `/hoist-onboard` after
+  the upgrade completes. (Skills cannot invoke other skills directly -- this is a handoff.)
+- If no: Continue with onboarding as normal using the current version.
+
+If the installed version is already up to date, skip the upgrade recommendation and proceed
+directly to:
 
 Ask the user: **"Proceed with setup? (yes/no)"**
 
