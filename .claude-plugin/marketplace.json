@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "hoist-ai",
-      "source": ".",
+      "source": "./",
       "description": "AI augmentation for Hoist application development",
       "version": "1.0.0"
     }
