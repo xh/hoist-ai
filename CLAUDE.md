@@ -37,5 +37,5 @@ settings.json            Default MCP tool permission allowlist
 
 - No absolute paths in any committed files -- all paths must be relative.
 - Keep consumer-facing files generic -- do not reference specific sibling repos or client projects.
-- The `.mcp.json` uses `npx hoist-mcp` for portable MCP server resolution.
+- The `.mcp.json` launches the MCP server via the `hoist-mcp.mjs` wrapper in `client-app/node_modules/@xh/hoist/bin/`.
 - Always bump `plugin.json` version before pushing changes.

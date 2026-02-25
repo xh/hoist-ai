@@ -2,8 +2,8 @@
   "mcpServers": {
     "hoist-react": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["hoist-mcp"],
+      "command": "node",
+      "args": ["client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs"],
       "env": {}
     }
   }
