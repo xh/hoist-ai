@@ -1,6 +1,6 @@
 # Guided Session 1: Plugin Installation and First AI-Assisted Task
 
-**Goal:** Every XH developer installs the `@xh/hoist-ai` plugin, runs project onboarding, and
+**Goal:** Every XH developer installs the `xh` plugin, runs project onboarding, and
 completes their first AI-assisted task.
 
 **Duration:** ~60-90 minutes (30 min guided setup, 30-60 min working session)
@@ -21,13 +21,13 @@ Walk through these steps together. Everyone should complete each step before mov
    ```
 3. Install the plugin:
    ```
-   /plugin install hoist-ai@xh-hoist-ai
+   /plugin install xh@hoist-ai
    ```
 4. Verify the plugin is active:
    ```
    /plugin list
    ```
-   You should see `hoist-ai` in the list with its version and status.
+   You should see `xh` in the list with its version and status.
 5. **Expected outcome:** Plugin installed, hoist-react MCP server starts automatically. You
    should see the MCP server indicator in Claude Code's status.
 
@@ -35,12 +35,11 @@ Walk through these steps together. Everyone should complete each step before mov
 
 1. Run the onboarding skill:
    ```
-   /hoist-ai:hoist-onboard
+   /xh:onboard-app
    ```
 2. Review the detection results -- the skill will identify:
-   - Hoist version (from `package.json`)
-   - Project type (frontend-only vs. full-stack with hoist-core)
-   - Package manager (Yarn)
+   - @xh/hoist version (from `client-app/package.json`)
+   - hoist-core version (from `gradle.properties`)
 3. When prompted, confirm CLAUDE.md generation. The skill will create or merge a `CLAUDE.md`
    file at the project root with Hoist conventions and framework guidance.
 4. The skill will automatically verify MCP server connectivity via `hoist-ping`.
@@ -88,7 +87,7 @@ API details.
 **Try the feedback skill.** If you ran into any issues or have observations about the AI
 tooling, file them now:
 ```
-/hoist-ai:hoist-feedback
+/xh:feedback
 ```
 This files a sanitized GitHub issue on `xh/hoist-ai` with your feedback categorized and
 tracked.
@@ -104,7 +103,7 @@ interesting results.
 ### Common Issues
 
 - **MCP server not starting:** Ensure `@xh/hoist` is installed in the project's `node_modules`.
-  Run `yarn install` if needed. The MCP server resolves via `npx hoist-mcp`.
+  Run your package manager's install command in `client-app/` if needed.
 - **`gh` not authenticated:** Run `gh auth login` in a terminal before using the feedback skill.
 - **CLAUDE.md merge conflicts:** If the project already has a CLAUDE.md, the onboarding skill
   will show a diff preview before merging. Review carefully and confirm.
@@ -112,10 +111,9 @@ interesting results.
 
 ### What to Watch For
 
-- Developers with monorepo or `client-app/` structures may see different MCP resolution paths --
-  verify the MCP server starts correctly in these setups.
+- Verify the MCP server starts correctly across different projects.
 - If anyone gets a CLAUDE.md that looks wrong (missing sections, wrong project type), capture
-  the details via `/hoist-ai:hoist-feedback` for investigation.
+  the details via `/xh:feedback` for investigation.
 - Encourage developers to try different starter tasks so the group covers a range of use cases.
 
 ### After the Session

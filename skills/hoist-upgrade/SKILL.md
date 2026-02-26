@@ -19,19 +19,33 @@ Check `$ARGUMENTS` for an optional target version (e.g. `81.0.0` or `v81`). If p
 it: strip any leading `v`, store as the target version for Phase 2. If no argument is provided,
 the skill will prompt the developer to choose a target in Phase 2.
 
-### 2. Detect current @xh/hoist version
+### 2. Detect package manager
 
-Read `package.json` in the project root. If a `client-app/` subdirectory exists (monorepo layout),
-read `client-app/package.json` instead. Find `@xh/hoist` in `dependencies` and extract the current
+Check which lockfile exists in `client-app/`:
+- `yarn.lock` -- use `yarn` (e.g. `yarn install`, `yarn why`, `yarn lint`)
+- `package-lock.json` -- use `npm` (e.g. `npm install`, `npm ls`, `npm run lint`)
+
+Store the detected package manager. All frontend commands in subsequent phases should be run
+from `client-app/` using this package manager.
+
+### 3. Detect current @xh/hoist version
+
+Read `client-app/package.json`. Find `@xh/hoist` in `dependencies` and extract the current
 version. Handle version strings like `^82.0.0-SNAPSHOT` -- extract the numeric portion
 (e.g. `82.0.0`).
 
-If `@xh/hoist` is NOT found in `dependencies`, inform the user:
-> "This does not appear to be a Hoist project -- `@xh/hoist` was not found in package.json."
+If `@xh/hoist` is not a direct dependency, it may be pulled in transitively via a client plugin.
+Run from `client-app/`:
+- Yarn: `yarn why @xh/hoist`
+- npm: `npm ls @xh/hoist`
+
+If neither approach finds `@xh/hoist`, inform the user:
+> "This does not appear to be a Hoist project -- `@xh/hoist` was not found as a direct or
+> transitive dependency."
 
 Then stop.
 
-### 3. Check for dirty working tree
+### 4. Check for dirty working tree
 
 Run:
 ```bash
@@ -44,10 +58,9 @@ If output is non-empty, warn the developer:
 
 Do NOT proceed with any modifications until the working tree is clean.
 
-### 4. Read hoist-core version
+### 5. Read hoist-core version
 
-All Hoist apps have a server side. Read `gradle.properties` at the project root (or parent
-directory for monorepo layouts). Extract the `hoistCoreVersion` value.
+Read `gradle.properties` at the project root. Extract the `hoistCoreVersion` value.
 
 If the version is not set directly (e.g. it is inherited from a client-specific Grails plugin
 dependency), check `build.gradle` for the plugin dependency and note the transitive hoist-core
@@ -58,26 +71,16 @@ Also scan the Grails app package (e.g. `grails-app/controllers/`, `grails-app/se
 custom controllers and services. If extensive custom server code is present, note this -- it
 means hoist-core version bumps warrant extra attention in the upgrade report.
 
-### 5. Detect client plugins
+### 6. Detect client plugins
 
-Scan `package.json` dependencies for packages that are NOT `@xh/hoist` but appear to be
-Hoist-related client plugins (e.g. `@client/hoist-plugin`, `@client/hoist-*`, or packages
-referenced alongside `@xh/hoist` in a monorepo).
+Scan `client-app/package.json` dependencies for packages that are NOT `@xh/hoist` but appear to
+be Hoist-related client plugins (e.g. `@client/hoist-plugin`, `@client/hoist-*`).
 
 Also read `CLAUDE.md` for any documented plugin-to-Hoist version mapping or plugin notes.
 
 When a client plugin is detected, note the package name, current version, and any version
 mapping information for use in Phase 2 planning.
 
-### 6. Detect package manager
-
-Check which lockfile exists in the project root (or `client-app/` for monorepos):
-- `yarn.lock` -- use `yarn install` for installs and `yarn lint` for linting
-- `package-lock.json` -- use `npm install` for installs and `npm run lint` for linting
-
-If both or neither lockfile exists, ask the developer which package manager to use.
-
-Store the detected install command and run command for use throughout Phases 3-4.
 
 ## Phase 2: Plan
 
@@ -124,7 +127,7 @@ a single hop.
 
 For each hop in the sequence, check if a dedicated upgrade guide exists. Use Glob to look for:
 ```
-node_modules/@xh/hoist/docs/upgrade-notes/v*-upgrade-notes.md
+client-app/node_modules/@xh/hoist/docs/upgrade-notes/v*-upgrade-notes.md
 ```
 
 Match each hop's target version against the available files. If a guide does NOT exist for a
@@ -167,7 +170,7 @@ Do not proceed until the developer confirms the plugin approach.
 - **hoist-core:** {current version from gradle.properties}
 - **Server complexity:** {Minimal (stock) | Significant (custom controllers/services)}
 - **Client plugins:** {Detected plugins, or "None detected"}
-- **Package manager:** {yarn | npm}
+- **Package manager:** {detected package manager}
 ```
 
 ### 6. Confirm with developer
@@ -199,10 +202,10 @@ Verify the current branch is NOT main or develop before any commits.
 
 ### 3b. Bump version and install
 
-Update the `@xh/hoist` version in `package.json` `dependencies` to the hop's target version
-(e.g. `"@xh/hoist": "^{target}"`).
+Update the `@xh/hoist` version in `client-app/package.json` `dependencies` to the hop's target
+version (e.g. `"@xh/hoist": "^{target}"`).
 
-Run the detected install command (e.g. `yarn install` or `npm install`) to update the lockfile
+Run the detected package manager's install command from `client-app/` to update the lockfile
 and install the new version.
 
 **Important:** The upgrade notes for version N ship with version N. They are only available on
@@ -212,14 +215,14 @@ the filesystem after installing the target version.
 
 Use the `Read` tool to read upgrade notes directly from the filesystem:
 ```
-node_modules/@xh/hoist/docs/upgrade-notes/v{TARGET}-upgrade-notes.md
+client-app/node_modules/@xh/hoist/docs/upgrade-notes/v{TARGET}-upgrade-notes.md
 ```
 
 **Do NOT use MCP `hoist-search-docs` for upgrade notes.** The MCP server may still be serving
 the previous version's content after install. The `Read` tool always reflects the installed
 version.
 
-For versions WITHOUT upgrade notes (pre-v78): Read `node_modules/@xh/hoist/CHANGELOG.md` and
+For versions WITHOUT upgrade notes (pre-v78): Read `client-app/node_modules/@xh/hoist/CHANGELOG.md` and
 parse the `Breaking Changes` section for the target version. Alert the developer:
 > "No dedicated upgrade guide exists for this version. Using CHANGELOG breaking changes section.
 > Guidance may be less thorough for this hop."
@@ -260,8 +263,8 @@ If the current version is below the requirement:
 ### 3f. Handle client plugin version (if applicable)
 
 If a client plugin was detected and the developer confirmed a version strategy in Phase 2:
-1. Bump the client plugin version in `package.json` according to the confirmed strategy
-2. Run the install command again after the plugin version bump
+1. Bump the client plugin version in `client-app/package.json` according to the confirmed strategy
+2. Run the install command again from `client-app/` after the plugin version bump
 
 ### 3g. Commit this hop
 
@@ -301,7 +304,7 @@ serving the target version.
 
 ### 2. TypeScript compilation
 
-Run:
+Run from `client-app/`:
 ```bash
 npx tsc --noEmit
 ```
@@ -309,7 +312,7 @@ Report pass/fail.
 
 ### 3. Lint
 
-Run the project's lint command (detected in Phase 1, e.g. `yarn lint` or `npm run lint`).
+Run the project's lint command from `client-app/` using the detected package manager.
 Report pass/fail.
 
 ### 4. Guided verification

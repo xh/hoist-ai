@@ -1,7 +1,7 @@
 # hoist-ai Plugin Development
 
-This is the `@xh/hoist-ai` Claude Code plugin -- AI augmentation for Hoist application
-development. Maintained by Extremely Heavy Industries (https://xh.io).
+This is the `xh` Claude Code plugin (from the `hoist-ai` marketplace) -- AI augmentation for
+Hoist application development. Maintained by Extremely Heavy Industries (https://xh.io).
 
 ## Repository Structure
 
@@ -9,9 +9,10 @@ development. Maintained by Extremely Heavy Industries (https://xh.io).
 .claude-plugin/          Plugin manifest and marketplace catalog
   plugin.json            Name, version, description, author
   marketplace.json       Marketplace entry for team installation
-skills/                  Plugin skills (invoked via /hoist-ai:skill-name)
-  hoist-onboard/         Project setup and AI configuration
-  hoist-feedback/        GitHub issue filing for feedback
+skills/                  Plugin skills (invoked via /xh:skill-name)
+  onboard-app/           Project setup and AI configuration
+  feedback/              GitHub issue filing for feedback
+  hoist-upgrade/         Guided @xh/hoist version upgrade
 .mcp.json                Auto-configures hoist-react MCP server
 settings.json            Default MCP tool permission allowlist
 ```
@@ -31,7 +32,7 @@ settings.json            Default MCP tool permission allowlist
 - Use YAML frontmatter: `name`, `description`, `allowed-tools`.
 - Set `disable-model-invocation: true` for skills that should only run on explicit invocation.
 - Supporting files (templates, rules) go in subdirectories of the skill folder.
-- Test skills against both frontend-only and full-stack Hoist projects.
+- Test skills against real Hoist projects.
 
 ## Key Rules
 

@@ -5,12 +5,10 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 ## What It Provides
 
-- **MCP Server Auto-Configuration** -- automatically connects the hoist-react MCP server,
-  giving Claude access to Hoist framework documentation and TypeScript API lookups.
-- **Onboarding Skill** (`/hoist-ai:hoist-onboard`) -- detects your project type, generates a
-  tailored CLAUDE.md with Hoist conventions, and verifies MCP server connectivity.
-- **Feedback Skill** (`/hoist-ai:hoist-feedback`) -- files sanitized GitHub issues for
-  documentation gaps, convention problems, or tooling bugs.
+- **MCP Server** -- automatically connects the hoist-react MCP server, giving Claude access to
+  Hoist framework documentation and TypeScript API lookups.
+- **Skills** -- project onboarding, version upgrades, and feedback filing (see
+  [Available Skills](#available-skills) below).
 - **Permission Defaults** -- pre-approves hoist-react MCP tools so they work without prompts.
 
 ## Requirements
@@ -32,7 +30,7 @@ In a Claude Code session:
 ### 2. Install the Plugin
 
 ```
-/plugin install hoist-ai@xh-hoist-ai
+/plugin install xh@hoist-ai
 ```
 
 The plugin is now active for all your projects.
@@ -42,21 +40,22 @@ The plugin is now active for all your projects.
 In any Hoist project directory:
 
 ```
-/hoist-ai:hoist-onboard
+/xh:onboard-app
 ```
 
 This will:
-1. Detect your project type (frontend-only or full-stack with hoist-core).
+1. Detect your project and its installed Hoist versions.
 2. Show what it found and what it plans to configure.
 3. Generate or merge a CLAUDE.md with Hoist conventions (after your confirmation).
 4. Verify MCP server connectivity.
 
 ## Available Skills
 
-| Skill | Command | Description |
-|-------|---------|-------------|
-| Onboard | `/hoist-ai:hoist-onboard` | Configure AI setup for a Hoist project |
-| Feedback | `/hoist-ai:hoist-feedback` | File feedback as a GitHub issue |
+| Skill | Command | Description                                |
+|-------|---------|--------------------------------------------|
+| Onboard | `/xh:onboard-app` | Configure AI setup for a Hoist project     |
+| Upgrade | `/xh:hoist-upgrade` | Upgrade hoist-react to a new major version |
+| Feedback | `/xh:feedback` | File feedback as a GitHub issue            |
 
 ## Project-Level Auto-Discovery
 
@@ -66,7 +65,7 @@ To ensure all developers on a project have the plugin, add this to the project's
 ```json
 {
   "extraKnownMarketplaces": {
-    "xh-hoist-ai": {
+    "hoist-ai": {
       "source": {
         "source": "github",
         "repo": "xh/hoist-ai"
@@ -74,7 +73,7 @@ To ensure all developers on a project have the plugin, add this to the project's
     }
   },
   "enabledPlugins": {
-    "hoist-ai@xh-hoist-ai": true
+    "xh@hoist-ai": true
   }
 }
 ```

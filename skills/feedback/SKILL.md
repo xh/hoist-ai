@@ -1,5 +1,5 @@
 ---
-name: hoist-feedback
+name: feedback
 description: Report feedback about Hoist AI tooling. Files a sanitized GitHub issue with category labels for documentation gaps, convention issues, MCP problems, or general observations.
 disable-model-invocation: true
 allowed-tools: Bash
@@ -14,7 +14,7 @@ issue. Follow these phases in order.
 
 **1. Parse arguments.** Check `$ARGUMENTS` for:
 - A `--repo owner/repo` flag -- if present, use that repo instead of the default `xh/hoist-ai`.
-  Example: `/hoist-ai:hoist-feedback --repo client-org/client-repo MCP search not returning results`
+  Example: `/xh:feedback --repo client-org/client-repo MCP search not returning results`
 - Any remaining text after flags -- use it as the initial feedback description.
 
 **2. Ask the user to select a category:**
@@ -88,8 +88,8 @@ Body:
 {Sanitized context, or "None provided"}
 
 ## Environment
-- Plugin: @xh/hoist-ai
-- Filed via: /hoist-ai:hoist-feedback
+- Plugin: xh (from hoist-ai marketplace)
+- Filed via: /xh:feedback
 
 --- END PREVIEW ---
 ```
