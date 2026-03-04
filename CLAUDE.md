@@ -13,7 +13,6 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   onboard-app/           Project setup and AI configuration
   feedback/              GitHub issue filing for feedback
   hoist-upgrade/         Guided @xh/hoist version upgrade
-.mcp.json                Auto-configures hoist-react MCP server
 settings.json            Default MCP tool permission allowlist
 ```
 
@@ -38,5 +37,5 @@ settings.json            Default MCP tool permission allowlist
 
 - No absolute paths in any committed files -- all paths must be relative.
 - Keep consumer-facing files generic -- do not reference specific sibling repos or client projects.
-- The `.mcp.json` launches the MCP server via the `hoist-mcp.mjs` wrapper in `client-app/node_modules/@xh/hoist/bin/`.
+- The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
 - Always bump `plugin.json` version before pushing changes.
