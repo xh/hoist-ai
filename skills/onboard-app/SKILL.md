@@ -127,6 +127,7 @@ Then list the planned actions:
 
 ```
 ### Planned Actions
+- [Configure | Verify] `.mcp.json` with hoist-react MCP server (if @xh/hoist v82+)
 - [Create | Update] CLAUDE.md with Hoist conventions (~[N] lines)
 - [Include client plugin documentation (if plugins detected)]
 - Verify MCP server connectivity
@@ -176,7 +177,43 @@ Ask the user: **"Proceed with setup? (yes/no)"**
 
 Wait for the user to confirm before making any changes. Do NOT write any files until the user says yes.
 
-## Phase 3: Generate CLAUDE.md
+## Phase 3: Configure MCP Server
+
+If the installed `@xh/hoist` version is v82.0 or later, configure the project's `.mcp.json` so
+the hoist-react MCP server launches automatically. This must be done at the project level (not
+via the plugin) because the server binary lives in the project's own `node_modules`.
+
+1. Check if `.mcp.json` already exists at the project root.
+2. If it exists, read it and check whether a `hoist-react` entry is already present under
+   `mcpServers`. If so, skip this phase -- it's already configured.
+3. If `.mcp.json` exists but has no `hoist-react` entry, add it to the existing `mcpServers`
+   object. Preserve all other entries.
+4. If `.mcp.json` does not exist, create it with the following content:
+
+```json
+{
+  "mcpServers": {
+    "hoist-react": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs"
+      ],
+      "env": {}
+    }
+  }
+}
+```
+
+5. Before writing, confirm the binary exists at `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`.
+   If it does not, warn the user that they need to run their package manager install from
+   `client-app/` first, then re-run onboarding.
+
+Note: the MCP server will not be available until the next Claude Code restart after this file is
+written. Phase 5 will attempt to verify connectivity, but if this is a fresh configuration it
+may not be running yet.
+
+## Phase 4: Generate CLAUDE.md
 
 Locate the template files bundled with this skill. Use `Glob` to find the templates:
 ```
@@ -206,10 +243,10 @@ Read the base template from the matched path.
    - Preserve all existing project-specific content.
 4. If no `CLAUDE.md` exists: write the complete generated template to `./CLAUDE.md`.
 
-## Phase 4: Verify MCP Server
+## Phase 5: Verify MCP Server
 
 If the installed `@xh/hoist` version is below v82.0, skip this phase entirely -- the MCP server
-is not available in earlier versions. Note this in the Phase 5 report.
+is not available in earlier versions. Note this in the Phase 6 report.
 
 1. Call `mcp__hoist-react__hoist-ping`. Expect the response to contain "Hoist MCP server is running."
 2. If ping succeeds: call `mcp__hoist-react__hoist-search-docs` with query `"HoistModel"` as a
@@ -220,7 +257,7 @@ is not available in earlier versions. Note this in the Phase 5 report.
    - Check that the hoist-react MCP server is configured (the `xh` plugin should handle this
      automatically)
 
-## Phase 5: Report
+## Phase 6: Report
 
 Display a final summary:
 
@@ -228,8 +265,9 @@ Display a final summary:
 ## Onboarding Complete
 
 - **CLAUDE.md:** [Created | Updated (added N sections) | Already up to date]
+- **`.mcp.json`:** [Created | Updated (added hoist-react) | Already configured | Skipped (requires @xh/hoist v82+)]
 - **Client plugins:** [N plugin(s) documented | None detected]
-- **MCP server:** [Connected -- docs accessible | Not available (CLAUDE.md works standalone) | Requires @xh/hoist v82+ (upgrade needed)]
+- **MCP server:** [Connected -- docs accessible | Not available (restart Claude Code to activate) | Requires @xh/hoist v82+ (upgrade needed)]
 - **Next steps:** Start coding with AI assistance. The MCP server tools provide
   framework documentation and API lookup when available.
 ```
