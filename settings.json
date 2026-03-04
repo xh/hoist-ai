@@ -1,4 +1,5 @@
 {
+  "enabledMcpjsonServers": ["hoist-react"],
   "permissions": {
     "allow": [
       "mcp__hoist-react__hoist-ping",
