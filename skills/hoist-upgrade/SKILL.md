@@ -131,7 +131,7 @@ client-app/node_modules/@xh/hoist/docs/upgrade-notes/v*-upgrade-notes.md
 ```
 
 Match each hop's target version against the available files. If a guide does NOT exist for a
-particular hop's target version (versions before v78 will not have one), note that hop as
+particular hop's target version (versions before v73 will not have one), note that hop as
 "CHANGELOG-only" and alert the developer:
 > "Note: No dedicated upgrade guide exists for v{target}. This hop will use CHANGELOG entries
 > only, and guidance may be less thorough."
