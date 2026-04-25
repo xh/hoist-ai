@@ -16,3 +16,6 @@ yarn-error.log*
 # Environment
 .env
 .env.*
+
+# skill-creator eval workspace artifacts (generated, not committed)
+skills/*-workspace/
