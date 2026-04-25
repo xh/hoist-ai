@@ -1,0 +1,89 @@
+{
+  "skill_name": "using-hoist-react-reference",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add a sortable column to the grid in SamplePanel.tsx that displays a derived 'doubled' value. Show me how.",
+      "expected_output": "The agent invokes the using-hoist-react-reference skill, looks up the GridModel column config via the reference tools, and proposes a column definition with a sortable derived field.",
+      "files": ["evals/files/SamplePanel.tsx", "evals/files/SampleModel.ts"],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was invoked",
+        "The agent called either `mcp__hoist-react__hoist-search-symbols` or `npx hoist-ts search` (or `hoist-get-members` / `hoist-ts members`) to look up GridModel column config",
+        "The agent did not improvise prop names without verification"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a new @bindable field called 'sortField' (string, default 'name') to SamplePanelModel and use it in the grid.",
+      "expected_output": "The agent invokes the skill, confirms the @bindable decorator's behavior via reference tools, and adds the property correctly with default value.",
+      "files": ["evals/files/SampleModel.ts"],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was invoked",
+        "The agent consulted the reference tools (MCP or CLI) for @bindable semantics",
+        "The proposed code uses `@bindable sortField: string = 'name'` (or equivalent) and does not invent setter signatures"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Configure persistence on SamplePanelModel so the filterText survives page reloads.",
+      "expected_output": "The agent invokes the skill, looks up Hoist's persistence support, and proposes the right config.",
+      "files": ["evals/files/SampleModel.ts"],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was invoked",
+        "The agent searched docs or symbols for persistence (e.g. `persistWith`, `PersistenceProvider`)",
+        "The agent did not improvise persistence setup without consulting the framework"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "What is the correct way to wire up an autorun that reacts to filterText changes on SamplePanelModel? Show me the code.",
+      "expected_output": "The agent invokes the skill, looks up addAutorun/addReaction on HoistBase, and shows correct usage.",
+      "files": ["evals/files/SampleModel.ts"],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was invoked",
+        "The agent consulted reference tools for HoistBase / addAutorun / addReaction",
+        "The proposed code uses `this.addAutorun(...)` (or `addReaction`) and does not import autorun from MobX directly"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm new to Hoist. Show me where to start reading docs to understand Models, Components, and Services.",
+      "expected_output": "The agent invokes the skill, queries the docs index, and surfaces the relevant README locations.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was invoked",
+        "The agent called the docs index tool (`hoist-search-docs` with no/empty query, `hoist-list-docs`, or `npx hoist-docs index`)",
+        "The agent referenced specific Hoist docs by id (e.g. `core/README.md`, `svc/README.md`)"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Refactor `formatNumber` in plain-util.ts to be more concise. Don't introduce dependencies.",
+      "expected_output": "The agent does NOT invoke the using-hoist-react-reference skill. This is plain TypeScript with no Hoist imports.",
+      "files": ["evals/files/plain-util.ts"],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was NOT invoked",
+        "The agent refactored the function without consulting Hoist reference tools"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Bump the version field in this package.json from 1.0.0 to 1.0.1.",
+      "expected_output": "The agent does NOT invoke the using-hoist-react-reference skill. This is a pure config change with no Hoist code authoring.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was NOT invoked"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Add a `isBlank` overload to plain-util.ts that accepts an array and returns true when the array is empty or contains only blank strings.",
+      "expected_output": "The agent does NOT invoke the using-hoist-react-reference skill. Plain TypeScript, no Hoist.",
+      "files": ["evals/files/plain-util.ts"],
+      "expectations": [
+        "The skill `using-hoist-react-reference` was NOT invoked",
+        "The agent added the overload without referring to Hoist tools"
+      ]
+    }
+  ]
+}
