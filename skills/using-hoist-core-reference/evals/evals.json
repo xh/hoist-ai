@@ -1,0 +1,89 @@
+{
+  "skill_name": "using-hoist-core-reference",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a method to SampleService that fetches a list of items, with caching. Use Hoist's caching primitives.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill, looks up Cache or Timer in the reference tools, and proposes a method that uses them correctly.",
+      "files": ["evals/files/SampleService.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent called either `mcp__hoist-core__hoist-core-search-symbols` or `mcp__hoist-core__hoist-core-get-members` (or the CLI equivalent if available) to look up Cache",
+        "The proposed code uses Hoist's `Cache` (or `CachedValue`/`Timer`) class, not a hand-rolled map"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a new endpoint to SampleController that returns paged results. Use Hoist conventions.",
+      "expected_output": "The agent invokes the skill, looks up BaseController's render helpers, and proposes an endpoint using `renderJSON` (or similar).",
+      "files": ["evals/files/SampleController.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent consulted the reference tools for BaseController members or render conventions",
+        "The proposed endpoint uses Hoist's render helper (e.g. `renderJSON`) and follows the pattern in the existing methods"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "How do I expose a Hoist config to SampleService so it reads a configurable refresh interval?",
+      "expected_output": "The agent invokes the skill, queries docs/symbols for ConfigService, and proposes the right injection and access pattern.",
+      "files": ["evals/files/SampleService.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent looked up ConfigService (or `configService` injection) via the reference tools",
+        "The proposed code reads the config via Hoist's mechanism, not a hardcoded value or environment variable"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Add cluster-aware behavior to SampleService so cache invalidation broadcasts to other nodes.",
+      "expected_output": "The agent invokes the skill, looks up ClusterService or distributed cache patterns, and proposes the right approach.",
+      "files": ["evals/files/SampleService.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent searched docs/symbols for cluster, ClusterService, or distributed cache",
+        "The proposed solution uses Hoist's cluster primitives (e.g. ClusterService, distributed Cache)"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm new to hoist-core. Show me where to start reading docs to understand BaseService, BaseController, and the common services.",
+      "expected_output": "The agent invokes the skill, queries the docs index, and surfaces the relevant README locations.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent called the docs index tool (`hoist-core-list-docs`, `hoist-core-search-docs` with broad query, or CLI equivalent if available)",
+        "The agent referenced specific hoist-core docs by id"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Add a /health endpoint to PlainSpringController that includes the JVM uptime in milliseconds. Don't introduce dependencies.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill. This is plain Spring with no hoist-core imports.",
+      "files": ["evals/files/PlainSpringController.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked",
+        "The agent added the endpoint without consulting hoist-core reference tools"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Add a `dependencies` block stub to a fresh build.gradle for a Spring Boot project. No hoist-core needed.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Refactor PlainSpringController so the health response key uses the constant 'STATUS_KEY' defined in a sibling Constants class.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill.",
+      "files": ["evals/files/PlainSpringController.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked",
+        "The agent refactored without consulting hoist-core tools"
+      ]
+    }
+  ]
+}
