@@ -39,3 +39,7 @@ settings.json            Default MCP tool permission allowlist
 - Keep consumer-facing files generic -- do not reference specific sibling repos or client projects.
 - The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
 - Always bump `plugin.json` version before pushing changes.
+- Before bumping `plugin.json` for a release that touches a model-invokable skill, run
+  `skill-creator` evals against both reference skills (`using-hoist-react-reference` and
+  `using-hoist-core-reference`) and confirm the acceptance bars (>=90% positive recall,
+  <=10% false-positive rate) are met. The eval suites live under each skill's `evals/` directory.
