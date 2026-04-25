@@ -268,6 +268,7 @@ Display a final summary:
 - **`.mcp.json`:** [Created | Updated (added hoist-react) | Already configured | Skipped (requires @xh/hoist v82+)]
 - **Client plugins:** [N plugin(s) documented | None detected]
 - **MCP server:** [Connected -- docs accessible | Not available (restart Claude Code to activate) | Requires @xh/hoist v82+ (upgrade needed)]
-- **Next steps:** Start coding with AI assistance. The MCP server tools provide
-  framework documentation and API lookup when available.
+- **Reference skills:** `using-hoist-react-reference` and `using-hoist-core-reference` available -- will fire automatically when authoring Hoist code.
+- **Next steps:** Start coding with AI assistance. The reference skills will route you to
+  framework docs and API lookups when you touch Hoist code.
 ```
