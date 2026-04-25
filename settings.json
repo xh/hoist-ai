@@ -1,13 +1,11 @@
 {
-  "enabledMcpjsonServers": ["hoist-react"],
+  "enabledMcpjsonServers": ["hoist-react", "hoist-core"],
   "permissions": {
     "allow": [
-      "mcp__hoist-react__hoist-ping",
-      "mcp__hoist-react__hoist-search-docs",
-      "mcp__hoist-react__hoist-list-docs",
-      "mcp__hoist-react__hoist-search-symbols",
-      "mcp__hoist-react__hoist-get-symbol",
-      "mcp__hoist-react__hoist-get-members"
+      "mcp__hoist-react__*",
+      "mcp__hoist-core__*",
+      "Bash(npx hoist-docs:*)",
+      "Bash(npx hoist-ts:*)"
     ]
   }
 }
