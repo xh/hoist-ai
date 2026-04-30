@@ -84,6 +84,59 @@
         "The skill `using-hoist-core-reference` was NOT invoked",
         "The agent refactored without consulting hoist-core tools"
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Set up the hoist-core MCP server and CLI tools in this Hoist app so AI agents can use them. We're on hoistCoreVersion 39.0.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill, follows the install procedure (Gradle snippet, installHoistCoreTools task, .mcp.json wiring with --source bundled launcher).",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent proposed adding a `hoistCoreCli` configuration and `installHoistCoreTools` Sync task to `build.gradle`",
+        "The agent's mcp launcher passes `--source bundled` (or otherwise references the bundled content path) so the MCP server works without a hoist-core checkout sibling",
+        "The agent updated (or proposed updating) `.mcp.json` to point the `hoist-core` server at `./bin/hoist-core-mcp`"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Our app's hoistCoreVersion was just bumped to 39.0. Refresh the project-local hoist-core CLI launchers so they point at the new version.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill and re-runs the install task (or guides the user to) to refresh the version-locked launchers.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent's response involves re-running `./gradlew installHoistCoreTools` (or invoking it for the user) to regenerate launchers against the new JAR",
+        "The agent did NOT propose hand-editing the launcher scripts directly"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I want the hoist-core docs CLI installed in this app so I can search hoist-core docs from the shell without MCP. The app already depends on hoist-core 39.0.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill and walks through the install procedure (Gradle snippet + install task + bin launchers).",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent's plan produces the `./bin/hoist-core-docs` launcher via the `installHoistCoreTools` Gradle task",
+        "The agent did NOT suggest a npm/npx-based installation path (which is hoist-react's model, not hoist-core's)"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Add a new direct dependency on `org.apache.commons:commons-lang3:3.14.0` to this Hoist app's build.gradle. Keep the existing dependencies untouched.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill — this is a routine Gradle dependency edit, not anything to do with the hoist-core MCP/CLI tools.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked",
+        "The agent edited `build.gradle` directly without consulting hoist-core MCP/CLI install reference"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Bump grailsVersion in gradle.properties from 7.0.7 to 7.0.9. Don't touch anything else.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill — this is a routine version bump unrelated to hoist-core MCP/CLI install.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked"
+      ]
     }
   ]
 }
