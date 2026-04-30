@@ -92,10 +92,10 @@ Linked models with `doLoadAsync` are loaded automatically on mount.
 
 **HoistService** — singleton services installed during app init and accessed via `XH`:
 ```typescript
-XH.tradeService.submitTradeAsync(trade);  // Custom service
-XH.fetchJson({url: 'api/data'});          // FetchService alias
-XH.getConf('featureFlag', false);         // ConfigService alias
-XH.getPref('pageSize', 50);              // PrefService alias
+XH.fetchJson({url: 'api/data'});            // FetchService alias
+XH.getConf('featureFlag', false);            // ConfigService alias
+XH.getPref('pageSize', 50);                  // PrefService alias
+XH.<yourCustomService>.<yourMethodAsync>();  // Your app's services, registered during app init
 ```
 
 **XH singleton** — the top-level API entry point. Provides service access, data fetching
@@ -113,12 +113,15 @@ navigation (`navigate`, `appendRoute`), and app state (`appState`, `darkTheme`).
 ## Hoist Reference Skills
 
 When working with Hoist code, the `using-hoist-react-reference` and `using-hoist-core-reference`
-skills (shipped by the `xh` Claude Code plugin) will guide reference lookups. They fire
-automatically when you're about to author Hoist code and route you to the right MCP tools or CLI
-commands. You don't need to invoke them manually.
+skills (shipped by the `xh` Claude Code plugin) guide reference lookups. They fire
+automatically when you're about to author Hoist code or ask for orientation, and route you to
+the right MCP tool or CLI command. The hoist-core skill also fires on requests to install or
+upgrade the hoist-core MCP+CLI tools. You don't need to invoke them manually.
 
-If the skills aren't firing or the underlying tools aren't available, run `/xh:onboard-app` to
-verify the plugin and MCP servers are wired up.
+Each skill has two interchangeable surfaces -- MCP tools (when MCP is enabled) and CLI
+launchers (always available once installed). In MCP-blocked environments the CLI is the
+working path; the skills route to it transparently. If neither surface is reachable, run
+`/xh:onboard-app` to wire things up.
 
 ### hoist-core (server-side)
 
@@ -130,8 +133,14 @@ verify the plugin and MCP servers are wired up.
 - Production build: `./gradlew war`
 
 For server-side work, the `using-hoist-core-reference` skill (see above) routes you to the
-hoist-core MCP tools, which expose the framework's documentation and Groovy/Java symbols
-directly. The hoist-core docs are also available via the public GitHub repository at
+hoist-core developer tools. Two surfaces ship from the same fat JAR:
+
+- **MCP tools** -- `mcp__hoist-core__*` when MCP is enabled (after running
+  `installHoistCoreTools` and restarting Claude Code).
+- **CLI launchers** -- `./bin/hoist-core-docs` and `./bin/hoist-core-symbols` once installed.
+  These work in any environment, including MCP-blocked ones.
+
+The hoist-core docs are also available via the public GitHub repository at
 https://github.com/xh/hoist-core.
 
 ## Commands
