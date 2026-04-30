@@ -11,8 +11,9 @@ Hoist application development. Maintained by Extremely Heavy Industries (https:/
   marketplace.json       Marketplace entry for team installation
 skills/                  Plugin skills (invoked via /xh:skill-name)
   onboard-app/           Project setup and AI configuration
-  feedback/              GitHub issue filing for feedback
   hoist-upgrade/         Guided @xh/hoist version upgrade
+  using-hoist-core-reference/    Authoritative reference + install for hoist-core MCP/CLI tools
+  using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
 settings.json            Default MCP tool permission allowlist
 ```
 

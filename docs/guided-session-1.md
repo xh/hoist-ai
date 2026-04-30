@@ -82,19 +82,11 @@ and other Hoist patterns documented in the project's CLAUDE.md.
 Claude will use `hoist-search-docs` and `hoist-get-symbol` to pull up current documentation and
 API details.
 
-## Part 4: Feedback and Discussion (~10 min)
-
-**Try the feedback skill.** If you ran into any issues or have observations about the AI
-tooling, file them now:
-```
-/xh:feedback
-```
-This files a sanitized GitHub issue on `xh/hoist-ai` with your feedback categorized and
-tracked.
+## Part 4: Discussion (~10 min)
 
 **Join the #ai Slack channel.** This is our ongoing venue for AI-related questions, tips,
-workflow discoveries, and discussion. Share what you tried in today's session and any
-interesting results.
+workflow discoveries, and discussion. Share what you tried in today's session, any issues you
+ran into, and interesting results.
 
 ---
 
@@ -104,7 +96,6 @@ interesting results.
 
 - **MCP server not starting:** Ensure `@xh/hoist` is installed in the project's `node_modules`.
   Run your package manager's install command in `client-app/` if needed.
-- **`gh` not authenticated:** Run `gh auth login` in a terminal before using the feedback skill.
 - **CLAUDE.md merge conflicts:** If the project already has a CLAUDE.md, the onboarding skill
   will show a diff preview before merging. Review carefully and confirm.
 - **Plugin not appearing:** Try restarting Claude Code. Check `/plugin list` for error status.
@@ -112,12 +103,11 @@ interesting results.
 ### What to Watch For
 
 - Verify the MCP server starts correctly across different projects.
-- If anyone gets a CLAUDE.md that looks wrong (missing sections, wrong project type), capture
-  the details via `/xh:feedback` for investigation.
+- If anyone gets a CLAUDE.md that looks wrong (missing sections, wrong project type), surface
+  it in #ai for follow-up.
 - Encourage developers to try different starter tasks so the group covers a range of use cases.
 
 ### After the Session
 
-- Review any feedback issues filed on `xh/hoist-ai` during the session.
 - Check the #ai Slack channel for follow-up questions or tips shared by attendees.
 - Plan targeted follow-ups for any developers who had persistent setup issues.
