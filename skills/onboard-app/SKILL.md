@@ -1,7 +1,6 @@
 ---
 name: onboard-app
 description: Configure and verify AI setup for a Hoist project. Detects project type, generates CLAUDE.md, configures the hoist-react MCP server, optionally installs the hoist-core MCP+CLI tools, and verifies the surfaces in the current environment.
-disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, mcp__hoist-react__*
 ---
 

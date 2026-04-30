@@ -1,7 +1,6 @@
 ---
 name: hoist-upgrade
 description: Upgrade a Hoist app's `@xh/hoist` dependency across one or more major versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, bumps `hoistCoreVersion` (and refreshes the hoist-core MCP+CLI launchers if previously installed), and produces a comprehensive upgrade report.
-disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols
 ---
 
