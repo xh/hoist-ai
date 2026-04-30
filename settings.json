@@ -5,7 +5,11 @@
       "mcp__hoist-react__*",
       "mcp__hoist-core__*",
       "Bash(npx hoist-docs:*)",
-      "Bash(npx hoist-ts:*)"
+      "Bash(npx hoist-ts:*)",
+      "Bash(./bin/hoist-core-docs:*)",
+      "Bash(./bin/hoist-core-symbols:*)",
+      "Bash(./bin/hoist-core-mcp:*)",
+      "Bash(./gradlew installHoistCoreTools:*)"
     ]
   }
 }
