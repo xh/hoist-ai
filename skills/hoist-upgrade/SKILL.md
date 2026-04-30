@@ -96,6 +96,10 @@ If no target version was specified, query npm for available versions:
 npm view @xh/hoist versions --json
 ```
 
+`npm view` is a registry-query command -- it works in any Node.js environment regardless of
+which package manager the project uses, since `npm` ships with Node itself. No need to route
+through the project's detected manager here.
+
 Filter the results to **stable releases only** -- versions matching `x.y.z` with no prerelease
 suffix. Exclude versions with `-SNAPSHOT`, `-alpha`, `-beta`, `-rc`, or any other prerelease tag.
 XH publishes many SNAPSHOT versions to npm during development -- these should never be suggested

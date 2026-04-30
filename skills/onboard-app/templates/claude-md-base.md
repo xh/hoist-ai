@@ -146,9 +146,9 @@ https://github.com/xh/hoist-core.
 ## Commands
 
 ### Frontend (run from `client-app/`)
-- Install: `yarn install` (or `npm install`)
-- Dev server: `yarn start` (or `npm start`)
-- Lint: `yarn lint` (or `npm run lint`)
+- Install: `{{PKG_MGR_INSTALL}}`
+- Dev server: `{{PKG_MGR_START}}`
+- Lint: `{{PKG_MGR_LINT}}`
 - Type check: `npx tsc --noEmit`
 
 ### Backend (run from project root)

@@ -86,6 +86,10 @@ a React/TypeScript frontend in `client-app/`. Key locations:
    ```bash
    npm view @xh/hoist dist-tags.latest
    ```
+   `npm view` is a registry-query command -- it works in any Node.js environment regardless of
+   which package manager the project uses, since `npm` ships with Node itself. No need to
+   route through the project's detected manager here.
+
    Compare the installed version (from step 2) to the latest available. Store both values for
    use in Phase 2. Note: `@xh/hoist` (hoist-react) is the primary upgrade signal -- it is the
    more frequently updated package and the one applications depend on most heavily. Upgrades to
@@ -201,9 +205,13 @@ permits MCP. In MCP-blocked environments, the parallel CLI surface (`npx hoist-d
 1. Check if `.mcp.json` already exists at the project root.
 2. If it exists, read it and check whether a `hoist-react` entry is already present under
    `mcpServers`. If so, skip this phase -- it's already configured.
-3. If `.mcp.json` exists but has no `hoist-react` entry, add it to the existing `mcpServers`
+3. **Before writing anything**, confirm the binary exists at
+   `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`. If it does not, warn the user that
+   they need to run their package manager install from `client-app/` first, then re-run
+   onboarding.
+4. If `.mcp.json` exists but has no `hoist-react` entry, add it to the existing `mcpServers`
    object. Preserve all other entries.
-4. If `.mcp.json` does not exist, create it with the following content:
+5. If `.mcp.json` does not exist, create it with the following content:
 
 ```json
 {
@@ -219,10 +227,6 @@ permits MCP. In MCP-blocked environments, the parallel CLI surface (`npx hoist-d
   }
 }
 ```
-
-5. Before writing, confirm the binary exists at `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`.
-   If it does not, warn the user that they need to run their package manager install from
-   `client-app/` first, then re-run onboarding.
 
 Note: the MCP server will not be available until the next Claude Code restart after this file is
 written. Phase 5 will attempt to verify connectivity, but if this is a fresh configuration it
@@ -309,9 +313,18 @@ Locate the template files bundled with this skill. Use `Glob` to find the templa
 Read the base template from the matched path.
 
 1. Read the base template. The base template includes both client-side (hoist-react) and
-   server-side (hoist-core) documentation. No version substitution is needed -- actual Hoist
+   server-side (hoist-core) documentation. Version substitution is not needed -- actual Hoist
    versions should be determined at runtime from the dependency managers rather than baked into
    CLAUDE.md where they can go stale.
+
+   **Do** substitute the package-manager tokens in the Commands section to reflect the manager
+   detected in Phase 1 (yarn for `yarn.lock`, npm for `package-lock.json`):
+   - `{{PKG_MGR_INSTALL}}` → `yarn install` or `npm install`
+   - `{{PKG_MGR_START}}` → `yarn start` or `npm start`
+   - `{{PKG_MGR_LINT}}` → `yarn lint` or `npm run lint`
+
+   The generated CLAUDE.md should show only the commands that match the project's actual
+   package manager -- not both with a "(or X)" parenthetical that implies a preference.
 2. If client plugins were detected in Phase 1, also read `claude-md-client-plugins.md` from
    the same templates directory and append its content. Replace the placeholder table with a
    row for each detected plugin:
