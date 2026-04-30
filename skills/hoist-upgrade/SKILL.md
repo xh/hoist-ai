@@ -1,6 +1,6 @@
 ---
 name: hoist-upgrade
-description: Upgrade a Hoist app between versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, and produces a comprehensive upgrade report.
+description: Upgrade a Hoist app's `@xh/hoist` dependency across one or more major versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, bumps `hoistCoreVersion` (and refreshes the hoist-core MCP+CLI launchers if previously installed), and produces a comprehensive upgrade report.
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols
 ---
@@ -255,10 +255,26 @@ If a requirement is found, compare against the current `hoistCoreVersion` from
 `gradle.properties` (read in Phase 1).
 
 If the current version is below the requirement:
-1. Bump `hoistCoreVersion` in `gradle.properties` to the required version
-2. Prominently note this change for the upgrade report
+1. Bump `hoistCoreVersion` in `gradle.properties` to the required version.
+2. Prominently note this change for the upgrade report.
 3. If the project has significant server-side code (detected in Phase 1), add a prominent
-   warning that the hoist-core upgrade may require additional server-side review
+   warning that the hoist-core upgrade may require additional server-side review.
+4. **Refresh the hoist-core MCP+CLI launchers if they were previously installed.** Check
+   whether `bin/hoist-core-mcp` exists at the project root. If it does, the launchers embed an
+   absolute path to a version-suffixed JAR (e.g. `hoist-core-mcp-{old}-all.jar`) and are now
+   stale. Re-run:
+   ```bash
+   ./gradlew installHoistCoreTools
+   ```
+   This refreshes the launchers to point at the new version's JAR. Verify with
+   `./bin/hoist-core-docs ping` (returns `hoist-core CLI is running.`). Note the refresh in
+   the upgrade report.
+5. **Surface the install-eligibility transition** if relevant. If the bumped `hoistCoreVersion`
+   is `>= 39.0` AND `bin/hoist-core-mcp` does NOT exist (i.e., the install task was never run
+   here), the user is now eligible for the hoist-core MCP server + `hoist-core-docs` /
+   `hoist-core-symbols` CLI tools (introduced in v39.0). Add a "Next Steps" item to the upgrade
+   report: "Install the hoist-core MCP+CLI tools by running `/xh:onboard-app` -- onboarding
+   will detect the new eligibility and offer to install."
 
 ### 3f. Handle client plugin version (if applicable)
 
@@ -287,20 +303,43 @@ After each hop, display a brief status showing progress through the sequence:
 
 ## Phase 4: Verify
 
-After ALL hops are complete, run verification.
+After ALL hops are complete, run verification. The CLI surface is the always-on baseline (it
+reads from `node_modules` and always reflects the upgraded version); MCP reconnect is
+opportunistic and safe to skip in environments that block MCP.
 
-### 1. Reconnect MCP server
+### 1. Verify the upgraded developer-tools surfaces
 
-The Hoist MCP server is still serving the pre-upgrade version's types and docs. Prompt the
-developer:
+**hoist-react CLI (universal, always run).** From `client-app/`, run:
 
-> "All version hops are complete. The Hoist MCP server needs to reconnect to load the updated
-> @xh/hoist v{target} types and documentation.
->
-> Please run `/mcp` in Claude Code to reconnect, then confirm when ready."
+```bash
+npx hoist-docs index
+```
 
-After the developer confirms, verify with `hoist-ping` that the server is responsive and
-serving the target version.
+This reads from `client-app/node_modules/@xh/hoist/...` and always reflects the just-installed
+version. A clean docs index print confirms the upgraded surface is reachable. Surface any
+errors before continuing.
+
+**hoist-react MCP reconnect (only if MCP is part of your workflow).** The MCP server is still
+serving the pre-upgrade version's types and docs. Prompt the developer:
+
+> "If you use MCP in this environment, please run `/mcp` in Claude Code to reconnect the
+> hoist-react server, then say 'continue'. If you don't use MCP (for example, in MCP-blocked
+> enterprise environments), say 'skip' -- the CLI surface above is the working path and
+> already reflects the upgrade."
+
+After 'continue': call `mcp__hoist-react__hoist-ping` to confirm. After 'skip', or if the ping
+fails or the tool isn't in your context, proceed without error -- the CLI verification above is
+sufficient.
+
+**hoist-core CLI (only if launchers were refreshed in Phase 3e).** If Phase 3e re-ran
+`installHoistCoreTools`, run:
+
+```bash
+./bin/hoist-core-docs ping
+```
+
+Expect `hoist-core CLI is running.` This confirms the refresh produced working launchers
+pointing at the new JAR. Surface any errors before continuing.
 
 ### 2. TypeScript compilation
 
@@ -368,8 +407,9 @@ Show a condensed summary in the terminal:
 - **Versions upgraded:** {hop count}
 - **Changes applied:** {total count}
 - **Judgment calls:** {count} items requiring your review
-- **Verification:** {tsc status}, {lint status}
-- **hoist-core:** {bumped to vXX | unchanged | N/A}
+- **Verification:** CLI: {ok/fail}, MCP: {reconnected/skipped/failed}, tsc: {status}, lint: {status}
+- **hoist-core:** {bumped from vXX to vYY -- launchers refreshed | bumped from vXX to vYY (no launchers to refresh) | unchanged}
+- **hoist-core MCP+CLI install eligibility:** {now eligible (>= v39.0) -- run /xh:onboard-app to install | already installed | not eligible (< v39.0) | N/A}
 - **Full report:** docs/upgrade-reports/upgrade-v{FROM}-to-v{TO}-{YYYY-MM-DD}.md
 ```
 
@@ -383,7 +423,10 @@ gh --version
 If available, offer to create a pull request:
 > "Would you like me to create a pull request for this upgrade? (yes/no)"
 
-If yes, use `gh pr create` with a title like "Upgrade @xh/hoist v{FROM} -> v{TO}" and include
-the terminal summary as the PR body.
+If yes, use `gh pr create` with a title like "Upgrade @xh/hoist v{FROM} -> v{TO}". For the
+body, lead with the terminal summary so a reviewer can scan key facts in seconds, then a
+separator, then the full content of the upgrade report file (read it back with the `Read`
+tool and inline it). This keeps the PR self-contained -- a reviewer doesn't need to check out
+the branch to see the full per-hop changes and judgment calls.
 
 If `gh` is not available, skip this step silently.
