@@ -68,6 +68,10 @@ All items across all version hops that need developer attention, ordered by prio
 - **Previous version:** {{CORE_OLD_VERSION}}
 - **New version:** {{CORE_NEW_VERSION}}
 - **Required by:** {{CORE_REQUIRED_BY}}
+- **MCP+CLI launchers:** {{CORE_LAUNCHER_STATUS}}
+  <!-- One of: "Refreshed via installHoistCoreTools (CLI ping verified)" |
+       "Not previously installed -- skipped" |
+       "Not previously installed AND now eligible (>= v39.0) -- see Next Steps" -->
 
 > **Note:** The hoist-core version was bumped as required by the upgrade guide(s) listed above.
 > If this project has significant server-side code (custom controllers, services, or endpoints),
@@ -90,6 +94,11 @@ All items across all version hops that need developer attention, ordered by prio
 - [ ] Run the application and verify core functionality
 <!-- Include if hoist-core was bumped -->
 - [ ] Review hoist-core changes if the project has significant server-side code
+<!-- Include if hoist-core was bumped to >= 39.0 AND bin/hoist-core-mcp does NOT exist -->
+- [ ] Install the hoist-core MCP server + CLI tools now that hoistCoreVersion >= v39.0:
+      run `/xh:onboard-app` (it will detect the new eligibility and offer to install) or just
+      ask Claude to install/setup the hoist-core MCP+CLI tools in this app -- the
+      `using-hoist-core-reference` skill will walk through the install procedure
 <!-- Include if client plugins were detected -->
 - [ ] Verify client plugin compatibility with the upgraded Hoist version
 - [ ] Create or merge the pull request for this upgrade branch

@@ -1,6 +1,6 @@
 ---
 name: onboard-app
-description: Configure and verify AI setup for a Hoist project. Detects project type, generates CLAUDE.md, and verifies MCP server connectivity.
+description: Configure and verify AI setup for a Hoist project. Detects project type, generates CLAUDE.md, configures the hoist-react MCP server, optionally installs the hoist-core MCP+CLI tools, and verifies the surfaces in the current environment.
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, mcp__hoist-react__*
 ---
@@ -86,10 +86,21 @@ a React/TypeScript frontend in `client-app/`. Key locations:
    ```bash
    npm view @xh/hoist dist-tags.latest
    ```
+   `npm view` is a registry-query command -- it works in any Node.js environment regardless of
+   which package manager the project uses, since `npm` ships with Node itself. No need to
+   route through the project's detected manager here.
+
    Compare the installed version (from step 2) to the latest available. Store both values for
    use in Phase 2. Note: `@xh/hoist` (hoist-react) is the primary upgrade signal -- it is the
    more frequently updated package and the one applications depend on most heavily. Upgrades to
    hoist-react drive the process and specify the required `hoist-core` version to match.
+
+   **SNAPSHOT handling.** If the installed version contains `-SNAPSHOT` (e.g.
+   `85.0.0-SNAPSHOT.1777529713059`), the developer is intentionally on a pre-release that is
+   typically *ahead* of the published `latest` tag. Do not flag this as "behind latest" --
+   semver comparison against `dist-tags.latest` will lie. Treat SNAPSHOT installs as up-to-date
+   for upgrade-prompt purposes; surface "on a pre-release SNAPSHOT" in Phase 2's detection
+   summary instead of an upgrade nudge.
 
 ## Phase 2: Present Findings
 
@@ -130,7 +141,10 @@ Then list the planned actions:
 - [Configure | Verify] `.mcp.json` with hoist-react MCP server (if @xh/hoist v82+)
 - [Create | Update] CLAUDE.md with Hoist conventions (~[N] lines)
 - [Include client plugin documentation (if plugins detected)]
-- Verify MCP server connectivity
+- Detect whether hoist-core MCP+CLI tools are installed; if `hoistCoreVersion >= 39.0` and
+  they're not yet wired up, ask separately whether to install them (modifies `build.gradle`)
+- Verify both surfaces -- hoist-react MCP via ping, hoist-core via the CLI launcher (universal,
+  works even in MCP-blocked environments)
 ```
 
 If the installed `@xh/hoist` version is behind the latest stable release, add this section after
@@ -148,7 +162,7 @@ Your project is on @xh/hoist v[installed], but the Hoist MCP server requires v82
 Without it, AI tooling will be limited to the static conventions in CLAUDE.md -- no live
 framework documentation, API lookup, or symbol search will be available.
 
-**Recommendation:** Run `/hoist-upgrade` to upgrade before completing onboarding.
+**Recommendation:** Run `/xh:hoist-upgrade` to upgrade before completing onboarding.
 ```
 
 If the installed version is **v82+ but behind the latest stable release**, show:
@@ -159,16 +173,16 @@ If the installed version is **v82+ but behind the latest stable release**, show:
 Your project is on @xh/hoist v[installed], but v[latest] is available.
 Newer versions include improved MCP server capabilities and AI tooling support.
 
-**Recommendation:** Run `/hoist-upgrade` to upgrade before completing onboarding.
+**Recommendation:** Run `/xh:hoist-upgrade` to upgrade before completing onboarding.
 ```
 
-In either case, ask: **"Would you like to upgrade first? (yes = run /hoist-upgrade, no = continue with current version)"**
+In either case, ask: **"Would you like to upgrade first? (yes = run /xh:hoist-upgrade, no = continue with current version)"**
 
-- If yes: Tell the developer to run `/hoist-upgrade` (or `/xh:hoist-upgrade`). The
-  onboarding skill should stop here and instruct the developer to re-run `/onboard-app` after
-  the upgrade completes. (Skills cannot invoke other skills directly -- this is a handoff.)
+- If yes: Tell the developer to run `/xh:hoist-upgrade`. The onboarding skill should stop here
+  and instruct the developer to re-run `/xh:onboard-app` after the upgrade completes. (Skills
+  cannot invoke other skills directly -- this is a handoff.)
 - If no: Continue with onboarding as normal using the current version. If below v82, note that
-  the MCP server verification in Phase 4 will be skipped.
+  the MCP server verification in Phase 5 will be skipped.
 
 If the installed version is already up to date, skip the upgrade recommendation and proceed
 directly to:
@@ -177,18 +191,27 @@ Ask the user: **"Proceed with setup? (yes/no)"**
 
 Wait for the user to confirm before making any changes. Do NOT write any files until the user says yes.
 
-## Phase 3: Configure MCP Server
+## Phase 3: Configure hoist-react MCP Server
 
 If the installed `@xh/hoist` version is v82.0 or later, configure the project's `.mcp.json` so
 the hoist-react MCP server launches automatically. This must be done at the project level (not
 via the plugin) because the server binary lives in the project's own `node_modules`.
 
+The `.mcp.json` entry is harmless in environments where MCP is blocked: Claude Code simply
+won't connect to it, and the entry becomes functional automatically if the environment later
+permits MCP. In MCP-blocked environments, the parallel CLI surface (`npx hoist-docs`,
+`npx hoist-ts`) is the working path and is documented in the generated CLAUDE.md.
+
 1. Check if `.mcp.json` already exists at the project root.
 2. If it exists, read it and check whether a `hoist-react` entry is already present under
    `mcpServers`. If so, skip this phase -- it's already configured.
-3. If `.mcp.json` exists but has no `hoist-react` entry, add it to the existing `mcpServers`
+3. **Before writing anything**, confirm the binary exists at
+   `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`. If it does not, warn the user that
+   they need to run their package manager install from `client-app/` first, then re-run
+   onboarding.
+4. If `.mcp.json` exists but has no `hoist-react` entry, add it to the existing `mcpServers`
    object. Preserve all other entries.
-4. If `.mcp.json` does not exist, create it with the following content:
+5. If `.mcp.json` does not exist, create it with the following content:
 
 ```json
 {
@@ -205,13 +228,81 @@ via the plugin) because the server binary lives in the project's own `node_modul
 }
 ```
 
-5. Before writing, confirm the binary exists at `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`.
-   If it does not, warn the user that they need to run their package manager install from
-   `client-app/` first, then re-run onboarding.
-
 Note: the MCP server will not be available until the next Claude Code restart after this file is
 written. Phase 5 will attempt to verify connectivity, but if this is a fresh configuration it
 may not be running yet.
+
+## Phase 3.5: Install hoist-core MCP Server and CLI Tools (optional)
+
+The hoist-core developer tools ship as a fat JAR (`io.xh:hoist-core-mcp:<version>:all`) that
+project Gradle builds resolve through normal Maven resolution. Running the install task writes
+project-local launchers under `bin/` -- these expose both the MCP server (`bin/hoist-core-mcp`,
+referenced from `.mcp.json`) and the CLI tools (`bin/hoist-core-docs`, `bin/hoist-core-symbols`).
+The CLI surface is the primary path in MCP-blocked environments and works once installed
+without depending on Claude Code restarts or MCP availability.
+
+### Step 1: Detect current state
+
+1. Check whether `bin/hoist-core-mcp` exists at the project root and is executable.
+2. Check whether `.mcp.json` already has a `hoist-core` entry under `mcpServers`.
+3. If both are present, this phase is already done -- skip.
+4. If `hoistCoreVersion < 39.0` (the first release containing the `installHoistCoreTools`
+   task), skip with a note in Phase 6: "hoist-core MCP+CLI install requires hoistCoreVersion
+   >= 39.0 -- run `/xh:hoist-upgrade` first, then re-run `/xh:onboard-app` to install."
+
+### Step 2: Ask permission
+
+Show the user a focused confirmation BEFORE making any Gradle-level changes:
+
+```
+### Install hoist-core MCP server and CLI tools?
+
+This will:
+- Add ~15 lines to `build.gradle`: a `hoistCoreCli` configuration and the
+  `installHoistCoreTools` Sync task.
+- Run `./gradlew installHoistCoreTools` to resolve the version-locked fat JAR
+  (`io.xh:hoist-core-mcp:<hoistCoreVersion>:all`) and write launchers under `bin/`.
+- Add a `hoist-core` entry to `.mcp.json` pointing at `./bin/hoist-core-mcp`.
+
+The CLI surface (`./bin/hoist-core-docs`, `./bin/hoist-core-symbols`) works in any environment,
+including MCP-blocked ones. The `.mcp.json` entry is forward-compatible -- harmless if MCP is
+blocked, functional automatically if MCP later becomes available.
+
+Proceed? (yes/no)
+```
+
+If the user says no: record the decision and surface a clear deferred-step note in the Phase 6
+report. The install can be run later by asking Claude to install/setup the hoist-core MCP+CLI
+in this app -- the `using-hoist-core-reference` skill will fire on that ask and walk through it.
+
+### Step 3: Run the install procedure
+
+If the user agreed, follow the install procedure documented in the
+`using-hoist-core-reference` skill (the source of truth for this flow). Read it via:
+
+```
+**/skills/using-hoist-core-reference/SKILL.md
+```
+
+Jump to the **"Installing the MCP server and CLI tools"** section and follow its steps end to
+end (Gradle snippet, `installHoistCoreTools`, `.mcp.json` wiring including `--source bundled`
+on the mcp launcher). Do not duplicate the snippet here -- the reference skill is the canonical
+copy and is what will be re-read on future re-runs.
+
+### Step 4: Verify (CLI-first, MCP-opportunistic)
+
+After install, verify with the CLI -- this works in any environment, no restart required:
+
+```bash
+./bin/hoist-core-docs ping
+```
+
+Expect: `hoist-core CLI is running.` If this fails, surface the error to the user before
+continuing.
+
+Do **not** depend on `mcp__hoist-core__hoist-core-ping` succeeding here -- the `.mcp.json`
+write is fresh and Claude Code has not yet restarted, AND the environment may block MCP. The
+CLI ping is the universal sanity check.
 
 ## Phase 4: Generate CLAUDE.md
 
@@ -222,9 +313,18 @@ Locate the template files bundled with this skill. Use `Glob` to find the templa
 Read the base template from the matched path.
 
 1. Read the base template. The base template includes both client-side (hoist-react) and
-   server-side (hoist-core) documentation. No version substitution is needed -- actual Hoist
+   server-side (hoist-core) documentation. Version substitution is not needed -- actual Hoist
    versions should be determined at runtime from the dependency managers rather than baked into
    CLAUDE.md where they can go stale.
+
+   **Do** substitute the package-manager tokens in the Commands section to reflect the manager
+   detected in Phase 1 (yarn for `yarn.lock`, npm for `package-lock.json`):
+   - `{{PKG_MGR_INSTALL}}` → `yarn install` or `npm install`
+   - `{{PKG_MGR_START}}` → `yarn start` or `npm start`
+   - `{{PKG_MGR_LINT}}` → `yarn lint` or `npm run lint`
+
+   The generated CLAUDE.md should show only the commands that match the project's actual
+   package manager -- not both with a "(or X)" parenthetical that implies a preference.
 2. If client plugins were detected in Phase 1, also read `claude-md-client-plugins.md` from
    the same templates directory and append its content. Replace the placeholder table with a
    row for each detected plugin:
@@ -243,31 +343,79 @@ Read the base template from the matched path.
    - Preserve all existing project-specific content.
 4. If no `CLAUDE.md` exists: write the complete generated template to `./CLAUDE.md`.
 
-## Phase 5: Verify MCP Server
+## Phase 5: Verify Surfaces (CLI-first, MCP-opportunistic)
 
-If the installed `@xh/hoist` version is below v82.0, skip this phase entirely -- the MCP server
-is not available in earlier versions. Note this in the Phase 6 report.
+Verification's job is to confirm the working surfaces are reachable in the *current*
+environment. Treat MCP as opportunistic (it requires Claude Code restart and may be blocked by
+the environment); treat CLI as the universal sanity check (works as soon as it's installed).
 
-1. Call `mcp__hoist-react__hoist-ping`. Expect the response to contain "Hoist MCP server is running."
-2. If ping succeeds: call `mcp__hoist-react__hoist-search-docs` with query `"HoistModel"` as a
-   sample query to confirm docs are accessible.
-3. If ping fails or the MCP tool is not available: inform the user that the MCP server is not
-   currently reachable but the CLAUDE.md has been configured and works standalone. Suggest:
-   - Ensure `@xh/hoist` is installed (run the project's package manager install from `client-app/`)
-   - Check that the hoist-react MCP server is configured (the `xh` plugin should handle this
-     automatically)
+### hoist-react
+
+If `@xh/hoist < v82.0`, skip hoist-react verification -- MCP is unavailable in those versions.
+Note this in the Phase 6 report.
+
+Otherwise:
+
+1. **Opportunistic MCP ping.** Call `mcp__hoist-react__hoist-ping` if the tool is in your
+   context. Success → "MCP active". Tool not present or fails → "MCP entry written, will
+   activate on next Claude Code restart (or remain dormant in MCP-blocked environments)" --
+   this is not an error.
+2. **CLI sanity (only if MCP failed).** From `client-app/`, run `npx hoist-docs index` and
+   confirm it prints the docs index. If the project's `node_modules` aren't installed, surface
+   the package-manager install step as the user's next action.
+
+### hoist-core (only if Phase 3.5 installed it)
+
+1. **CLI sanity (always run).** From the project root, run `./bin/hoist-core-docs ping`. Expect
+   `hoist-core CLI is running.` If this fails, the install didn't take -- surface the error.
+2. **Opportunistic MCP ping.** Call `mcp__hoist-core__hoist-core-ping` if the tool is in your
+   context. Same semantics as hoist-react: success → "MCP active"; not present → "entry
+   written, activates on Claude Code restart in environments that permit MCP". Not an error.
+
+### Why CLI-first matters for enterprise environments
+
+In environments that block MCP traffic, the CLI surface is the working path. Onboarding must
+not stall or surface scary "verification failed" errors when MCP isn't reachable -- the
+`.mcp.json` entries are forward-compatible (harmless if MCP is blocked, functional if and when
+the environment unblocks it), and the CLI is fully usable today. Phase 6 must clearly
+distinguish "working now" from "queued for activation".
 
 ## Phase 6: Report
 
-Display a final summary:
+Display a final summary that distinguishes "working now" from "queued for activation" and
+calls out the CLI fallback for MCP-blocked environments:
 
 ```
 ## Onboarding Complete
 
+### Configuration
 - **CLAUDE.md:** [Created | Updated (added N sections) | Already up to date]
-- **`.mcp.json`:** [Created | Updated (added hoist-react) | Already configured | Skipped (requires @xh/hoist v82+)]
+- **`.mcp.json`:** [Created | Updated (added entries: <list>) | Already configured]
 - **Client plugins:** [N plugin(s) documented | None detected]
-- **MCP server:** [Connected -- docs accessible | Not available (restart Claude Code to activate) | Requires @xh/hoist v82+ (upgrade needed)]
-- **Next steps:** Start coding with AI assistance. The MCP server tools provide
-  framework documentation and API lookup when available.
+
+### hoist-react
+- **MCP entry:** [Written | Already present | Skipped (requires @xh/hoist v82+ -- run /xh:hoist-upgrade first)]
+- **MCP runtime:** [Active (verified via ping) | Will activate on Claude Code restart, or remain dormant if the environment blocks MCP]
+- **CLI fallback:** `npx hoist-docs ...` and `npx hoist-ts ...` from `client-app/` -- works in any environment.
+
+### hoist-core
+- **MCP+CLI tools:** [Installed via installHoistCoreTools, CLI verified working | User deferred (run again later or ask Claude to install/set up the hoist-core MCP+CLI tools) | Skipped (requires hoistCoreVersion >= 39.0 -- upgrade hoist-core first) | Already installed]
+- **CLI surface:** `./bin/hoist-core-docs` and `./bin/hoist-core-symbols` -- works in any environment.
+- **MCP runtime:** [Active (verified via ping) | Will activate on Claude Code restart, or remain dormant if the environment blocks MCP | N/A (not installed)]
+
+### Reference skills
+The `using-hoist-react-reference` and `using-hoist-core-reference` skills (shipped by the `xh`
+plugin) fire automatically when authoring Hoist code, asking for orientation, or asking to
+install/upgrade the hoist-core MCP+CLI tools. No manual invocation needed.
+
+### MCP-blocked environments
+If your environment blocks MCP traffic, the CLI surfaces above are the working path. Use
+`npx hoist-docs`/`npx hoist-ts` (hoist-react) and `./bin/hoist-core-docs`/`./bin/hoist-core-symbols`
+(hoist-core) directly. The `.mcp.json` entries are harmless in this state and become
+functional automatically if MCP later becomes available -- no rerun required.
+
+### Next steps
+Restart Claude Code to pick up new `.mcp.json` entries (skip if MCP is blocked in your
+environment -- the CLI surfaces are already live). Then start coding -- the reference skills
+will route you to framework docs and API lookups.
 ```

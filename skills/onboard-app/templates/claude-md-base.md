@@ -92,10 +92,10 @@ Linked models with `doLoadAsync` are loaded automatically on mount.
 
 **HoistService** — singleton services installed during app init and accessed via `XH`:
 ```typescript
-XH.tradeService.submitTradeAsync(trade);  // Custom service
-XH.fetchJson({url: 'api/data'});          // FetchService alias
-XH.getConf('featureFlag', false);         // ConfigService alias
-XH.getPref('pageSize', 50);              // PrefService alias
+XH.fetchJson({url: 'api/data'});            // FetchService alias
+XH.getConf('featureFlag', false);            // ConfigService alias
+XH.getPref('pageSize', 50);                  // PrefService alias
+XH.<yourCustomService>.<yourMethodAsync>();  // Your app's services, registered during app init
 ```
 
 **XH singleton** — the top-level API entry point. Provides service access, data fetching
@@ -110,51 +110,18 @@ navigation (`navigate`, `appendRoute`), and app state (`appState`, `darkTheme`).
 4. **Calling `lookupModel()` too early** — only works during or after `onLinked()`.
 5. **Calling `doLoadAsync()` directly** — use `loadAsync()` / `refreshAsync()` entry points.
 
-#### Quick Reference — MCP Doc IDs by Task
+## Hoist Reference Skills
 
-Use `hoist-search-docs` with the doc ID for full documentation on any topic.
+When working with Hoist code, the `using-hoist-react-reference` and `using-hoist-core-reference`
+skills (shipped by the `xh` Claude Code plugin) guide reference lookups. They fire
+automatically when you're about to author Hoist code or ask for orientation, and route you to
+the right MCP tool or CLI command. The hoist-core skill also fires on requests to install or
+upgrade the hoist-core MCP+CLI tools. You don't need to invoke them manually.
 
-| If you need to... | Doc ID |
-|---|---|
-| Understand the component/model/service pattern | `core` |
-| Work with Stores, Records, Fields, or Filters | `data` |
-| Fetch data, read configuration, or manage preferences | `svc` |
-| Build or configure a data grid | `cmp/grid` |
-| Build a form with validation | `cmp/form` |
-| Understand input change/commit lifecycle | `cmp/input` |
-| Use layout containers (Box, HBox, VBox) | `cmp/layout` |
-| Create a tabbed interface | `cmp/tab` |
-| Save and restore named view configurations | `cmp/viewmanager` |
-| Build a configurable dashboard with draggable widgets | `desktop/cmp/dash` |
-| Configure a desktop panel (toolbars, masks, collapse) | `desktop/cmp/panel` |
-| Build a mobile app | `mobile` |
-| Format numbers, dates, or currencies | `format` |
-| Understand app lifecycle and startup sequence | `lifecycle-app` |
-| Understand model/service lifecycles and loading | `lifecycle-models-and-services` |
-| Add authentication (OAuth, login) | `authentication` |
-| Persist UI state (columns, filters, panel sizes) | `persistence` |
-| Check roles, gates, or app access | `authorization` |
-| Configure client-side routing | `routing` |
-| Handle exceptions and display errors | `error-handling` |
-| Add testId selectors for test automation | `test-automation` |
-| Use Promises with error handling and tracking | `promise` |
-| Work with MobX observables and `@bindable` | `mobx` |
-| Use timers, decorators, or utility functions | `utils` |
-| Configure the app shell, dialogs, toasts, or theming | `appcontainer` |
-| Use icons in buttons, menus, and grids | `icon` |
-| Configure OAuth with Auth0 or Microsoft Entra | `security` |
-
-#### MCP Tools
-
-For full documentation beyond this primer, use the hoist-react MCP tools:
-
-- **`hoist-search-docs`** — keyword search across all docs; use doc IDs from the table above
-- **`hoist-search-symbols`** — search TypeScript symbols, classes, and API signatures
-- **`hoist-list-docs`** — browse the complete documentation catalog
-- **`hoist-get-symbol`** / **`hoist-get-members`** — detailed type info for specific classes
-
-**Skipping the docs risks producing code that conflicts with established patterns or misses
-built-in functionality.**
+Each skill has two interchangeable surfaces -- MCP tools (when MCP is enabled) and CLI
+launchers (always available once installed). In MCP-blocked environments the CLI is the
+working path; the skills route to it transparently. If neither surface is reachable, run
+`/xh:onboard-app` to wire things up.
 
 ### hoist-core (server-side)
 
@@ -165,16 +132,23 @@ built-in functionality.**
 - Dev server: `./gradlew bootRun`
 - Production build: `./gradlew war`
 
-The hoist-core repository contains a growing `docs/` directory with documentation on server-side
-architecture, services, and conventions. Consult these docs via the public GitHub repository at
-https://github.com/xh/hoist-core for specific guidance on server-side work.
+For server-side work, the `using-hoist-core-reference` skill (see above) routes you to the
+hoist-core developer tools. Two surfaces ship from the same fat JAR:
+
+- **MCP tools** -- `mcp__hoist-core__*` when MCP is enabled (after running
+  `installHoistCoreTools` and restarting Claude Code).
+- **CLI launchers** -- `./bin/hoist-core-docs` and `./bin/hoist-core-symbols` once installed.
+  These work in any environment, including MCP-blocked ones.
+
+The hoist-core docs are also available via the public GitHub repository at
+https://github.com/xh/hoist-core.
 
 ## Commands
 
 ### Frontend (run from `client-app/`)
-- Install: `yarn install` (or `npm install`)
-- Dev server: `yarn start` (or `npm start`)
-- Lint: `yarn lint` (or `npm run lint`)
+- Install: `{{PKG_MGR_INSTALL}}`
+- Dev server: `{{PKG_MGR_START}}`
+- Lint: `{{PKG_MGR_LINT}}`
 - Type check: `npx tsc --noEmit`
 
 ### Backend (run from project root)

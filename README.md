@@ -7,7 +7,7 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 - **MCP Server** -- automatically connects the hoist-react MCP server, giving Claude access to
   Hoist framework documentation and TypeScript API lookups.
-- **Skills** -- project onboarding, version upgrades, and feedback filing (see
+- **Skills** -- project onboarding, version upgrades, and Hoist API reference for AI agents (see
   [Available Skills](#available-skills) below).
 - **Permission Defaults** -- pre-approves hoist-react MCP tools so they work without prompts.
 
@@ -15,7 +15,6 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 - [Claude Code](https://claude.com/code) CLI installed and authenticated.
 - `@xh/hoist` installed in your project's `node_modules` (provides the MCP server).
-- `gh` CLI installed and authenticated (for the feedback skill).
 
 ## Installation
 
@@ -55,7 +54,6 @@ This will:
 |-------|---------|--------------------------------------------|
 | Onboard | `/xh:onboard-app` | Configure AI setup for a Hoist project     |
 | Upgrade | `/xh:hoist-upgrade` | Upgrade hoist-react to a new major version |
-| Feedback | `/xh:feedback` | File feedback as a GitHub issue            |
 
 ## Project-Level Auto-Discovery
 

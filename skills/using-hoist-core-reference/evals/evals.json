@@ -1,0 +1,142 @@
+{
+  "skill_name": "using-hoist-core-reference",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a method to SampleService that fetches a list of items, with caching. Use Hoist's caching primitives.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill, looks up Cache or Timer in the reference tools, and proposes a method that uses them correctly.",
+      "files": ["evals/files/SampleService.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent called either `mcp__hoist-core__hoist-core-search-symbols` or `mcp__hoist-core__hoist-core-get-members` (or the CLI equivalent if available) to look up Cache",
+        "The proposed code uses Hoist's `Cache` (or `CachedValue`/`Timer`) class, not a hand-rolled map"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a new endpoint to SampleController that returns paged results. Use Hoist conventions.",
+      "expected_output": "The agent invokes the skill, looks up BaseController's render helpers, and proposes an endpoint using `renderJSON` (or similar).",
+      "files": ["evals/files/SampleController.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent consulted the reference tools for BaseController members or render conventions",
+        "The proposed endpoint uses Hoist's render helper (e.g. `renderJSON`) and follows the pattern in the existing methods"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "How do I expose a Hoist config to SampleService so it reads a configurable refresh interval?",
+      "expected_output": "The agent invokes the skill, queries docs/symbols for ConfigService, and proposes the right injection and access pattern.",
+      "files": ["evals/files/SampleService.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent looked up ConfigService (or `configService` injection) via the reference tools",
+        "The proposed code reads the config via Hoist's mechanism, not a hardcoded value or environment variable"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Add cluster-aware behavior to SampleService so cache invalidation broadcasts to other nodes.",
+      "expected_output": "The agent invokes the skill, looks up ClusterService or distributed cache patterns, and proposes the right approach.",
+      "files": ["evals/files/SampleService.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent searched docs/symbols for cluster, ClusterService, or distributed cache",
+        "The proposed solution uses Hoist's cluster primitives (e.g. ClusterService, distributed Cache)"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm new to hoist-core. Show me where to start reading docs to understand BaseService, BaseController, and the common services.",
+      "expected_output": "The agent invokes the skill, queries the docs index, and surfaces the relevant README locations.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent called the docs index tool (`hoist-core-list-docs`, `hoist-core-search-docs` with broad query, or CLI equivalent if available)",
+        "The agent referenced specific hoist-core docs by id"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Add a /health endpoint to PlainSpringController that includes the JVM uptime in milliseconds. Don't introduce dependencies.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill. This is plain Spring with no hoist-core imports.",
+      "files": ["evals/files/PlainSpringController.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked",
+        "The agent added the endpoint without consulting hoist-core reference tools"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Add a `dependencies` block stub to a fresh build.gradle for a Spring Boot project. No hoist-core needed.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Refactor PlainSpringController so the health response key uses the constant 'STATUS_KEY' defined in a sibling Constants class.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill.",
+      "files": ["evals/files/PlainSpringController.groovy"],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked",
+        "The agent refactored without consulting hoist-core tools"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Set up the hoist-core MCP server and CLI tools in this Hoist app so AI agents can use them. We're on hoistCoreVersion 39.0.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill, follows the install procedure (Gradle snippet, installHoistCoreTools task, .mcp.json wiring with --source bundled launcher).",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent proposed adding a `hoistCoreCli` configuration and `installHoistCoreTools` Sync task to `build.gradle`",
+        "The agent's mcp launcher passes `--source bundled` (or otherwise references the bundled content path) so the MCP server works without a hoist-core checkout sibling",
+        "The agent updated (or proposed updating) `.mcp.json` to point the `hoist-core` server at `./bin/hoist-core-mcp`"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Our app's hoistCoreVersion was just bumped to 39.0. Refresh the project-local hoist-core CLI launchers so they point at the new version.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill and re-runs the install task (or guides the user to) to refresh the version-locked launchers.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent's response involves re-running `./gradlew installHoistCoreTools` (or invoking it for the user) to regenerate launchers against the new JAR",
+        "The agent did NOT propose hand-editing the launcher scripts directly"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I want the hoist-core docs CLI installed in this app so I can search hoist-core docs from the shell without MCP. The app already depends on hoist-core 39.0.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill and walks through the install procedure (Gradle snippet + install task + bin launchers).",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent's plan produces the `./bin/hoist-core-docs` launcher via the `installHoistCoreTools` Gradle task",
+        "The agent did NOT suggest a npm/npx-based installation path (which is hoist-react's model, not hoist-core's)"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Add a new direct dependency on `org.apache.commons:commons-lang3:3.14.0` to this Hoist app's build.gradle. Keep the existing dependencies untouched.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill — this is a routine Gradle dependency edit, not anything to do with the hoist-core MCP/CLI tools.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked",
+        "The agent edited `build.gradle` directly without consulting hoist-core MCP/CLI install reference"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Bump grailsVersion in gradle.properties from 7.0.7 to 7.0.9. Don't touch anything else.",
+      "expected_output": "The agent does NOT invoke the using-hoist-core-reference skill — this is a routine version bump unrelated to hoist-core MCP/CLI install.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was NOT invoked"
+      ]
+    }
+  ]
+}
