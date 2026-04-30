@@ -134,11 +134,11 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
     }
     ```
 
-    > **Note on `--source bundled`:** As of the first release containing the install task (v39.0),
-    > the snippet shown in `mcp/README.md` does **not** pass `--source bundled` to the mcp
-    > launcher. That snippet works only when the app has a sibling `../hoist-core/` checkout. The
-    > version above adds the flag so the install works for any app, regardless of sibling layout.
-    > A follow-up to align hoist-core's bare-MCP default with bundled is tracked separately.
+    > **Why `--source bundled` on the mcp launcher:** the bare MCP server defaults to `local`
+    > mode and fails without a sibling `../hoist-core/` checkout — exactly the App-Side
+    > Distribution premise. The flag forces it to read JAR-embedded content, which is what an
+    > app install always wants. If a future hoist-core release changes the bare-MCP default to
+    > bundled, the flag becomes redundant but harmless.
 
    If `hoistCoreVersion` is provided transitively by a client plugin and isn't declared in `gradle.properties`, change the `hoistCoreCli` dependency line to use the resolved version (e.g. `"io.xh:hoist-core-mcp:39.0:all@jar"`) or wire it through `ext.hoistCoreVersion = ...` first. Confirm the resolved version with `./gradlew dependencies --configuration runtimeClasspath | grep io.xh:hoist-core` if needed.
 
