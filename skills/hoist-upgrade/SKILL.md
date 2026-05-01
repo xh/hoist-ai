@@ -374,62 +374,97 @@ difficulty ratings read from the upgrade guides.
 
 ## Phase 5: Report
 
-### 1. Locate the upgrade report template
+Render a structured upgrade summary directly in the chat. Do NOT write a report file --
+the conversation is the artifact. If the developer wants it persisted, they can copy it,
+ask you to save it somewhere specific, or paste it into the PR description (see step 2).
 
-Use `Glob` to find the template:
+### 1. Render the summary
+
+Print the following as a single Markdown response. Use short prose and lists; lean on
+tables only where they genuinely help (e.g. the hop overview). Skip optional sections
+when they don't apply.
+
+```markdown
+## Hoist Upgrade Complete: @xh/hoist v{FROM} -> v{TO}
+
+- **Hops:** {N} ({comma-separated hop list, e.g. v77 -> v78, v78 -> v79})
+- **Branch:** {branch name}
+- **Package manager:** {yarn | npm}
+
+### Hop Overview
+
+| Hop | Difficulty | Changes | Judgment Calls | Status |
+|-----|------------|---------|----------------|--------|
+| v{a} -> v{b} | {TRIVIAL/LOW/MEDIUM/HIGH} | {n} | {n} | {ok / failed} |
+| ...
+
+### Per-Hop Detail
+
+#### v{a} -> v{b} ({difficulty}, guide: {upgrade-notes | CHANGELOG})
+
+**Mechanical changes applied:**
+- `{file}` -- {what changed}
+- ...
+
+**Judgment calls (require your review):**
+- **{item}** -- {one-line description}
+  - Files: {comma-separated}
+  - Guide recommendation: {recommendation}
+
+{Repeat per hop. Omit empty subsections.}
+
+### Verification
+
+- TypeScript (`tsc --noEmit`): {pass | fail with brief detail}
+- Lint: {pass | fail with brief detail}
+- hoist-react CLI (`npx hoist-docs index`): {ok | error}
+- hoist-react MCP reconnect: {reconnected | skipped | failed}
+- hoist-core CLI (if launchers refreshed): {ok | error | N/A}
+
+### hoist-core Changes
+{Include only if hoistCoreVersion was bumped.}
+
+- {old} -> {new} (required by {hop or guide reference})
+- Launchers: {refreshed via installHoistCoreTools, ping verified | not previously installed -- skipped}
+- {If significant server-side code was detected in Phase 1, add a one-line note that
+  server-side review is recommended.}
+
+### Client Plugin Notes
+{Include only if client plugins were detected.}
+
+- `{plugin}`: {old} -> {new or unchanged} -- {notes}
+
+### Next Steps
+- [ ] Review the judgment calls above and apply as appropriate
+- [ ] Test affected features (especially anything in judgment calls)
+- [ ] Run the app and verify core functionality
+{Include if hoist-core was bumped:}
+- [ ] Review hoist-core release notes if this project has significant server-side code
+{Include if hoistCoreVersion >= 39.0 AND bin/hoist-core-mcp does NOT exist:}
+- [ ] Install the hoist-core MCP+CLI tools now that you're eligible (>= v39.0):
+      run `/xh:onboard-app` -- it will detect the new eligibility and offer to install
+{Include if client plugins were detected:}
+- [ ] Verify client plugin compatibility with the upgraded Hoist version
+- [ ] Open / merge the pull request for this upgrade branch
 ```
-**/hoist-upgrade/templates/upgrade-report.md
-```
 
-Read the template from the matched path.
+Be honest in the verification section -- if `tsc` or lint failed and you and the developer
+worked through the failures, summarize what was resolved. If something is still broken at
+report time, say so plainly so the developer doesn't merge a half-green branch.
 
-### 2. Generate the upgrade report
-
-Fill in the template with all data collected during the upgrade:
-- Version hops completed with difficulty ratings
-- Changes applied per hop (files modified, what was changed)
-- Judgment calls flagged per hop (description, affected files, recommendation)
-- Verification results (tsc, lint, any other checks)
-- hoist-core changes (if version was bumped)
-- Client plugin notes (if plugins were detected and handled)
-
-Write the completed report to:
-```
-docs/upgrade-reports/upgrade-v{FROM}-to-v{TO}-{YYYY-MM-DD}.md
-```
-
-Create the `docs/upgrade-reports/` directory if it does not exist.
-
-### 3. Display terminal summary
-
-Show a condensed summary in the terminal:
-
-```
-## Upgrade Complete: @xh/hoist v{FROM} -> v{TO}
-
-- **Versions upgraded:** {hop count}
-- **Changes applied:** {total count}
-- **Judgment calls:** {count} items requiring your review
-- **Verification:** CLI: {ok/fail}, MCP: {reconnected/skipped/failed}, tsc: {status}, lint: {status}
-- **hoist-core:** {bumped from vXX to vYY -- launchers refreshed | bumped from vXX to vYY (no launchers to refresh) | unchanged}
-- **hoist-core MCP+CLI install eligibility:** {now eligible (>= v39.0) -- run /xh:onboard-app to install | already installed | not eligible (< v39.0) | N/A}
-- **Full report:** docs/upgrade-reports/upgrade-v{FROM}-to-v{TO}-{YYYY-MM-DD}.md
-```
-
-### 4. Offer PR creation
+### 2. Offer PR creation
 
 Check if the `gh` CLI is available:
 ```bash
 gh --version
 ```
 
-If available, offer to create a pull request:
-> "Would you like me to create a pull request for this upgrade? (yes/no)"
+If available, ask: **"Create a pull request for this upgrade? (yes/no)"**
 
-If yes, use `gh pr create` with a title like "Upgrade @xh/hoist v{FROM} -> v{TO}". For the
-body, lead with the terminal summary so a reviewer can scan key facts in seconds, then a
-separator, then the full content of the upgrade report file (read it back with the `Read`
-tool and inline it). This keeps the PR self-contained -- a reviewer doesn't need to check out
-the branch to see the full per-hop changes and judgment calls.
+If yes, run `gh pr create` with:
+- Title: `Upgrade @xh/hoist v{FROM} -> v{TO}`
+- Body: the exact same summary you just rendered above, passed via a HEREDOC. Reuse the
+  content; don't regenerate or trim it -- a reviewer should be able to scan the PR and see
+  every per-hop change and judgment call without checking out the branch.
 
-If `gh` is not available, skip this step silently.
+If `gh` is not available, skip silently.
