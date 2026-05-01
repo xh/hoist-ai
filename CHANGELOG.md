@@ -5,6 +5,9 @@
 * `hoist-upgrade`: dropped the auto PR-creation step from Phase 5. The skill stops at
   the rendered summary; developers can ask the agent to follow up with whatever they
   want (open a PR, merge directly, etc.). Some environments don't have `gh` configured.
+* `using-hoist-react-reference`: added a "CLI working directory" section reminding the
+  agent that `npx hoist-docs` / `npx hoist-ts` must be run from `client-app/`, not the
+  project root. Agents commonly stumbled on this in practice.
 
 ## 1.3.2 - 2026-05-01
 

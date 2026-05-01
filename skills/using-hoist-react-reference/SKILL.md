@@ -23,6 +23,22 @@ Each workflow step has two interfaces. Use the column that matches what's in you
 
 If `mcp__hoist-react__*` tools are listed in your tool context, prefer them. Otherwise use the CLI column. The MCP tool names look the same regardless of whether the server is running locally or as a deployed remote endpoint - transport is invisible to you.
 
+## CLI working directory
+
+The `npx hoist-docs` and `npx hoist-ts` commands resolve `@xh/hoist` from the local
+`node_modules`, so they must be run from the Hoist app's `client-app/` directory --
+not the project root. This is where agents most often stumble.
+
+Hoist apps consistently put their Grails/Groovy backend at the project root and the
+React/TypeScript frontend under `client-app/`. If Claude was launched at the project
+root (the common case), prefer a subshell so the parent cwd isn't disturbed:
+
+    (cd client-app && npx hoist-docs search "<query>")
+    (cd client-app && npx hoist-ts members GridConfig)
+
+`cd client-app` once at the start of a sequence of CLI calls also works. MCP tool
+calls don't have this concern -- the MCP server resolves paths internally.
+
 ## Workflow
 
 Standard sequence for any Hoist authoring task:
