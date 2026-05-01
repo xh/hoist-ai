@@ -375,8 +375,8 @@ difficulty ratings read from the upgrade guides.
 ## Phase 5: Report
 
 Render a structured upgrade summary directly in the chat. Do NOT write a report file --
-the conversation is the artifact. If the developer wants it persisted, they can copy it,
-ask you to save it somewhere specific, or paste it into the PR description (see step 2).
+the conversation is the artifact. If the developer wants it persisted, they can copy it
+or ask you to save it somewhere specific.
 
 ### 1. Render the summary
 
@@ -451,20 +451,3 @@ when they don't apply.
 Be honest in the verification section -- if `tsc` or lint failed and you and the developer
 worked through the failures, summarize what was resolved. If something is still broken at
 report time, say so plainly so the developer doesn't merge a half-green branch.
-
-### 2. Offer PR creation
-
-Check if the `gh` CLI is available:
-```bash
-gh --version
-```
-
-If available, ask: **"Create a pull request for this upgrade? (yes/no)"**
-
-If yes, run `gh pr create` with:
-- Title: `Upgrade @xh/hoist v{FROM} -> v{TO}`
-- Body: the exact same summary you just rendered above, passed via a HEREDOC. Reuse the
-  content; don't regenerate or trim it -- a reviewer should be able to scan the PR and see
-  every per-hop change and judgment call without checking out the branch.
-
-If `gh` is not available, skip silently.
