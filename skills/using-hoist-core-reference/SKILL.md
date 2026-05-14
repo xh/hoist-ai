@@ -28,6 +28,25 @@ If `mcp__hoist-core__*` tools are listed in your tool context, prefer them - the
 
 The CLI launchers are project-local (created at `<project>/bin/hoist-core-*` by the `installHoistCoreTools` Gradle task). Always invoke them as `./bin/hoist-core-...` from the app project root, not `npx`-style.
 
+## Preflight (do once per session before first CLI use)
+
+Skip this if you're working through MCP only. For the CLI surface, before the first `./bin/hoist-core-*` call in a session, verify the launchers are present and functional:
+
+1. Check that `./bin/hoist-core-docs`, `./bin/hoist-core-symbols`, and `./bin/hoist-core-mcp` exist at the project root.
+2. Sanity-check one of them:
+
+       ./bin/hoist-core-docs ping
+
+   Expect: `hoist-core CLI is running.`
+
+If any file is **missing**, jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** and run the full install procedure.
+
+If the files exist but `ping` **fails** (most common cause: `./gradlew clean` wiped the JAR the absolute path in each launcher points at, but the launcher itself was retained on disk), re-run only `./gradlew installHoistCoreTools` — it's idempotent and re-resolves the JAR. No need to re-edit `build.gradle` or `.mcp.json`.
+
+Briefly mention the refresh in your next user-facing message (e.g. "refreshed hoist-core launchers after the JAR was cleaned").
+
+The preflight runs once per session — once you've confirmed (or fixed) the launchers, you don't need to re-check on every CLI call.
+
 ## Workflow
 
 Standard sequence for any hoist-core authoring task:

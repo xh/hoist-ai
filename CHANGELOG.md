@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.4.0 - 2026-05-14
+
+* `using-hoist-react-reference`: introduced project-root CLI launchers (`./bin/hoist-docs`, `./bin/hoist-ts`) that wrap
+  the `@xh/hoist`-shipped binaries through `client-app/node_modules/.bin/`. Agents now invoke the CLI from the harness's
+  default working directory with no `cd` required, eliminating the recurring "must run from `client-app/`" gotcha. The
+  skill owns the install procedure; onboarding no longer wires the CLI.
+* `using-hoist-react-reference`: added a "Preflight (do once per session before first CLI use)" section. Agents verify
+  launcher presence and a `# hoist-ai-launcher: hoist-react/v1` stamp at the top of each file. Missing or drifted
+  launchers trigger an idempotent rewrite, so plugin updates that bump the stamp version self-propagate across all
+  consuming apps on next agent invocation.
+* `using-hoist-core-reference`: added a parallel Preflight section. Agents verify the three `./bin/hoist-core-*`
+  launchers exist and that `./bin/hoist-core-docs ping` succeeds before first CLI use. Catches the common case where
+  `./gradlew clean` wipes the JAR a launcher's absolute path points at — the fix is one idempotent
+  `./gradlew installHoistCoreTools` re-run.
+* `onboard-app`: stopped wiring the hoist-react CLI itself. Verification now reports launcher presence informationally
+  and notes that the `using-hoist-react-reference` skill installs them automatically on first CLI use. Greenfield
+  projects get the same end state, just lazily.
+* Removed the "CLI working directory" advisory section from `using-hoist-react-reference` — the launcher pattern makes
+  the advice moot.
+
 ## 1.3.3 - 2026-05-13
 
 * `hoist-upgrade`: dropped the auto PR-creation step from Phase 5. The skill stops at

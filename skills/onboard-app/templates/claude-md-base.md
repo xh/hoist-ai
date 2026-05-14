@@ -6,7 +6,7 @@ This is a Hoist application built on `@xh/hoist` (hoist-react) and `hoist-core`.
 
 ### hoist-react (client-side)
 
-Read the Architecture Primer below, then use the MCP tools for full documentation on any topic.
+Read the Architecture Primer below, then use the MCP tools (or the `./bin/hoist-docs` and `./bin/hoist-ts` CLI launchers in MCP-blocked environments) for full documentation on any topic. The `using-hoist-react-reference` skill auto-fires when you author Hoist code and routes between surfaces.
 
 #### Architecture Primer
 

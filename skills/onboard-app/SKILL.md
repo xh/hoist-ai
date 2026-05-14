@@ -359,9 +359,16 @@ Otherwise:
    context. Success → "MCP active". Tool not present or fails → "MCP entry written, will
    activate on next Claude Code restart (or remain dormant in MCP-blocked environments)" --
    this is not an error.
-2. **CLI sanity (only if MCP failed).** From `client-app/`, run `npx hoist-docs index` and
-   confirm it prints the docs index. If the project's `node_modules` aren't installed, surface
-   the package-manager install step as the user's next action.
+2. **CLI launcher presence (informational).** Check whether `./bin/hoist-docs` and
+   `./bin/hoist-ts` exist at the project root.
+   - If both present, optionally run `./bin/hoist-docs index` to confirm output. If
+     `client-app/node_modules` isn't installed yet, surface the package-manager install step.
+   - If absent, do **not** install them here. Note in the Phase 6 report: "hoist-react CLI
+     launchers not yet installed -- the `using-hoist-react-reference` skill installs them
+     automatically the first time an agent reaches for the CLI surface in this project."
+   This deferred-install model keeps onboarding focused on once-only setup
+   (`.mcp.json`, `CLAUDE.md`) and lets the reference skill own the launcher lifecycle,
+   including refresh when the stamp version bumps.
 
 ### hoist-core (only if Phase 3.5 installed it)
 
@@ -395,7 +402,8 @@ calls out the CLI fallback for MCP-blocked environments:
 ### hoist-react
 - **MCP entry:** [Written | Already present | Skipped (requires @xh/hoist v82+ -- run /xh:hoist-upgrade first)]
 - **MCP runtime:** [Active (verified via ping) | Will activate on Claude Code restart, or remain dormant if the environment blocks MCP]
-- **CLI fallback:** `npx hoist-docs ...` and `npx hoist-ts ...` from `client-app/` -- works in any environment.
+- **CLI launchers:** [Installed at `./bin/hoist-docs`, `./bin/hoist-ts` | Not yet installed -- `using-hoist-react-reference` skill installs on first CLI use]
+- **CLI surface:** `./bin/hoist-docs` and `./bin/hoist-ts` -- works in any environment, including MCP-blocked ones.
 
 ### hoist-core
 - **MCP+CLI tools:** [Installed via installHoistCoreTools, CLI verified working | User deferred (run again later or ask Claude to install/set up the hoist-core MCP+CLI tools) | Skipped (requires hoistCoreVersion >= 39.0 -- upgrade hoist-core first) | Already installed]
@@ -409,9 +417,10 @@ install/upgrade the hoist-core MCP+CLI tools. No manual invocation needed.
 
 ### MCP-blocked environments
 If your environment blocks MCP traffic, the CLI surfaces above are the working path. Use
-`npx hoist-docs`/`npx hoist-ts` (hoist-react) and `./bin/hoist-core-docs`/`./bin/hoist-core-symbols`
-(hoist-core) directly. The `.mcp.json` entries are harmless in this state and become
-functional automatically if MCP later becomes available -- no rerun required.
+`./bin/hoist-docs`/`./bin/hoist-ts` (hoist-react) and `./bin/hoist-core-docs`/`./bin/hoist-core-symbols`
+(hoist-core) directly. Both pairs are project-root launchers usable from any working directory.
+The `.mcp.json` entries are harmless in this state and become functional automatically if MCP
+later becomes available -- no rerun required.
 
 ### Next steps
 Restart Claude Code to pick up new `.mcp.json` entries (skip if MCP is blocked in your
