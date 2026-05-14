@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.3.3 - 2026-05-13
 
 * `hoist-upgrade`: dropped the auto PR-creation step from Phase 5. The skill stops at
   the rendered summary; developers can ask the agent to follow up with whatever they

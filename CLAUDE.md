@@ -44,3 +44,8 @@ settings.json            Default MCP tool permission allowlist
   `skill-creator` evals against both reference skills (`using-hoist-react-reference` and
   `using-hoist-core-reference`) and confirm the acceptance bars (>=90% positive recall,
   <=10% false-positive rate) are met. The eval suites live under each skill's `evals/` directory.
+
+---
+
+info@xh.io | https://xh.io
+Copyright 2026 Extremely Heavy Industries Inc.
