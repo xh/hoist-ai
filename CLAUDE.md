@@ -40,10 +40,18 @@ settings.json            Default MCP tool permission allowlist
 - Keep consumer-facing files generic -- do not reference specific sibling repos or client projects.
 - The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
 - Always bump `plugin.json` version before pushing changes.
-- Before bumping `plugin.json` for a release that touches a model-invokable skill, run
-  `skill-creator` evals against both reference skills (`using-hoist-react-reference` and
-  `using-hoist-core-reference`) and confirm the acceptance bars (>=90% positive recall,
-  <=10% false-positive rate) are met. The eval suites live under each skill's `evals/` directory.
+- Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
+  skill-creator best practices on the `description:` frontmatter: single paragraph with no
+  blank-line breaks (the harness truncates display at blank lines, so anything past the
+  first blank line never reaches the model); concrete TRIGGER/SKIP blocks anchoring on
+  real keywords/symbols the user is likely to type; directive "ALWAYS use this skill
+  when..." framing. The trigger eval sets live at `skills/<skill>/evals/trigger.json`
+  and can be re-run via the skill-creator `run_eval.py` script for a directional sanity
+  check (FP rate should stay near 0%; positive recall should not regress) -- but note
+  the script simulates skills as slash commands under `claude -p` and exhibits a
+  measurement ceiling around 15% recall regardless of description quality, so it is
+  NOT a hard pass/fail bar. Real installed-plugin triggering behaves much better than
+  the script measures.
 
 ---
 

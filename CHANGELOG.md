@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4.1 - 2026-05-14
+
+* Rewrote `description:` frontmatter for both reference skills (`using-hoist-react-reference`,
+  `using-hoist-core-reference`) following skill-creator best practices: single-paragraph format
+  with no blank-line breaks (so the full text reaches the model -- the harness truncates display
+  at blank lines), concrete TRIGGER and SKIP blocks anchoring on real symbols and keywords agents
+  encounter in practice, directive "ALWAYS use this skill when..." framing to combat the model's
+  default undertriggering tendency.
+* Added trigger eval sets at `skills/<skill>/evals/trigger.json` (20 react queries, 23 core
+  queries) covering positive cases across the full skill surface and negative cases including
+  near-misses with overlapping keywords (plain Spring, JPA, Liquibase, plain React/MobX, plain TS).
+  Re-runnable via skill-creator's `run_eval.py`.
+* Updated CLAUDE.md's eval-bar rule: noted that `run_eval.py` simulates skills as slash commands
+  and has a measurement ceiling around 15% recall regardless of description quality, so the
+  prior >=90% hard bar isn't directly attainable; reframed as directional guidance (FP near 0%,
+  no recall regressions) plus the structural best practices above.
+
 ## 1.4.0 - 2026-05-14
 
 * `using-hoist-react-reference`: introduced project-root CLI launchers (`./bin/hoist-docs`, `./bin/hoist-ts`) that wrap

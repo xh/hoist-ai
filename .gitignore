@@ -19,3 +19,4 @@ yarn-error.log*
 
 # skill-creator eval workspace artifacts (generated, not committed)
 skills/*-workspace/
+.eval-workspace/

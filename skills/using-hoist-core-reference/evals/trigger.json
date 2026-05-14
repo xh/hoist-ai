@@ -1,0 +1,94 @@
+[
+  {
+    "query": "Add a method to grails-app/services/SampleService.groovy that fetches a list of items, with caching. Use our framework's caching primitives.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a new endpoint to SampleController that returns paged results. Use our framework's conventions.",
+    "should_trigger": true
+  },
+  {
+    "query": "How do I expose a config to SampleService so it reads a configurable refresh interval through our framework's ConfigService?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add cluster-aware behavior to SampleService so cache invalidation broadcasts to other nodes.",
+    "should_trigger": true
+  },
+  {
+    "query": "I'm new to hoist-core. Show me where to start reading docs to understand BaseService, BaseController, and the common services.",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up the hoist-core MCP server and CLI tools in this Hoist app so AI agents can use them. We're on hoistCoreVersion 39.0.",
+    "should_trigger": true
+  },
+  {
+    "query": "Our app's hoistCoreVersion was just bumped to 39.0. Refresh the project-local hoist-core MCP server and CLI tools.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want the hoist-core docs CLI installed in this app so I can search hoist-core docs from the terminal.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a scheduled task to SampleService that polls an external feed every 5 minutes. Use our framework's Timer.",
+    "should_trigger": true
+  },
+  {
+    "query": "Inject SampleService into AnotherService following our service conventions, including the field-level annotation we use.",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up monitoring so the admin dashboard reports red when the data feed is more than 10 minutes stale. Service is at grails-app/services/DataFeedService.groovy.",
+    "should_trigger": true
+  },
+  {
+    "query": "We had a cluster failover last night and our cache invalidation didn't propagate. PortfolioCacheService uses a hand-rolled HashMap - how do we make this cluster-aware using the framework's primitives?",
+    "should_trigger": true
+  },
+  {
+    "query": "ConfigService.getString('apiKey') is returning null in production but works locally. How do we configure that the right way for prod?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a JSON client to SampleService that fetches from an external REST API. Should use our framework's JSON client, not raw HTTP.",
+    "should_trigger": true
+  },
+  {
+    "query": "Wire up the hoist-core CLI tools so I can call ./bin/hoist-core-docs and ./bin/hoist-core-symbols from this project's root.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a /health endpoint to PlainSpringController that includes the JVM uptime in milliseconds. Don't introduce dependencies.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a `dependencies` block stub to a fresh build.gradle for a Spring Boot project. No hoist-core needed.",
+    "should_trigger": false
+  },
+  {
+    "query": "Refactor PlainSpringController so the health response key uses the constant 'STATUS_KEY' defined in a sibling Constants class.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a new direct dependency on `org.apache.commons:commons-lang3:3.14.0` to this app's build.gradle dependencies block. Nothing else.",
+    "should_trigger": false
+  },
+  {
+    "query": "Bump grailsVersion in gradle.properties from 7.0.7 to 7.0.9. Don't touch anything else.",
+    "should_trigger": false
+  },
+  {
+    "query": "Refactor PlainSpringController to use Spring's @PreAuthorize annotation for role-based access. Standard Spring Security, no framework dependency.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add JPA annotations to grails-app/domain/Address.groovy so it maps cleanly to the existing address table. It's a plain Hibernate-mapped domain, no Hoist usage.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a Liquibase migration that adds a `last_login_at` timestamp column to the users table. The changelog is at grails-app/migrations/changelog.groovy.",
+    "should_trigger": false
+  }
+]

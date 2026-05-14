@@ -1,0 +1,82 @@
+[
+  {
+    "query": "I want to add a sortable column to the grid in client-app/src/desktop/tabs/portfolio/SamplePanel.tsx that displays a derived 'doubled' value. Show me how.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a new @bindable field called 'sortField' (string, default 'name') to SamplePanelModel and use it in the grid.",
+    "should_trigger": true
+  },
+  {
+    "query": "Configure persistence on SamplePanelModel so the filterText survives page reloads.",
+    "should_trigger": true
+  },
+  {
+    "query": "What is the correct way to wire up an autorun that reacts to filterText changes on SamplePanelModel? Show me the code.",
+    "should_trigger": true
+  },
+  {
+    "query": "I'm new to Hoist. Show me where to start reading docs to understand Models, Components, and Services.",
+    "should_trigger": true
+  },
+  {
+    "query": "in our PortfolioModel I need to add a refresh button that calls loadAsync and shows a loading indicator while it runs. how do I wire that up the right way?",
+    "should_trigger": true
+  },
+  {
+    "query": "Why is my Grid component not re-rendering when the underlying data store changes? Here's the model: see client-app/src/desktop/PositionsModel.ts",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a TabContainer with three tabs - Overview, Details, History - to the main dashboard view. Each tab should lazy-load.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to expose a new client-side service called PreferencesService that wraps localStorage with our framework's conventions. Where does it go and how do I register it?",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the right way to make a panel's collapsed-state survive page reloads in our app?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a form panel with three fields (name, email, role) and validation, following our coding conventions. The model is at client-app/src/desktop/admin/UserFormModel.ts",
+    "should_trigger": true
+  },
+  {
+    "query": "show me the conventions for how we use MobX in this codebase - I'm coming from plain MobX and want to make sure I'm using the framework right",
+    "should_trigger": true
+  },
+  {
+    "query": "Refactor `formatNumber` in plain-util.ts to be more concise. Don't introduce dependencies.",
+    "should_trigger": false
+  },
+  {
+    "query": "Bump the version field in this package.json from 1.0.0 to 1.0.1.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a `isBlank` overload to plain-util.ts that accepts an array and returns true when the array is empty or contains only blank strings.",
+    "should_trigger": false
+  },
+  {
+    "query": "Convert this class component to a functional component with hooks. It's in client-app/src/components/legacy/OldHeader.tsx and uses setState + componentDidMount, no Hoist imports.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add useMemo around the filteredItems computation in this pure React component to avoid recomputing on every render.",
+    "should_trigger": false
+  },
+  {
+    "query": "Update tsconfig.json to enable `strict` and `noUncheckedIndexedAccess`. What might break?",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix the TypeScript error 'Property `tag` does not exist on type Item' in client-app/src/utils/itemTypes.ts. It's plain TS, no framework dependency.",
+    "should_trigger": false
+  },
+  {
+    "query": "Replace the `any` type in the parseQuery helper with a proper generic. The function lives in client-app/src/utils/queryString.ts and has no framework imports.",
+    "should_trigger": false
+  }
+]
