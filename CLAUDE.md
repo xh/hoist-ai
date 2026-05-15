@@ -50,7 +50,10 @@ settings.json            Default MCP tool permission allowlist
   `run_eval.py` script for a directional sanity check (FP rate should stay near 0%; positive
   recall should not regress) -- but the script simulates skills as slash commands under
   `claude -p` and exhibits a measurement ceiling around 15% recall regardless of description
-  quality, so it is NOT a hard pass/fail bar.
+  quality, so it is NOT a hard pass/fail bar. Keep each description under Claude Code's
+  per-skill listing cap (default 1536 chars) -- anything over gets silently truncated in the
+  model's `available_skills` view, dropping later content (typically the SKIP block) before
+  it reaches the model.
 - Skills that ship executable content (launcher scripts, wrappers) MUST keep that content in
   separate template files under the skill's `templates/` directory, never inline in SKILL.md
   fenced code blocks. Nested-double-quoted shell expansions like `"$(dirname "$0")"` have been

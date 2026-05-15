@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.3 - 2026-05-15
+
+* Both reference-skill `description:` fields shortened to fit under Claude Code's per-skill
+  listing cap. Previous versions exceeded the cap and were being silently truncated, dropping
+  TRIGGER/SKIP detail before reaching the model. Trimmed symbol lists, redundant concept
+  examples, and overspecific carve-outs while preserving the "Why this matters" lead and
+  the TRIGGER/SKIP structure.
+
 ## 1.4.2 - 2026-05-14
 
 * **Bug fix:** `using-hoist-react-reference` launcher content moved out of SKILL.md fenced
