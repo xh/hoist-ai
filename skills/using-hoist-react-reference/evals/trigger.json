@@ -78,5 +78,13 @@
   {
     "query": "Replace the `any` type in the parseQuery helper with a proper generic. The function lives in client-app/src/utils/queryString.ts and has no framework imports.",
     "should_trigger": false
+  },
+  {
+    "query": "Update the Highcharts options object in client-app/src/desktop/portfolio/PortfolioChartPanel.tsx to change the y-axis label color from #333 to #555 and add a tooltip formatter that prefixes values with '$'. The file imports a Hoist `Chart` component and passes the options through to it, but the change is purely Highcharts config -- no Hoist API surface is being introduced or modified.",
+    "should_trigger": false
+  },
+  {
+    "query": "Tweak the AG-Grid column definitions in client-app/src/desktop/PositionsPanel.tsx -- specifically the cellRenderer and valueFormatter for the 'pnl' column. The file uses Hoist's `grid` component which wraps AG-Grid, but the change is config that's passed through to AG-Grid, not a Hoist API change.",
+    "should_trigger": false
   }
 ]

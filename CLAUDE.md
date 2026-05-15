@@ -42,16 +42,28 @@ settings.json            Default MCP tool permission allowlist
 - Always bump `plugin.json` version before pushing changes.
 - Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
   skill-creator best practices on the `description:` frontmatter: single paragraph with no
-  blank-line breaks (the harness truncates display at blank lines, so anything past the
-  first blank line never reaches the model); concrete TRIGGER/SKIP blocks anchoring on
-  real keywords/symbols the user is likely to type; directive "ALWAYS use this skill
-  when..." framing. The trigger eval sets live at `skills/<skill>/evals/trigger.json`
-  and can be re-run via the skill-creator `run_eval.py` script for a directional sanity
-  check (FP rate should stay near 0%; positive recall should not regress) -- but note
-  the script simulates skills as slash commands under `claude -p` and exhibits a
-  measurement ceiling around 15% recall regardless of description quality, so it is
-  NOT a hard pass/fail bar. Real installed-plugin triggering behaves much better than
-  the script measures.
+  blank-line breaks (the harness truncates display at blank lines); lead with a "Why this
+  matters:" line citing concrete failure modes rather than an "ALWAYS use this skill when..."
+  imperative (skill-creator flags ALL-CAPS imperatives as a yellow flag); concrete TRIGGER/SKIP
+  blocks anchoring on real keywords/symbols the user is likely to type. The trigger eval sets
+  live at `skills/<skill>/evals/trigger.json` and can be re-run via the skill-creator
+  `run_eval.py` script for a directional sanity check (FP rate should stay near 0%; positive
+  recall should not regress) -- but the script simulates skills as slash commands under
+  `claude -p` and exhibits a measurement ceiling around 15% recall regardless of description
+  quality, so it is NOT a hard pass/fail bar.
+- Skills that ship executable content (launcher scripts, wrappers) MUST keep that content in
+  separate template files under the skill's `templates/` directory, never inline in SKILL.md
+  fenced code blocks. Nested-double-quoted shell expansions like `"$(dirname "$0")"` have been
+  observed losing the `$0` literal somewhere in the skill-loading pipeline when embedded in
+  fenced code blocks. The install procedure should `Glob` for the template and `Bash cp` it
+  byte-exact -- `Read`+`Write` round-trips through serialization layers that can mangle
+  content the same way.
+- CHANGELOG entries: terse. 1-3 lines per bullet, lead with the WHAT and only the essential
+  WHY. Save attribution, methodology citations, metaphors, eval numbers, and detailed reasoning
+  for the commit message. Avoid stale-prone specifics: don't bake in exact counts (eval query
+  totals, recall percentages), command invocations, file paths within the plugin, or version
+  numbers being compared -- those rot as the code evolves. A reader should be able to scan
+  one release's entry in ~10 seconds.
 
 ---
 

@@ -1,10 +1,11 @@
 ---
 name: using-hoist-react-reference
 description: |
-  Authoritative reference for the @xh/hoist React framework -- ALWAYS use this skill whenever the user wants to write, modify, debug, or explain TypeScript/React code that touches Hoist, OR asks how Hoist (or "our framework" / "our app") does anything in the React/TS layer, even casually.
-  TRIGGER when the user mentions: any Hoist symbol or decorator (`hoistCmp`, `HoistModel`, `HoistService`, `XH`, `Grid`, `GridConfig`, `Panel`, `TabContainer`, `FormPanel`, `DashContainer`, `Store`, `@bindable`, `@managed`, `@observable`, `@action`, `@computed`, `@persist`); a Hoist concept (persistence, autorun, reaction, `loadAsync`, refresh, element factory, MobX integration, model lifecycle, grid columns, dashboard, framework conventions, validation); a model/panel file (`*Model.ts`, `*Panel.tsx`) with state/refresh/persistence/validation/grid-column questions; a file under `client-app/` for non-trivial authoring; Hoist docs, orientation, or coding conventions; "Hoist", "@xh/hoist", "our framework", or "our app" in any React/TypeScript context.
+  Authoritative reference for the @xh/hoist React framework -- use when about to write, modify, debug, or explain TypeScript/React code that touches Hoist, or to answer how Hoist (or "our framework"/"our app") works in the React/TS layer.
+  Why this matters: Hoist's API evolves -- decorator names and semantics shift between versions, `*Config` interfaces (`GridConfig`, `PanelConfig`) look like plain React props but aren't, and `loadAsync`/`addAutorun`/`addReaction` patterns differ from plain MobX. Guessing from training-data recall produces code that type-checks and compiles but fails at runtime: silent persistence no-ops, leaked autoruns, props that get ignored, observable state that never re-renders.
+  TRIGGER when the user mentions: any Hoist symbol or decorator (`hoistCmp`, `HoistModel`, `HoistService`, `XH`, `Grid`, `GridConfig`, `Panel`, `TabContainer`, `FormPanel`, `DashContainer`, `Store`, `@bindable`, `@managed`, `@observable`, `@action`, `@computed`, `@persist`); a Hoist concept (persistence, autorun, reaction, `loadAsync`, refresh, element factory, MobX integration, model lifecycle, grid columns, dashboard, framework conventions, validation); a model/panel file (`*Model.ts`, `*Panel.tsx`) with state/refresh/persistence/validation/grid-column questions; a change under `client-app/` that introduces or modifies Hoist API usage (importing from `@xh/hoist`, extending a Hoist class, calling `XH.*`) -- NOT config-only refactors that just pass values through a Hoist component to a third-party lib like Highcharts or AG-Grid; Hoist docs, orientation, or coding conventions; "Hoist", "@xh/hoist", "our framework", or "our app" in any React/TypeScript context.
   SKIP for plain TypeScript with no Hoist surface (utility refactors, type fixes, generics, `tsconfig.json`, `package.json`, lint config), pure React/MobX questions without Hoist primitives, and files outside `client-app/`.
-  Never improvise Hoist prop names, method signatures, decorators, or conventions -- Hoist evolves and stale guesses produce real bugs. Consult the reference tools (MCP `mcp__hoist-react__*` or CLI `./bin/hoist-docs` / `./bin/hoist-ts`) first.
+  Reach for the reference tools (MCP `mcp__hoist-react__*` or CLI `./bin/hoist-docs` / `./bin/hoist-ts`) first.
 allowed-tools: Read, Bash, mcp__hoist-react__hoist-ping, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-list-docs, mcp__hoist-react__hoist-search-symbols, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-get-members
 ---
 
@@ -31,16 +32,22 @@ The CLI launchers are project-local thin wrappers at `<project>/bin/hoist-docs` 
 
 ## Preflight (do once per session before first CLI use)
 
-Skip this if you're working through MCP only. For the CLI surface, before the first `./bin/hoist-docs` or `./bin/hoist-ts` call in a session, verify the launchers are present and current:
+Skip this if you're working through MCP only. For the CLI surface, before the first `./bin/hoist-docs` or `./bin/hoist-ts` call in a session, verify the launchers are present, current, and functional:
 
 1. Check that `./bin/hoist-docs` and `./bin/hoist-ts` exist at the project root.
 2. Read the first 3 lines of each. The second line should be exactly:
 
-       # hoist-ai-launcher: hoist-react/v1
+       # hoist-ai-launcher: hoist-react/v2
 
-If either file is **missing**, or the stamp is **absent or a different version**, the launchers are stale or were never installed. Jump to **[Installing the CLI launchers](#installing-the-cli-launchers)**, follow it end to end (it's idempotent — safe to re-run), then return here. Briefly mention the refresh in your next user-facing message (e.g. "refreshed hoist-react launchers to v1").
+3. Functional smoke check -- invoke one launcher and confirm it resolves its target. Run:
 
-The preflight runs once per session — once you've confirmed (or fixed) the launchers, you don't need to re-check on every CLI call.
+       ./bin/hoist-docs --help
+
+   Exit 0 with help/usage output is success. Exit non-zero with `No such file or directory` in stderr means the launcher's path resolution is broken (most often the `$0` literal was lost in transit and `dirname ""` resolves to `.`, sending the exec target one level above the project root). Treat this the same as a missing-or-stale-stamp case.
+
+If any check fails, jump to **[Installing the CLI launchers](#installing-the-cli-launchers)**, follow it end to end (it's idempotent -- safe to re-run), then return here. Briefly mention the refresh in your next user-facing message (e.g. "refreshed hoist-react launchers to v2").
+
+The preflight runs once per session -- once you've confirmed (or fixed) the launchers, you don't need to re-check on every CLI call.
 
 ## Workflow
 
@@ -105,40 +112,36 @@ If `node_modules` is missing, surface that to the user as a separate prerequisit
 
 ### Procedure
 
-Write the two files below at the project root with `Write`, then make them executable with `chmod +x`.
+The canonical launcher content lives in two template files shipped alongside this SKILL.md, at `templates/hoist-docs` and `templates/hoist-ts`. Copy them byte-for-byte into the project's `bin/` rather than transcribing their content -- nested-double-quoted shell expansions like `"$(dirname "$0")"` can be mangled when content round-trips through serialization layers (the `$0` literal has been observed disappearing in some skill-loading paths), and a byte-copy sidesteps that risk entirely.
 
-**`bin/hoist-docs`**
+1. Use `Glob` with pattern `**/using-hoist-react-reference/templates/hoist-docs` to locate the template directory on disk. The match path's parent is `<plugin-cache>/.../using-hoist-react-reference/templates/` -- both launchers live there.
 
-```bash
-#!/usr/bin/env bash
-# hoist-ai-launcher: hoist-react/v1
-exec "$(dirname "$0")/../client-app/node_modules/.bin/hoist-docs" "$@"
-```
+2. Use `Bash` to copy the templates into the project's `bin/` and mark them executable:
 
-**`bin/hoist-ts`**
+       mkdir -p bin
+       cp "<templates-dir>/hoist-docs" bin/hoist-docs
+       cp "<templates-dir>/hoist-ts" bin/hoist-ts
+       chmod +x bin/hoist-docs bin/hoist-ts
 
-```bash
-#!/usr/bin/env bash
-# hoist-ai-launcher: hoist-react/v1
-exec "$(dirname "$0")/../client-app/node_modules/.bin/hoist-ts" "$@"
-```
+   Substitute `<templates-dir>` with the directory path you got from the Glob result. Do **not** use `Read` + `Write` to copy content -- that path serializes the file body through tooling that can mangle nested-quoted shell content. `cp` is byte-exact.
 
-Then:
+3. Verify what landed:
 
-```bash
-chmod +x bin/hoist-docs bin/hoist-ts
-```
+       grep -F '$0' bin/hoist-docs && grep -F '$0' bin/hoist-ts
 
-The launcher content shown above is canonical for `hoist-react/v1`. If on-disk content differs from this verbatim text, rewrite it — the launcher is regenerated deterministically and there's no manual-edit case to preserve.
+   Both should match. If either doesn't, the copy didn't preserve the literal `$0` and the launcher is broken; do not proceed.
+
+The templates are canonical for `hoist-react/v2`. If on-disk launchers exist but differ from the templates (different stamp version, missing `$0`, or any other delta), overwrite them -- the launcher is regenerated deterministically and there's no manual-edit case to preserve.
 
 ### Verification
 
 ```bash
+./bin/hoist-docs --help
 ./bin/hoist-docs index
 ./bin/hoist-ts members GridConfig
 ```
 
-Both should print useful output. If either fails with "command not found" or similar from the `node_modules/.bin/` target, the `client-app/node_modules` install hasn't been run.
+`--help` is the launcher-resolution smoke check: exit 0 with usage output means the launcher's path math is working. `No such file or directory` from `--help` means the launcher itself is broken (typically the `$0` literal was lost during copy -- redo the procedure with `Bash cp` rather than `Read`+`Write`). If `--help` works but `index` / `members` fail with "command not found" or similar from the `node_modules/.bin/` target, the `client-app/node_modules` install hasn't been run.
 
 ### .gitignore
 

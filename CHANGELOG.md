@@ -1,41 +1,33 @@
 # Changelog
 
+## 1.4.2 - 2026-05-14
+
+* **Bug fix:** `using-hoist-react-reference` launcher content moved out of SKILL.md fenced
+  code blocks into `templates/` files, copied byte-exact at install. Embedded fenced content
+  was losing a literal `$0` somewhere in the loading pipeline, yielding broken launchers.
+  Launcher stamp bumped to force refresh of any mangled installs; preflight gains a smoke check.
+* Narrowed `using-hoist-react-reference` TRIGGER to changes that introduce or modify Hoist
+  API usage, carving out config-only refactors that pass values through a Hoist component to
+  a third-party lib (Highcharts, AG-Grid).
+* Both reference-skill descriptions: replaced "ALWAYS use this skill when..." with a "Why
+  this matters:" lead citing concrete failure modes.
+
 ## 1.4.1 - 2026-05-14
 
-* Rewrote `description:` frontmatter for both reference skills (`using-hoist-react-reference`,
-  `using-hoist-core-reference`) following skill-creator best practices: single-paragraph format
-  with no blank-line breaks (so the full text reaches the model -- the harness truncates display
-  at blank lines), concrete TRIGGER and SKIP blocks anchoring on real symbols and keywords agents
-  encounter in practice, directive "ALWAYS use this skill when..." framing to combat the model's
-  default undertriggering tendency.
-* Added trigger eval sets at `skills/<skill>/evals/trigger.json` (20 react queries, 23 core
-  queries) covering positive cases across the full skill surface and negative cases including
-  near-misses with overlapping keywords (plain Spring, JPA, Liquibase, plain React/MobX, plain TS).
-  Re-runnable via skill-creator's `run_eval.py`.
-* Updated CLAUDE.md's eval-bar rule: noted that `run_eval.py` simulates skills as slash commands
-  and has a measurement ceiling around 15% recall regardless of description quality, so the
-  prior >=90% hard bar isn't directly attainable; reframed as directional guidance (FP near 0%,
-  no recall regressions) plus the structural best practices above.
+* Rewrote both reference-skill `description:` fields per skill-creator best practices:
+  single-paragraph format, concrete TRIGGER/SKIP blocks with keyword anchors.
+* Added trigger eval sets for both reference skills, re-runnable via skill-creator.
+* CLAUDE.md: softened the eval bar to directional guidance -- the trigger-eval script has a
+  measurement ceiling when simulating skills as slash commands.
 
 ## 1.4.0 - 2026-05-14
 
-* `using-hoist-react-reference`: introduced project-root CLI launchers (`./bin/hoist-docs`, `./bin/hoist-ts`) that wrap
-  the `@xh/hoist`-shipped binaries through `client-app/node_modules/.bin/`. Agents now invoke the CLI from the harness's
-  default working directory with no `cd` required, eliminating the recurring "must run from `client-app/`" gotcha. The
-  skill owns the install procedure; onboarding no longer wires the CLI.
-* `using-hoist-react-reference`: added a "Preflight (do once per session before first CLI use)" section. Agents verify
-  launcher presence and a `# hoist-ai-launcher: hoist-react/v1` stamp at the top of each file. Missing or drifted
-  launchers trigger an idempotent rewrite, so plugin updates that bump the stamp version self-propagate across all
-  consuming apps on next agent invocation.
-* `using-hoist-core-reference`: added a parallel Preflight section. Agents verify the three `./bin/hoist-core-*`
-  launchers exist and that `./bin/hoist-core-docs ping` succeeds before first CLI use. Catches the common case where
-  `./gradlew clean` wipes the JAR a launcher's absolute path points at — the fix is one idempotent
-  `./gradlew installHoistCoreTools` re-run.
-* `onboard-app`: stopped wiring the hoist-react CLI itself. Verification now reports launcher presence informationally
-  and notes that the `using-hoist-react-reference` skill installs them automatically on first CLI use. Greenfield
-  projects get the same end state, just lazily.
-* Removed the "CLI working directory" advisory section from `using-hoist-react-reference` — the launcher pattern makes
-  the advice moot.
+* `using-hoist-react-reference`: project-root CLI launchers (`bin/hoist-docs`, `bin/hoist-ts`)
+  wrap the `@xh/hoist` binaries so agents can invoke them from the harness's default cwd.
+  Eliminates the "must run from `client-app/`" gotcha; the skill owns install.
+* Both reference skills: once-per-session preflight verifies launcher presence and stamp,
+  with idempotent reinstall on drift. Plugin updates that bump the stamp self-propagate.
+* `onboard-app`: no longer wires the hoist-react CLI -- the reference skill installs it lazily.
 
 ## 1.3.3 - 2026-05-13
 
