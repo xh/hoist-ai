@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.5 - 2026-05-18
+
+* `using-hoist-core-reference`: install snippet re-synced with the canonical
+  `hoist-core/mcp/README.md`. Brings in the bash launcher's `java`/`JAVA_HOME` fallback
+  for non-interactive MCP-client shells, the auto-emitted `bin/.gitignore`, and the
+  `layout.buildDirectory` replacement for deprecated `$buildDir`. Procedure step 6
+  rewritten to reflect the auto-scoped ignore -- no more two-stance commit/ignore choice.
+
 ## 1.4.4 - 2026-05-18
 
 * `using-hoist-core-reference`: install snippet resolves the active hoist-core version

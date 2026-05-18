@@ -125,10 +125,10 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
     }
 
     dependencies {
-        // Resolve the active hoist-core version lazily from the runtime classpath. Works
-        // whether hoist-core is declared directly, via gradle.properties, or pulled in
-        // transitively via a client plugin -- the install task stays aligned with whatever
-        // hoist-core version actually resolves at build time.
+        // Resolve the active hoist-core version lazily from the runtime classpath. Works whether
+        // hoist-core is declared directly, via gradle.properties, or pulled in transitively via a
+        // client plugin -- the install task stays aligned with whatever hoist-core version actually
+        // resolves at build time.
         hoistCoreCli providers.provider {
             def hc = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
                 .find { it.moduleVersion?.group == 'io.xh' && it.moduleVersion?.name == 'hoist-core' }
@@ -142,33 +142,56 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
         description = 'Install version-locked launchers for the hoist-core MCP server and CLI tools.'
         group = 'hoist'
         from configurations.hoistCoreCli
-        into "$buildDir/hoist-core-tools/lib"
+        into layout.buildDirectory.dir('hoist-core-tools/lib')
         doLast {
-            def jar = fileTree("$buildDir/hoist-core-tools/lib").singleFile
+            def jar = fileTree(layout.buildDirectory.dir('hoist-core-tools/lib')).singleFile
             def binDir = file('bin')
             binDir.mkdirs()
+            def launcherNames = []
             ['mcp', 'docs', 'symbols'].each { topic ->
-                // mcp mode: pass --source bundled so the server reads JAR-embedded content. Without this,
-                //           HoistCoreMcpServer defaults to local mode and fails when the app has no
-                //           hoist-core checkout sibling. (CLI subcommands already default to bundled.)
-                // docs/symbols mode: dispatched via `cli`, which routes to picocli with bundled default.
+                // mcp mode: pass --source bundled so the server reads JAR-embedded content. Without
+                //           this, HoistCoreMcpServer defaults to local mode and fails when the app
+                //           has no hoist-core checkout sibling.
+                // docs/symbols: dispatched via `cli`, which routes to picocli (defaults to bundled).
                 def args = topic == 'mcp' ? '--source bundled' : "cli ${topic}"
+                // The bash launcher resolves `java` from PATH, falling back to JAVA_HOME, so it
+                // works under MCP clients launched from non-interactive shells where a JDK version
+                // manager (mise, asdf, jenv) may not have activated.
                 new File(binDir, "hoist-core-${topic}").with {
-                    text = "#!/usr/bin/env bash\nexec java -jar \"${jar.absolutePath}\" ${args} \"\$@\"\n"
+                    text = """\
+#!/usr/bin/env bash
+if command -v java >/dev/null 2>&1; then
+    JAVA=java
+elif [ -n "\$JAVA_HOME" ] && [ -x "\$JAVA_HOME/bin/java" ]; then
+    JAVA="\$JAVA_HOME/bin/java"
+else
+    cat >&2 <<'EOF'
+[hoist-core] ERROR: 'java' not on PATH and JAVA_HOME is unset or invalid.
+
+If you use a JDK version manager (mise, asdf, jenv), it likely activates only in
+interactive shells - but this script runs in the non-interactive shell launched by
+your MCP client. Either export JAVA_HOME from a non-interactive init file (e.g.
+~/.bash_profile, ~/.zshenv) so it is visible here, or activate the version manager
+from one of those files. Pointing JAVA_HOME at any JDK 17+ install is sufficient.
+EOF
+    exit 1
+fi
+exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
+"""
                     setExecutable(true)
                 }
                 new File(binDir, "hoist-core-${topic}.bat").text =
                     "@echo off\r\njava -jar \"${jar.absolutePath}\" ${args} %*\r\n"
+                launcherNames << "hoist-core-${topic}"
+                launcherNames << "hoist-core-${topic}.bat"
             }
+            // Generated launchers embed an absolute path to the resolved JAR, so they are
+            // machine-specific and must not be committed. Write a scoped bin/.gitignore that
+            // excludes only the generated launchers, leaving the rest of bin/ untouched.
+            new File(binDir, '.gitignore').text = launcherNames.sort().join('\n') + '\n'
         }
     }
     ```
-
-    > **Why `--source bundled` on the mcp launcher:** the bare MCP server defaults to `local`
-    > mode and fails without a sibling `../hoist-core/` checkout — exactly the App-Side
-    > Distribution premise. The flag forces it to read JAR-embedded content, which is what an
-    > app install always wants. If a future hoist-core release changes the bare-MCP default to
-    > bundled, the flag becomes redundant but harmless.
 
 3. **Run the install task.**
 
@@ -201,9 +224,7 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
 
    If `.mcp.json` already exists, preserve other entries (e.g. `hoist-react`) and only update or add the `hoist-core` entry. Replace any prior `start-hoist-core-mcp.sh` or `mcp/bootstrap.sh` command with the new launcher path.
 
-6. **Decide on `.gitignore`.** The launchers and the unpacked JAR are deterministic artifacts of `installHoistCoreTools`. Two valid stances - ask the user which they prefer if it's unclear:
-   - **Ignore them** (recommended for teams that re-run the task on version bumps): add `bin/hoist-core-*` and `build/hoist-core-tools/` to `.gitignore`.
-   - **Commit them** (recommended for teams that want zero-setup checkouts): leave them tracked. The Gradle snippet writes them deterministically, so diffs only appear on real version bumps.
+6. **Commit `bin/.gitignore`.** The install task writes a scoped `bin/.gitignore` excluding only the generated launchers (each launcher embeds an absolute path to the resolved JAR and is therefore machine-specific -- a committed launcher silently breaks for every other developer). Commit `bin/.gitignore` once; subsequent regenerations stay out of source control automatically. The rest of `bin/` (if the project uses it for other things) is untouched. The `build/hoist-core-tools/` directory is normally already covered by the project's top-level `build/` ignore.
 
 7. **Tell the user to restart Claude Code** so it picks up the new `.mcp.json` entry. Until restart, only the CLI surface will be available.
 
