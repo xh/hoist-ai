@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.6 - 2026-05-18
+
+* `using-hoist-core-reference`: added a snippet-currency check to the preflight. The install
+  snippet now ships with `// hoist-ai-snippet: hoist-core-install/v<N>` open/close markers so
+  the skill can detect when an app's pasted snippet has drifted from the canonical (e.g. the
+  Gradle API improvements landed in 1.4.4/1.4.5). On stale-snippet detection, the skill walks
+  the user through an in-place refresh that preserves any local hand-edits. Working launchers
+  keep working through the check -- the refresh is non-blocking and surfaced once per session.
+
 ## 1.4.5 - 2026-05-18
 
 * `using-hoist-core-reference`: install snippet re-synced with the canonical

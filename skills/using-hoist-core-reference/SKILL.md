@@ -40,13 +40,22 @@ Skip this if you're working through MCP only. For the CLI surface, before the fi
 
    Expect: `hoist-core CLI is running.`
 
-If any file is **missing**, jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** and run the full install procedure.
+3. **Snippet-currency check (low-cost, informational).** Grep `build.gradle` for the install snippet's drift marker:
+
+       grep -E '^// hoist-ai-snippet: hoist-core-install/v[0-9]+' build.gradle
+
+   The current canonical version is **`v1`**. Three possible outcomes:
+   - **Match on `v1`**: snippet is current. No action.
+   - **Match on a lower version** (e.g. `v0`): snippet has drifted from the canonical. Jump to **[Refreshing a stale install snippet](#refreshing-a-stale-install-snippet)** and offer to update.
+   - **No match**: snippet was installed before the drift marker was introduced (or hand-removed). Treat the same as the lower-version case.
+
+If any launcher file is **missing**, jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** and run the full install procedure.
 
 If the files exist but `ping` **fails** (most common cause: `./gradlew clean` wiped the JAR the absolute path in each launcher points at, but the launcher itself was retained on disk), re-run only `./gradlew installHoistCoreTools` — it's idempotent and re-resolves the JAR. No need to re-edit `build.gradle` or `.mcp.json`.
 
 Briefly mention the refresh in your next user-facing message (e.g. "refreshed hoist-core launchers after the JAR was cleaned").
 
-The preflight runs once per session — once you've confirmed (or fixed) the launchers, you don't need to re-check on every CLI call.
+The preflight runs once per session — once you've confirmed (or fixed) the launchers, you don't need to re-check on every CLI call. For the snippet-currency check specifically: surface it **once** per session. If the user defers the refresh, do not re-prompt during the session.
 
 ## Workflow
 
@@ -120,6 +129,7 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
 2. **Add the install snippet to the app's `build.gradle`.** Insert at the top level (outside any subproject block):
 
     ```groovy
+    // hoist-ai-snippet: hoist-core-install/v1 -- DO NOT REMOVE (drift marker, see hoist-core/mcp/README.md)
     configurations {
         hoistCoreCli
     }
@@ -191,6 +201,7 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
             new File(binDir, '.gitignore').text = launcherNames.sort().join('\n') + '\n'
         }
     }
+    // end hoist-ai-snippet
     ```
 
 3. **Run the install task.**
@@ -237,7 +248,35 @@ If both surfaces work, the routing table at the top of this skill is now usable 
 
 ### Upgrading
 
-When `hoistCoreVersion` is bumped, re-run `./gradlew installHoistCoreTools` to refresh the launchers (they embed an absolute path to a version-suffixed JAR; stale launchers point at a deleted JAR and will fail at exec time). The Gradle snippet itself rarely needs to change.
+When `hoistCoreVersion` is bumped, re-run `./gradlew installHoistCoreTools` to refresh the launchers (they embed an absolute path to a version-suffixed JAR; stale launchers point at a deleted JAR and will fail at exec time). The snippet in `build.gradle` rarely needs to change on a `hoistCoreVersion` bump -- the Provider resolves the new version automatically. The snippet itself is versioned independently via its `hoist-ai-snippet:` marker; see [Refreshing a stale install snippet](#refreshing-a-stale-install-snippet) for that separate concern.
+
+### Refreshing a stale install snippet
+
+Triggered when the preflight's snippet-currency check finds a missing or outdated `// hoist-ai-snippet: hoist-core-install/v<N>` marker in `build.gradle` -- the working launchers will keep working, but the snippet has been improved since the user last pasted it (e.g. updated Gradle APIs, improved launcher script, new install-task behavior).
+
+This is an **in-place edit of the user's source-controlled `build.gradle`**, not a regenerated file copy. Be careful:
+
+1. **Read the current canonical** the same way as a fresh install -- step 1 of the install procedure above (`mcp__hoist-core__hoist-core-read-doc` with `id: "mcp/README.md"`, or `./bin/hoist-core-docs read mcp/README.md`, or a sibling hoist-core checkout). Trust the README's snippet over the mirror in this SKILL.md if they diverge -- but they shouldn't if both repos have been kept in lockstep.
+
+2. **Locate the existing snippet boundaries** in `build.gradle`:
+
+       grep -nE '^// (hoist-ai-snippet|end hoist-ai-snippet)' build.gradle
+
+   If both an opening and closing marker are present, you have a clean bounded block. If only the opening is present, find the end manually -- the `}` that closes `tasks.register('installHoistCoreTools', Sync)`. If neither is present (pre-stamp install), find the install fragments by their well-known identifiers: the `configurations { hoistCoreCli }` block, the `hoistCoreCli ...` line inside `dependencies { ... }`, and the `tasks.register('installHoistCoreTools', ...)` block.
+
+3. **Detect hand-edits.** Compare the in-place snippet against the canonical. Common harmless local modifications: tweaked `description = ...`, added logging, additional launcher topics, custom `into` location, extra `.gitignore` entries. **Preserve these in the refresh.** If you see edits you cannot explain as harmless, stop and ask the user before editing.
+
+4. **Present the diff to the user and get explicit confirmation** before applying. Frame it as: "Your install snippet is at <old version or unstamped>; current canonical is <new version>. The diff below shows what would change. Proceed?"
+
+5. **Apply the refresh via Edit** -- replace the bounded block byte-for-byte with the canonical (merging in any preserved hand-edits). If the snippet was unstamped, add the markers as part of the refresh.
+
+6. **Re-run the install task** to regenerate launchers with the new logic:
+
+       ./gradlew installHoistCoreTools
+
+7. **Verify** as in the standard install procedure -- `./bin/hoist-core-docs ping` should still return cleanly.
+
+If the user defers the refresh, do not re-prompt during the session. They can re-trigger by asking for the install task to be re-run or by starting a new session.
 
 ## When the tools aren't available
 
