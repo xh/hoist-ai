@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.7 - 2026-05-18
+
+* Removed `.mcp.json` from the plugin and gitignored it. A plugin-root `.mcp.json` is
+  applied to every app that installs the plugin, so dev-only MCP servers no longer leak
+  to consumers. Now local-only for each plugin developer.
+
 ## 1.4.6 - 2026-05-18
 
 * `using-hoist-core-reference`: added a snippet-currency check to the preflight. The install

@@ -17,6 +17,11 @@ yarn-error.log*
 .env
 .env.*
 
+# Local plugin-dev MCP server config. A .mcp.json at the plugin root is
+# distributed to every app that installs the plugin, so we keep this file
+# local-only and let each developer maintain their own.
+.mcp.json
+
 # skill-creator eval workspace artifacts (generated, not committed)
 skills/*-workspace/
 .eval-workspace/
