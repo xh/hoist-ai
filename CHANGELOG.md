@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.4 - 2026-05-18
+
+* `using-hoist-core-reference`: install snippet resolves the active hoist-core version
+  lazily from the runtime classpath via a Provider. Eliminates the prior fallback that
+  pushed agents to hardcode a version when hoist-core came in transitively via a client
+  plugin.
+
 ## 1.4.3 - 2026-05-15
 
 * Both reference-skill `description:` fields shortened to fit under Claude Code's per-skill

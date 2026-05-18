@@ -102,7 +102,7 @@ Both surfaces ship from the same fat JAR (`io.xh:hoist-core-mcp:<version>:all`).
 
 ### Prerequisites
 
-- App is a Hoist project: `build.gradle` exists at the project root, `hoist-core` is a dependency (direct or transitively via a client plugin), `gradle.properties` typically declares `hoistCoreVersion`.
+- App is a Hoist project: `build.gradle` exists at the project root, `hoist-core` is a dependency (direct or transitively via a client plugin). The install snippet resolves the active hoist-core version from the runtime classpath, so it works regardless of how the dependency is declared.
 - `hoistCoreVersion` resolves to a release that includes the install task and bundled-content fat JAR. **Floor: v39.0** (first release containing the bundled JAR + CLI subsystem). For pre-release work against `develop`, use `39.0-SNAPSHOT` from a Sonatype snapshot repo or `mavenLocal()` (after `./gradlew :mcp:publishToMavenLocal` in a hoist-core checkout).
 - Java 17+ on PATH (already required by Hoist).
 
@@ -125,7 +125,17 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
     }
 
     dependencies {
-        hoistCoreCli "io.xh:hoist-core-mcp:${hoistCoreVersion}:all@jar"
+        // Resolve the active hoist-core version lazily from the runtime classpath. Works
+        // whether hoist-core is declared directly, via gradle.properties, or pulled in
+        // transitively via a client plugin -- the install task stays aligned with whatever
+        // hoist-core version actually resolves at build time.
+        hoistCoreCli providers.provider {
+            def hc = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+                .find { it.moduleVersion?.group == 'io.xh' && it.moduleVersion?.name == 'hoist-core' }
+            if (!hc) throw new GradleException(
+                'hoist-core not found on the runtimeClasspath -- cannot install hoist-core tools.')
+            "io.xh:hoist-core-mcp:${hc.moduleVersion.version}:all@jar"
+        }
     }
 
     tasks.register('installHoistCoreTools', Sync) {
@@ -159,8 +169,6 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
     > Distribution premise. The flag forces it to read JAR-embedded content, which is what an
     > app install always wants. If a future hoist-core release changes the bare-MCP default to
     > bundled, the flag becomes redundant but harmless.
-
-   If `hoistCoreVersion` is provided transitively by a client plugin and isn't declared in `gradle.properties`, change the `hoistCoreCli` dependency line to use the resolved version (e.g. `"io.xh:hoist-core-mcp:39.0:all@jar"`) or wire it through `ext.hoistCoreVersion = ...` first. Confirm the resolved version with `./gradlew dependencies --configuration runtimeClasspath | grep io.xh:hoist-core` if needed.
 
 3. **Run the install task.**
 
