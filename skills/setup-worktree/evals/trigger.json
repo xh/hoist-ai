@@ -1,0 +1,90 @@
+[
+  {
+    "query": "Create a worktree for AS-1099-portfolio-filters so I can work on it without disturbing what I've got going here.",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up a new git worktree off develop.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a worktree based on branch release-2026.3 -- call the new branch hotfix-grid-export.",
+    "should_trigger": true
+  },
+  {
+    "query": "Spin up a separate checkout of this app so I can run two versions side by side.",
+    "should_trigger": true
+  },
+  {
+    "query": "Make me a worktree for this ticket and get it to the point where I can actually start the app.",
+    "should_trigger": true
+  },
+  {
+    "query": "New worktree please, branch AS-1204-cube-perf.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want an isolated workspace to try this refactor in -- don't touch my current branch.",
+    "should_trigger": true
+  },
+  {
+    "query": "worktree off origin/develop, branch it as as-1300-tab-persistence",
+    "should_trigger": true
+  },
+  {
+    "query": "Created a worktree by hand and the app won't boot -- yarn start fails immediately.",
+    "should_trigger": true
+  },
+  {
+    "query": "Give me a parallel copy of the repo on a fresh branch so I can review a PR while I keep working.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a branch called AS-1099-portfolio-filters and switch to it.",
+    "should_trigger": false
+  },
+  {
+    "query": "git checkout -b feature/new-grid",
+    "should_trigger": false
+  },
+  {
+    "query": "Switch me to the develop branch.",
+    "should_trigger": false
+  },
+  {
+    "query": "Remove the worktree at ../toolbox-worktrees/old-feature and delete its branch.",
+    "should_trigger": false
+  },
+  {
+    "query": "List my current worktrees.",
+    "should_trigger": false
+  },
+  {
+    "query": "git worktree prune -- I deleted some of these directories manually.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a persisted column set to the portfolio grid in PortfolioPanel.tsx.",
+    "should_trigger": false
+  },
+  {
+    "query": "Upgrade this app from @xh/hoist 71 to 74.",
+    "should_trigger": false
+  },
+  {
+    "query": "Configure this project for AI-augmented development -- generate CLAUDE.md and set up the MCP servers.",
+    "should_trigger": false
+  },
+  {
+    "query": "yarn install is failing in client-app with a peer dependency error.",
+    "should_trigger": false
+  },
+  {
+    "query": "Why is mise installing the wrong Java version on my machine?",
+    "should_trigger": false
+  },
+  {
+    "query": "Rebase my current branch onto the latest develop.",
+    "should_trigger": false
+  }
+]

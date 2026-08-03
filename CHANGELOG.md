@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0 - 2026-08-03
+
+* New `setup-worktree` skill: creates a git worktree for a Hoist app that's runnable, not just
+  checked out -- restores the gitignored locals `git worktree add` leaves behind, provisions the
+  toolchain, installs client deps with the app's own package manager, and regenerates the
+  server-side tooling launchers that can't be copied between worktrees.
+* Worktrees land in a sibling directory, never inside the repo.
+
 ## 1.4.7 - 2026-05-18
 
 * Removed `.mcp.json` from the plugin and gitignored it. A plugin-root `.mcp.json` is
