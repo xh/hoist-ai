@@ -35,13 +35,27 @@ Read `<repo>/CLAUDE.md` and look for a `## Worktree provisioning` section. If pr
 authoritative -- it may name extra locals to copy, a toolchain, or post-install steps that
 detection can't infer. Use it and let the steps below fill only what it doesn't specify.
 
-### 2. New branch name and base ref
+### 2. Branch: new or existing?
 
 The user may supply one name, two, or none. "off of" / "from" / "based on" marks a **base**;
-a bare name is the **new branch**. If only a base is given, ask what to call the new branch --
-don't invent one.
+a bare name is the branch for the worktree. If only a base is given, ask what to call the new
+branch -- don't invent one.
 
-Resolve the base ref in this order:
+Then check whether that branch already exists, locally or on origin:
+
+    git -C <repo> show-ref --verify --quiet refs/heads/<branch>
+    git -C <repo> show-ref --verify --quiet refs/remotes/origin/<branch>
+
+**It exists, and the user wants to work on it** (resuming a ticket, picking up a pushed
+branch, reviewing a colleague's work) -- pass `--existing-branch` and no `--base`. Skip the
+base-ref resolution below entirely; the branch already has its own history. The script checks
+out a local branch as-is, or creates one tracking `origin/<branch>` if it exists only on the
+remote, and reports how far behind/ahead of upstream it is.
+
+**It exists, but the user asked for a new branch** -- stop and ask. Silently adopting a branch
+that happens to share the name, or inventing a variant name, are both wrong.
+
+**It doesn't exist** -- create mode. Resolve the base ref in this order:
 
 1. What the user asked for. A bare name like `foo` is ambiguous: prefer `origin/foo` (fetched,
    current) over a local `foo` that may be stale or ahead. If only a local branch exists, use
@@ -135,6 +149,9 @@ with the plugin, and avoids the content-mangling risk that copying executable te
         --deps client-app:yarn \
         --gradle-task installHoistCoreTools \
         --verify-parity
+
+For a branch that already exists, drop `--base` and pass `--existing-branch` instead -- the two
+are mutually exclusive and the script rejects the combination.
 
 `--repo` and `--dest` must be absolute -- the script rejects relative paths, because it runs
 from the plugin directory and a relative path would resolve against that.

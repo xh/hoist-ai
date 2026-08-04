@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.1 - 2026-08-03
+
+* `setup-worktree`: handles branches that already exist, not just new ones. A local branch is
+  checked out as-is; one that exists only on the remote gets a local branch tracking it. Reports
+  how far behind its upstream the branch is, so a stale checkout is visible up front.
+
 ## 1.5.0 - 2026-08-03
 
 * New `setup-worktree` skill: creates a git worktree for a Hoist app that's runnable, not just

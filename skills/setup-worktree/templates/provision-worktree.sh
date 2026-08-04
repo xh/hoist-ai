@@ -31,13 +31,23 @@
 #                          the gitignored locals).
 #   --dest <path>          Absolute path to create the worktree at. Must not be an existing
 #                          non-worktree directory.
-#   --branch <name>        New branch to create. Created with --no-track so it never
-#                          auto-tracks a long-lived branch (which would risk a surprise
-#                          push or merge onto it).
-#   --base <ref>           Fully-resolved ref to branch from, e.g. `origin/develop`.
-#                          The caller resolves this; the script uses it verbatim.
+#   --branch <name>        Branch for the worktree. By default a NEW branch, created with
+#                          --no-track so it never auto-tracks a long-lived branch (which
+#                          would risk a surprise push or merge onto it). With
+#                          --existing-branch, a branch that already exists instead.
+#   --base <ref>           Fully-resolved ref to branch from, e.g. `origin/develop`. The
+#                          caller resolves this; the script uses it verbatim. Required
+#                          unless --existing-branch is passed, and rejected when it is.
 #
 # Options:
+#   --existing-branch      Check out a branch that already exists rather than creating one.
+#                          A local branch is checked out as-is and keeps whatever upstream
+#                          it already had. A branch that exists only on origin gets a local
+#                          branch tracking it -- the point of checking out an existing
+#                          branch is to work on that branch, so push/pull should behave.
+#                          Reports how far the branch is behind/ahead of its upstream.
+#                          Errors if the branch exists in neither place; git itself errors
+#                          (before any other work) if it's checked out in another worktree.
 #   --local <relpath>      Gitignored file to copy from --repo into the worktree.
 #                          Repeatable. `git worktree add` populates only TRACKED files,
 #                          so without this a Hoist app has no .env and will not start.
@@ -71,6 +81,8 @@ DEST=""
 BRANCH=""
 BASE=""
 BASE_SHA=""   # set only when we create the worktree; empty on the adopt-existing path
+UPSTREAM=""   # set only in --existing-branch mode, when the branch has one
+EXISTING_BRANCH=0
 LOCALS=()
 TOOLCHAINS=()
 DEPS=()
@@ -86,6 +98,21 @@ usage() {
     sed -n '2,/^set -euo/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//; $d'
 }
 
+# A failed fetch is NOT fatal. Offline, VPN down, or missing credentials for this remote
+# shouldn't block provisioning when the refs we need are already present locally -- it only
+# means they may be behind. Warn loudly; the base commit date (create mode) and ahead/behind
+# counts (existing-branch mode) printed later show how stale things actually are.
+fetch_remote() {
+    local remote="$1"
+    git -C "$REPO" remote | grep -qxF "$remote" || return 0
+    echo "==> Fetching $remote..."
+    if ! git -C "$REPO" fetch "$remote"; then
+        echo "    WARNING: fetch of '$remote' failed (offline, or no credentials for this" >&2
+        echo "    remote). Continuing from last-fetched refs -- check the SHA/date or" >&2
+        echo "    ahead/behind counts below before relying on them." >&2
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --repo)         REPO="${2:-}"; shift 2 ;;
@@ -96,6 +123,7 @@ while [[ $# -gt 0 ]]; do
         --toolchain)    TOOLCHAINS+=("${2:-}"); shift 2 ;;
         --deps)         DEPS+=("${2:-}"); shift 2 ;;
         --gradle-task)  GRADLE_TASKS+=("${2:-}"); shift 2 ;;
+        --existing-branch) EXISTING_BRANCH=1; shift ;;
         --verify-parity) VERIFY_PARITY=1; shift ;;
         -h|--help)      usage; exit 0 ;;
         *)              die "unknown argument '$1' (try --help)" ;;
@@ -105,7 +133,14 @@ done
 [[ -n "$REPO"   ]] || die "--repo is required"
 [[ -n "$DEST"   ]] || die "--dest is required"
 [[ -n "$BRANCH" ]] || die "--branch is required"
-[[ -n "$BASE"   ]] || die "--base is required"
+
+if [[ $EXISTING_BRANCH -eq 1 ]]; then
+    [[ -z "$BASE" ]] \
+        || die "--base is not valid with --existing-branch (the branch already has its own history)"
+else
+    [[ -n "$BASE" ]] \
+        || die "--base is required (or pass --existing-branch to check out a branch that already exists)"
+fi
 
 # Reject relative paths outright -- see the header note. The cwd this script runs in is not
 # related to the app, so resolving against it would silently target the wrong tree.
@@ -161,23 +196,36 @@ if git -C "$REPO" worktree list --porcelain | grep -qxF "worktree $DEST"; then
     echo "==> Worktree already present at $DEST -- adopting it and continuing."
 elif [[ -e "$DEST" ]]; then
     die "'$DEST' exists but is not a worktree of $REPO -- refusing to touch it"
+elif [[ $EXISTING_BRANCH -eq 1 ]]; then
+    # Check out a branch that already exists rather than creating one. Fetch first, so a
+    # branch that so far exists only on the remote is visible, and so the ahead/behind
+    # report below reflects the current remote state rather than the last sync.
+    fetch_remote origin
+    mkdir -p "$(dirname "$DEST")"
+
+    if git -C "$REPO" show-ref --verify --quiet "refs/heads/$BRANCH"; then
+        echo "==> Creating worktree $DEST"
+        echo "    checking out existing local branch '$BRANCH'..."
+        # An existing local branch keeps whatever upstream it already had. The --no-track
+        # guard below applies only to branches this script creates.
+        git -C "$REPO" worktree add "$DEST" "$BRANCH"
+    elif git -C "$REPO" show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+        echo "==> Creating worktree $DEST"
+        echo "    creating local '$BRANCH' tracking origin/$BRANCH..."
+        # No local branch to inherit tracking from, so set it explicitly. Tracking the
+        # branch's OWN counterpart is right here: the reason to check out an existing branch
+        # is to work on that branch, so push/pull should behave. Deliberately unlike the
+        # create path's --no-track, which exists to stop a brand-new feature branch from
+        # tracking a long-lived integration branch.
+        git -C "$REPO" worktree add --track -b "$BRANCH" "$DEST" "origin/$BRANCH"
+    else
+        die "branch '$BRANCH' exists neither locally nor on origin -- drop --existing-branch to create it from a base ref"
+    fi
 else
-    # Only fetch when basing off a remote-tracking ref, so the branch starts from the
-    # latest origin state. A purely local base ref needs no network round-trip.
+    # Only fetch when basing off a remote-tracking ref, so the branch starts from the latest
+    # origin state. A purely local base ref needs no network round-trip.
     if [[ "$BASE" == */* && "$BASE" != .* ]]; then
-        REMOTE="${BASE%%/*}"
-        if git -C "$REPO" remote | grep -qxF "$REMOTE"; then
-            echo "==> Fetching $REMOTE..."
-            # A failed fetch is NOT fatal. Offline, VPN down, or no credentials for this
-            # remote shouldn't block provisioning when the remote-tracking ref is already
-            # present locally -- it just means the base may be behind. Warn loudly and let
-            # the base's commit date below show how stale it is.
-            if ! git -C "$REPO" fetch "$REMOTE"; then
-                echo "    WARNING: fetch of '$REMOTE' failed (offline, or no credentials" >&2
-                echo "    for this remote). Continuing from the last-fetched '$BASE' --" >&2
-                echo "    check the commit date below before relying on it." >&2
-            fi
-        fi
+        fetch_remote "${BASE%%/*}"
     fi
 
     git -C "$REPO" rev-parse --verify --quiet "$BASE^{commit}" >/dev/null \
@@ -192,6 +240,26 @@ else
 fi
 
 DEST="$(cd "$DEST" && pwd -P)"
+
+# In existing-branch mode the branch carries history that may already be behind its remote.
+# Checking out a stale branch silently is the same class of mistake as basing new work on a
+# stale ref, so report the divergence rather than leaving it to be discovered later.
+if [[ $EXISTING_BRANCH -eq 1 ]]; then
+    UPSTREAM="$(git -C "$DEST" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+    if [[ -n "$UPSTREAM" ]]; then
+        COUNTS="$(git -C "$DEST" rev-list --left-right --count "$UPSTREAM...HEAD" 2>/dev/null || true)"
+        if [[ -n "$COUNTS" ]]; then
+            set -- $COUNTS
+            if [[ "${1:-0}" == "0" && "${2:-0}" == "0" ]]; then
+                echo "    branch is level with $UPSTREAM"
+            else
+                echo "    branch is ${1:-0} behind / ${2:-0} ahead of $UPSTREAM"
+            fi
+        fi
+    else
+        echo "    note: '$BRANCH' has no upstream configured"
+    fi
+fi
 
 # ---------------------------------------------------------------------------
 # Step 2: restore gitignored locals.
@@ -309,4 +377,8 @@ fi
 
 echo
 echo "Worktree ready: $DEST"
-echo "  branch: $BRANCH (off $BASE${BASE_SHA:+ @ $BASE_SHA}, --no-track)"
+if [[ $EXISTING_BRANCH -eq 1 ]]; then
+    echo "  branch: $BRANCH (existing${UPSTREAM:+, tracking $UPSTREAM})"
+else
+    echo "  branch: $BRANCH (off $BASE${BASE_SHA:+ @ $BASE_SHA}, --no-track)"
+fi
