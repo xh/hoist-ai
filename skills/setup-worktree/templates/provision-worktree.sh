@@ -60,9 +60,9 @@
 #                          means Java/Node resolve wrongly and later steps fail
 #                          confusingly.
 #   --deps <dir>:<pm>      Install dependencies in <dir> (relative to the worktree)
-#                          using <pm> (`yarn` or `npm`). Typically `client-app:yarn`.
-#                          Repeatable. Runs AFTER --toolchain so the pinned Node is
-#                          already active.
+#                          using <pm> (`yarn`, `npm`, or `pnpm`). Typically
+#                          `client-app:yarn`. Repeatable. Runs AFTER --toolchain so
+#                          the pinned Node is already active.
 #   --gradle-task <name>   Gradle task to run in the worktree, e.g.
 #                          `installHoistCoreTools`. Repeatable. Runs after --toolchain
 #                          so Gradle finds the pinned Java. Only pass a task the caller
@@ -171,8 +171,8 @@ if [[ ${#DEPS[@]} -gt 0 ]]; then
     for spec in "${DEPS[@]}"; do
         [[ "$spec" == *:* ]] || die "--deps expects <dir>:<pm>, got '$spec'"
         case "${spec##*:}" in
-            yarn|npm) ;;
-            *) die "unknown package manager '${spec##*:}' in --deps '$spec' (expected 'yarn' or 'npm')" ;;
+            yarn|npm|pnpm) ;;
+            *) die "unknown package manager '${spec##*:}' in --deps '$spec' (expected 'yarn', 'npm', or 'pnpm')" ;;
         esac
     done
 fi
@@ -329,6 +329,7 @@ if [[ ${#DEPS[@]} -gt 0 ]]; then
         case "$pm" in
             yarn) echo "==> Installing $dir dependencies with yarn..."; (cd "$DEST/$dir" && yarn install) ;;
             npm)  echo "==> Installing $dir dependencies with npm...";  (cd "$DEST/$dir" && npm install)  ;;
+            pnpm) echo "==> Installing $dir dependencies with pnpm..."; (cd "$DEST/$dir" && pnpm install) ;;
         esac
     done
 fi

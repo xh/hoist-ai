@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.2 - 2026-08-08
+
+* `hoist-upgrade`: checking `@xh/hoist-dev-utils` compatibility is now a first-class part of the
+  upgrade flow. Consults hoist-react's version-compatibility doc for core and dev-utils pairings,
+  bumps dev-utils in the same hop commit when needed, and surfaces dev-utils breaking changes.
+* `hoist-upgrade`: recognizes pnpm apps and their extra requirements (newer dev-utils, all
+  directly imported packages declared). Knows build/dev-server failures after an upgrade point
+  to a missed dev-utils pairing.
+* `onboard-app`, `setup-worktree`: support pnpm apps alongside yarn and npm -- lockfile
+  detection, dependency installs, and generated CLAUDE.md commands.
+
 ## 1.5.1 - 2026-08-03
 
 * `setup-worktree`: handles branches that already exist, not just new ones. A local branch is

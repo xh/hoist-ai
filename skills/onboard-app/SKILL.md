@@ -14,7 +14,8 @@ All Hoist applications share the same layout: a Grails/Groovy backend at the pro
 a React/TypeScript frontend in `client-app/`. Key locations:
 
 - `client-app/package.json` -- frontend dependencies, including `@xh/hoist`
-- `client-app/yarn.lock` or `client-app/package-lock.json` -- package manager lockfile
+- `client-app/yarn.lock`, `client-app/package-lock.json`, or `client-app/pnpm-lock.yaml` --
+  package manager lockfile
 - `client-app/src/` -- frontend application source
 - `build.gradle` -- Gradle build config with `hoist-core` dependency (direct or via client plugin)
 - `gradle.properties` -- app metadata (`xhAppCode`, and typically `hoistCoreVersion` -- though
@@ -26,6 +27,7 @@ a React/TypeScript frontend in `client-app/`. Key locations:
 1. **Detect package manager.** Check which lockfile exists in `client-app/`:
    - `yarn.lock` -- use `yarn` (e.g. `yarn install`, `yarn why`)
    - `package-lock.json` -- use `npm` (e.g. `npm install`, `npm ls`)
+   - `pnpm-lock.yaml` -- use `pnpm` (e.g. `pnpm install`, `pnpm why`)
    Store the detected package manager for use throughout this skill.
 2. Determine the installed `@xh/hoist` version. Read `client-app/package.json` and check
    `dependencies` for `@xh/hoist`.
@@ -34,6 +36,7 @@ a React/TypeScript frontend in `client-app/`. Key locations:
      client-specific plugin. Run (from `client-app/`):
      - Yarn: `yarn why @xh/hoist`
      - npm: `npm ls @xh/hoist`
+     - pnpm: `pnpm why @xh/hoist`
      Parse the output to find the resolved version and note which package depends on it.
    - If neither approach finds `@xh/hoist`, inform the user: "This does not appear to be a
      Hoist project -- `@xh/hoist` was not found as a direct or transitive dependency." Then stop.
@@ -317,10 +320,11 @@ Read the base template from the matched path.
    CLAUDE.md where they can go stale.
 
    **Do** substitute the package-manager tokens in the Commands section to reflect the manager
-   detected in Phase 1 (yarn for `yarn.lock`, npm for `package-lock.json`):
-   - `{{PKG_MGR_INSTALL}}` → `yarn install` or `npm install`
-   - `{{PKG_MGR_START}}` → `yarn start` or `npm start`
-   - `{{PKG_MGR_LINT}}` → `yarn lint` or `npm run lint`
+   detected in Phase 1 (yarn for `yarn.lock`, npm for `package-lock.json`, pnpm for
+   `pnpm-lock.yaml`):
+   - `{{PKG_MGR_INSTALL}}` → `yarn install`, `npm install`, or `pnpm install`
+   - `{{PKG_MGR_START}}` → `yarn start`, `npm start`, or `pnpm start`
+   - `{{PKG_MGR_LINT}}` → `yarn lint`, `npm run lint`, or `pnpm lint`
 
    The generated CLAUDE.md should show only the commands that match the project's actual
    package manager -- not both with a "(or X)" parenthetical that implies a preference.

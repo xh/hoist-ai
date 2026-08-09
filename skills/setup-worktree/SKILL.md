@@ -117,8 +117,9 @@ Dictated by the lockfile, never assumed:
 
 - `<repo>/client-app/yarn.lock` → `client-app:yarn`
 - `<repo>/client-app/package-lock.json` → `client-app:npm`
+- `<repo>/client-app/pnpm-lock.yaml` → `client-app:pnpm`
 - No `<repo>/client-app/` (e.g. hoist-react itself): apply the same lockfile check at the repo
-  root and use `.:yarn` / `.:npm`.
+  root and use `.:yarn` / `.:npm` / `.:pnpm`.
 - Neither → skip dependency install and say so.
 
 ### 7. Gradle tooling task
