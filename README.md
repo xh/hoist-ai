@@ -93,6 +93,7 @@ available:
 | `hoist-ping` | Verify MCP server connectivity |
 | `hoist-search-docs` | Search framework documentation by keyword |
 | `hoist-list-docs` | Browse available documentation by category |
+| `hoist-read-doc` | Read one document by ID (`@xh/hoist` v86+) |
 | `hoist-search-symbols` | Find TypeScript classes, interfaces, and types |
 | `hoist-get-symbol` | Get detailed type signatures and JSDoc |
 | `hoist-get-members` | List members of a class or interface |
