@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.0 - 2026-09-25
+
+* New `clear-writing` skill: house style for CHANGELOG entries, PR descriptions, docs, and
+  comments. Mechanical ASD-STE100 rules plus no em dashes, with a linter to score a draft.
+  Derived from an MIT-licensed upstream skill, see its NOTICE.
+* `onboard-app`: the generated CLAUDE.md gains a Writing Style section that points at
+  `clear-writing`, and its own prose now follows that style.
+
 ## 1.5.2 - 2026-08-08
 
 * `hoist-upgrade`: checking `@xh/hoist-dev-utils` compatibility is now a first-class part of the
@@ -8,7 +16,7 @@
 * `hoist-upgrade`: recognizes pnpm apps and their extra requirements (newer dev-utils, all
   directly imported packages declared). Knows build/dev-server failures after an upgrade point
   to a missed dev-utils pairing.
-* `onboard-app`, `setup-worktree`: support pnpm apps alongside yarn and npm -- lockfile
+* `onboard-app`, `setup-worktree`: support pnpm apps alongside yarn and npm - lockfile
   detection, dependency installs, and generated CLAUDE.md commands.
 
 ## 1.5.1 - 2026-08-03
@@ -20,7 +28,7 @@
 ## 1.5.0 - 2026-08-03
 
 * New `setup-worktree` skill: creates a git worktree for a Hoist app that's runnable, not just
-  checked out -- restores the gitignored locals `git worktree add` leaves behind, provisions the
+  checked out - restores the gitignored locals `git worktree add` leaves behind, provisions the
   toolchain, installs client deps with the app's own package manager, and regenerates the
   server-side tooling launchers that can't be copied between worktrees.
 * Worktrees land in a sibling directory, never inside the repo.
@@ -38,7 +46,7 @@
   the skill can detect when an app's pasted snippet has drifted from the canonical (e.g. the
   Gradle API improvements landed in 1.4.4/1.4.5). On stale-snippet detection, the skill walks
   the user through an in-place refresh that preserves any local hand-edits. Working launchers
-  keep working through the check -- the refresh is non-blocking and surfaced once per session.
+  keep working through the check - the refresh is non-blocking and surfaced once per session.
 
 ## 1.4.5 - 2026-05-18
 
@@ -46,7 +54,7 @@
   `hoist-core/mcp/README.md`. Brings in the bash launcher's `java`/`JAVA_HOME` fallback
   for non-interactive MCP-client shells, the auto-emitted `bin/.gitignore`, and the
   `layout.buildDirectory` replacement for deprecated `$buildDir`. Procedure step 6
-  rewritten to reflect the auto-scoped ignore -- no more two-stance commit/ignore choice.
+  rewritten to reflect the auto-scoped ignore - no more two-stance commit/ignore choice.
 
 ## 1.4.4 - 2026-05-18
 
@@ -80,7 +88,7 @@
 * Rewrote both reference-skill `description:` fields per skill-creator best practices:
   single-paragraph format, concrete TRIGGER/SKIP blocks with keyword anchors.
 * Added trigger eval sets for both reference skills, re-runnable via skill-creator.
-* CLAUDE.md: softened the eval bar to directional guidance -- the trigger-eval script has a
+* CLAUDE.md: softened the eval bar to directional guidance - the trigger-eval script has a
   measurement ceiling when simulating skills as slash commands.
 
 ## 1.4.0 - 2026-05-14
@@ -90,7 +98,7 @@
   Eliminates the "must run from `client-app/`" gotcha; the skill owns install.
 * Both reference skills: once-per-session preflight verifies launcher presence and stamp,
   with idempotent reinstall on drift. Plugin updates that bump the stamp self-propagate.
-* `onboard-app`: no longer wires the hoist-react CLI -- the reference skill installs it lazily.
+* `onboard-app`: no longer wires the hoist-react CLI - the reference skill installs it lazily.
 
 ## 1.3.3 - 2026-05-13
 
@@ -135,7 +143,7 @@
   verification reframed CLI-first.
 * Pre-approved `Bash(./bin/hoist-core-*:*)` and `Bash(./gradlew installHoistCoreTools:*)`
   in `settings.json` so consumers don't get prompt-flooded on the install happy path.
-* Removed the `feedback` skill -- required `gh` auth and outbound to `xh/hoist-ai`,
+* Removed the `feedback` skill - required `gh` auth and outbound to `xh/hoist-ai`,
   not viable in target enterprise environments.
 
 ## 1.1.0 - 2026-03-04

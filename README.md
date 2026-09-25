@@ -5,11 +5,11 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 ## What It Provides
 
-- **MCP Server** -- automatically connects the hoist-react MCP server, giving Claude access to
+- **MCP Server** - automatically connects the hoist-react MCP server, giving Claude access to
   Hoist framework documentation and TypeScript API lookups.
-- **Skills** -- project onboarding, version upgrades, and Hoist API reference for AI agents (see
-  [Available Skills](#available-skills) below).
-- **Permission Defaults** -- pre-approves hoist-react MCP tools so they work without prompts.
+- **Skills** - project onboarding, version upgrades, worktree setup, a house writing style, and
+  Hoist API reference for AI agents (see [Available Skills](#available-skills) below).
+- **Permission Defaults** - pre-approves hoist-react MCP tools so they work without prompts.
 
 ## Requirements
 
@@ -50,10 +50,14 @@ This will:
 
 ## Available Skills
 
-| Skill | Command | Description                                |
-|-------|---------|--------------------------------------------|
-| Onboard | `/xh:onboard-app` | Configure AI setup for a Hoist project     |
-| Upgrade | `/xh:hoist-upgrade` | Upgrade hoist-react to a new major version |
+| Skill | Command | Description |
+|-------|---------|-------------|
+| Onboard | `/xh:onboard-app` | Configure AI setup for a Hoist project |
+| Upgrade | `/xh:hoist-upgrade` | Upgrade `@xh/hoist` across one or more major versions |
+| Worktree | `/xh:setup-worktree` | Create a runnable git worktree for a Hoist app |
+| Clear Writing | `/xh:clear-writing` | House style for CHANGELOG entries, PR descriptions, docs, and comments |
+| hoist-react reference | `/xh:using-hoist-react-reference` | Routes Hoist React questions to the docs and TypeScript API tools. Loads itself when you write Hoist code |
+| hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs the tools |
 
 ## Project-Level Auto-Discovery
 

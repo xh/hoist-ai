@@ -340,7 +340,8 @@ Read the base template from the matched path.
 3. If an existing `CLAUDE.md` is present:
    - Read the existing file.
    - Check which Hoist sections are already present (look for headings like
-     "Architecture Primer", "MCP Tools", "hoist-core", "Commands", "Client Plugins").
+     "Architecture Primer", "MCP Tools", "hoist-core", "Writing Style", "Commands",
+     "Client Plugins").
    - Append only sections that are missing. Do NOT overwrite or duplicate existing content.
    - Show the user what will be added before writing.
    - Preserve all existing project-specific content.

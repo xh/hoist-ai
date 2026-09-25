@@ -1,0 +1,90 @@
+[
+  {
+    "query": "Write the CHANGELOG entry for the audit-stamp fix I just committed.",
+    "should_trigger": true
+  },
+  {
+    "query": "Add release notes for v3.1 covering the new Developers editor and the pnpm migration.",
+    "should_trigger": true
+  },
+  {
+    "query": "Draft the PR description for this branch.",
+    "should_trigger": true
+  },
+  {
+    "query": "Give me a PR title and body for the MenuButton cleanup.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write a README for the new reporting module.",
+    "should_trigger": true
+  },
+  {
+    "query": "Rework the Architecture section of CLAUDE.md so a new dev can actually follow it.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write up an ADR for moving time entries to NDJSON streaming.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this branch before I open the PR. Pay attention to the comments and JSDoc.",
+    "should_trigger": true
+  },
+  {
+    "query": "Look over the diff in PR #412, especially the doc comments on the new services.",
+    "should_trigger": true
+  },
+  {
+    "query": "This paragraph reads like an AI wrote it. Fix it.",
+    "should_trigger": true
+  },
+  {
+    "query": "Make this doc less wordy.",
+    "should_trigger": true
+  },
+  {
+    "query": "Tighten up the onboarding guide, it is way too long.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you make the wiki page on deployments clearer and shorter?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add a comment above this regex explaining what it matches.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a JSDoc for the loadAsync override.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a commit message for the staged changes.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fix the typo in the README heading.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write the error message users see when the upload fails.",
+    "should_trigger": false
+  },
+  {
+    "query": "Draft a marketing blurb for the landing page.",
+    "should_trigger": false
+  },
+  {
+    "query": "Review this SQL migration for performance problems.",
+    "should_trigger": false
+  },
+  {
+    "query": "Why is the OrderGrid test flaky?",
+    "should_trigger": false
+  },
+  {
+    "query": "Rename gridModel to ordersGridModel across the module.",
+    "should_trigger": false
+  }
+]
