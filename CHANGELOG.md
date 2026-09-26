@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.1 - 2026-09-25
+
+* `using-hoist-react-reference`: reads docs with `hoist-read-doc` instead of `hoist-search-docs`,
+  including the `index` and `conventions` aliases. The tool is now in `allowed-tools`, so the call
+  runs without a permission prompt.
+* `using-hoist-react-reference`: new Retrieval Workflow section that teaches lookups with fewer
+  wasted calls. Read the area README before symbol lookups, search symbols by one keyword, and
+  import from barrels. The installed version outranks GitHub or Context7 docs.
+* `using-hoist-react-reference`: the launcher preflight and install steps moved to a reference
+  file that loads only for CLI use. The skill body is about a third of its old length.
+* `hoist-upgrade`: reads the version-compatibility doc with `hoist-read-doc`.
+
 ## 1.6.0 - 2026-09-25
 
 * New `clear-writing` skill: house style for CHANGELOG entries, PR descriptions, docs, and

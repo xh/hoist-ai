@@ -1,7 +1,7 @@
 ---
 name: hoist-upgrade
 description: Upgrade a Hoist app's `@xh/hoist` dependency across one or more major versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, checks the hoist-react version-compatibility matrix and bumps `@xh/hoist-dev-utils` when the target version requires or recommends it, bumps `hoistCoreVersion` (and refreshes the hoist-core MCP+CLI launchers if previously installed), and produces a comprehensive upgrade report.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-read-doc, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols
 ---
 
 # Hoist Version Upgrade
@@ -143,7 +143,7 @@ hoist-react ships a compatibility reference, `docs/version-compatibility.md`, wi
 pairing each hoist-react release with its required/recommended **hoist-core** and
 **hoist-dev-utils** versions. Retrieve it via either path:
 
-- MCP: `hoist-search-docs`, doc id `docs/version-compatibility.md`
+- MCP: `hoist-read-doc` with id `docs/version-compatibility.md` (`@xh/hoist` v86+)
 - Filesystem: Read `client-app/node_modules/@xh/hoist/docs/version-compatibility.md`
 
 At plan time both paths serve the *currently installed* hoist-react's copy, which may not yet
@@ -257,7 +257,7 @@ Use the `Read` tool to read upgrade notes directly from the filesystem:
 client-app/node_modules/@xh/hoist/docs/upgrade-notes/v{TARGET}-upgrade-notes.md
 ```
 
-**Do NOT use MCP `hoist-search-docs` for upgrade notes.** The MCP server may still be serving
+**Do NOT use the MCP doc tools for upgrade notes.** The MCP server may still be serving
 the previous version's content after install. The `Read` tool always reflects the installed
 version.
 
