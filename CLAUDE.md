@@ -42,8 +42,6 @@ settings.json            Default MCP tool permission allowlist
   descriptions, server instructions, and docs. Write skill rules that branch on what a tool returns
   (for example "if the results are sections"), never on a hoist-react version number or on how much
   a tool prints. A rule that stops being true when the MCP improves is a bug in the skill.
-- No AI attribution in commits or PRs: no `Co-Authored-By` for a model, no `Claude-Session`
-  trailer, no "Generated with Claude Code" footer or session link.
 - Prose in this repo (CHANGELOG, README, skill text, commit messages) follows the
   `clear-writing` skill. Lint a draft with its script before you commit it.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
