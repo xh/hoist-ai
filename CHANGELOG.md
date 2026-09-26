@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.6.2 - unreleased
+## 1.6.2 - 2026-09-26
 
 * `using-hoist-react-reference`: retrieval rules now branch on what the tools return, not on a
   hoist-react version. Section-level search results (from `@xh/hoist` v88) are read one section at
@@ -8,8 +8,6 @@
   depend on how much a tool prints.
 * `using-hoist-react-reference`: uses member `filter` and symbol member summaries when the
   installed tools offer them (`@xh/hoist` v88 symbol tools).
-* CLAUDE.md: skills describe procedure, version-specific facts ship with hoist-react through the
-  MCP. Commit and PR bodies are not hard-wrapped, and PR descriptions stay short.
 
 ## 1.6.1 - 2026-09-25
 
