@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.2 - 2026-09-26
+
+* `using-hoist-react-reference`: retrieval rules now branch on what the tools return, not on a
+  hoist-react version. Section-level search results (from `@xh/hoist` v88) are read one section at
+  a time with `hoist-read-doc`; whole-doc results fall back to the area README. Rules no longer
+  depend on how much a tool prints.
+* `using-hoist-react-reference`: uses member `filter` and symbol member summaries when the
+  installed tools offer them (`@xh/hoist` v88 symbol tools).
+
 ## 1.6.1 - 2026-09-25
 
 * `using-hoist-react-reference`: reads docs with `hoist-read-doc` instead of `hoist-search-docs`,

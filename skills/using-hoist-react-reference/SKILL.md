@@ -24,17 +24,18 @@ Each step has an MCP tool and a CLI command. If `mcp__hoist-react__*` tools are 
 | Get symbol details | `mcp__hoist-react__hoist-get-symbol` | `./bin/hoist-ts symbol <name>` |
 | List members | `mcp__hoist-react__hoist-get-members` | `./bin/hoist-ts members <name>` |
 
-`hoist-read-doc` accepts a canonical id such as `cmp/grid/README.md` and short forms such as `cmp/grid`, `grid`, or `v87` for upgrade notes. It ships with `@xh/hoist` v86 and later. On an older app, read the doc with the CLI, or `Read` the file under `client-app/node_modules/@xh/hoist/`.
+`hoist-read-doc` accepts a canonical id such as `cmp/grid/README.md` and short forms such as `cmp/grid`, `grid`, or `v87` for upgrade notes. If it is not in your tool list (it arrived in `@xh/hoist` v86), read the doc with the CLI, or `Read` the file under `client-app/node_modules/@xh/hoist/`.
+
+The tools describe themselves. Each `@xh/hoist` version ships its own MCP server, so read the tool descriptions and result text for what the installed version can do, and branch on that rather than on a version number.
 
 ## Retrieval workflow
 
 Each rule below removes a lookup that agents often waste. Apply them in this order.
 
-- **Area task: read its README first.** If the task spans a component or subsystem, read that README before any symbol lookup, for example `cmp/grid`, `data`, `format`, or `desktop/cmp/panel`. One README read answers several questions and costs less than three searches.
-- **Unknown doc: search once, then read.** If you do not know which doc covers the task, run `hoist-search-docs` with two or three keywords, then `hoist-read-doc` on the best match. Do not run a second search before you read.
-- **Exact props: members on the interface.** Call `hoist-get-members` on the Props or Config interface, for example `GridConfig`, `PanelProps`, or `ColumnSpec`. On an interface, `hoist-get-symbol` returns only the signature and JSDoc, not the members.
-- **Symbol search: one strong keyword.** `hoist-search-symbols` matches every word of the query against names and JSDoc. `persistWith`, `confirm`, or `Select` beats a sentence. If you get zero results, remove words. Do not add them. Search results already show the package and JSDoc, so call `hoist-get-symbol` only when you need the full signature.
-- **Imports: use the package barrel.** Import from `@xh/hoist/` plus the package in the results, shown as `package:` in text output and `sourcePackage` in structured output. If that folder is a sub-folder of a package, such as `renderers` or `impl`, import from the parent. Never import from a file path or an `impl` folder.
+- **Search once, then read one thing.** Run `hoist-search-docs` with two or three keywords. If the results are sections (each shows a section path and a token count), read the best one with `hoist-read-doc` and its `section`; use `outline: true` to pick a section in a large doc. If the results are whole docs, read the README for the area instead, for example `cmp/grid`, `data`, `format`, or `desktop/cmp/panel`. One README read answers several questions. Do not run a second search before you read.
+- **Exact props: members on the interface.** Call `hoist-get-members` on the Props or Config interface, for example `GridConfig`, `PanelProps`, or `ColumnSpec`. If the tool offers a `filter`, use it on a large class (`GridModel` with `col`) instead of reading every member. Use `hoist-get-symbol` for a signature or JSDoc; if its result includes a member summary, that is often enough to write the code.
+- **Symbol search: one strong keyword.** `persistWith`, `confirm`, or `Select` beats a sentence, and a camelCase name also finds text about its parts. If you get zero results, remove words. Do not add them. A hit that names its owner (`XHApi.confirm`) tells you which class or config to read next.
+- **Imports: use the package barrel.** If a result shows an import path, use it. Otherwise import from `@xh/hoist/` plus the package in the results, shown as `package:` in text output and `sourcePackage` in structured output. If that folder is a sub-folder of a package, such as `renderers` or `impl`, import from the parent. Never import from a file path or an `impl` folder.
   - `cmp/grid/renderers` becomes `@xh/hoist/cmp/grid`
   - `desktop/cmp/panel` becomes `@xh/hoist/desktop/cmp/panel`
   - `utils/js` becomes `@xh/hoist/utils/js`
