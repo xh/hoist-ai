@@ -51,5 +51,10 @@
   "enabledMcpjsonServers": [
     "github",
     "jetbrains"
-  ]
+  ],
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  }
 }
