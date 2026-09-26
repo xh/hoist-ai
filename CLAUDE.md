@@ -42,8 +42,14 @@ settings.json            Default MCP tool permission allowlist
   descriptions, server instructions, and docs. Write skill rules that branch on what a tool returns
   (for example "if the results are sections"), never on a hoist-react version number or on how much
   a tool prints. A rule that stops being true when the MCP improves is a bug in the skill.
-- Prose in this repo (CHANGELOG, README, skill text, commit messages) follows the
-  `clear-writing` skill. Lint a draft with its script before you commit it.
+- Prose in this repo (CHANGELOG, README, skill text, commit messages, PR descriptions) follows
+  the `clear-writing` skill. Lint a draft with its script before you commit it.
+- Do not hard-wrap commit bodies, PR descriptions, or issue and PR comments at a fixed column.
+  Write each paragraph as one line and let GitHub and other tools wrap it. Do use line breaks for
+  structure: a blank line after the subject and between paragraphs, and a bullet list for separate
+  points. Keep PR descriptions short, because XH developers review them often. Bullet the key
+  changes and let the diff show the rest. CHANGELOG entries are the exception: hard-wrap them at
+  100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
 - The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
 - Always bump `plugin.json` version before pushing changes.

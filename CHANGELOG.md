@@ -9,7 +9,7 @@
 * `using-hoist-react-reference`: uses member `filter` and symbol member summaries when the
   installed tools offer them (`@xh/hoist` v88 symbol tools).
 * CLAUDE.md: skills describe procedure, version-specific facts ship with hoist-react through the
-  MCP.
+  MCP. Commit and PR bodies are not hard-wrapped, and PR descriptions stay short.
 
 ## 1.6.1 - 2026-09-25
 
