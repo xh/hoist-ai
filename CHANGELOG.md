@@ -6,6 +6,8 @@
   hoist-react version. Section-level search results (from `@xh/hoist` v88) are read one section at
   a time with `hoist-read-doc`; whole-doc results fall back to the area README. Rules no longer
   depend on how much a tool prints.
+* `using-hoist-react-reference`: uses member `filter` and symbol member summaries when the
+  installed tools offer them (`@xh/hoist` v88 symbol tools).
 * CLAUDE.md: skills describe procedure, version-specific facts ship with hoist-react through the
   MCP; no AI attribution in commits or PRs.
 
