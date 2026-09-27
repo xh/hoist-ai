@@ -14,7 +14,6 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   hoist-upgrade/         Guided @xh/hoist version upgrade
   using-hoist-core-reference/    Authoritative reference + install for hoist-core MCP/CLI tools
   using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
-settings.json            Default MCP tool permission allowlist
 ```
 
 ## Development Workflow
@@ -23,7 +22,8 @@ settings.json            Default MCP tool permission allowlist
 2. Test locally: install from local path in a Hoist project.
    - In Claude Code: `/plugin install /path/to/hoist-ai --scope project`
    - Verify skills run correctly and MCP server starts.
-3. Bump the version in `.claude-plugin/plugin.json` before pushing.
+3. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
+   before pushing.
 4. Push to `main` - marketplace consumers pick up updates automatically.
 
 ## Skill Authoring Conventions
@@ -52,7 +52,9 @@ settings.json            Default MCP tool permission allowlist
   100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
 - The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
-- Always bump `plugin.json` version before pushing changes.
+- Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
+  to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
+  or files the plugin never loads do not need a release.
 - Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
   skill-creator best practices on the `description:` frontmatter: single paragraph with no
   blank-line breaks (the harness truncates display at blank lines); lead with a "Why this

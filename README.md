@@ -5,11 +5,12 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 ## What It Provides
 
-- **MCP Server** - automatically connects the hoist-react MCP server, giving Claude access to
-  Hoist framework documentation and TypeScript API lookups.
+- **MCP Servers** - onboarding adds the hoist-react and hoist-core MCP servers to your project's
+  `.mcp.json`. They give Claude access to Hoist docs and API lookups.
 - **Skills** - project onboarding, version upgrades, worktree setup, a house writing style, and
   Hoist API reference for AI agents (see [Available Skills](#available-skills) below).
-- **Permission Defaults** - pre-approves hoist-react MCP tools so they work without prompts.
+- **Tool Pre-Approval** - each skill pre-approves the MCP tools it calls while it runs. To
+  allow them outside the skills, see [Project-Level Setup](#project-level-setup).
 
 ## Requirements
 
@@ -59,9 +60,9 @@ This will:
 | hoist-react reference | `/xh:using-hoist-react-reference` | Routes Hoist React questions to the docs and TypeScript API tools. Loads itself when you write Hoist code |
 | hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs the tools |
 
-## Project-Level Auto-Discovery
+## Project-Level Setup
 
-To ensure all developers on a project have the plugin, add this to the project's
+To give all developers on a project the plugin, add this to the project's
 `.claude/settings.json`:
 
 ```json
@@ -82,6 +83,26 @@ To ensure all developers on a project have the plugin, add this to the project's
 
 Claude Code will prompt developers to install the marketplace and plugin when they open the
 project.
+
+A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file:
+
+```json
+{
+  "enabledMcpjsonServers": ["hoist-react", "hoist-core"],
+  "permissions": {
+    "allow": [
+      "mcp__hoist-react__*",
+      "mcp__hoist-core__*",
+      "Bash(npx hoist-docs:*)",
+      "Bash(npx hoist-ts:*)",
+      "Bash(./bin/hoist-core-docs:*)",
+      "Bash(./bin/hoist-core-symbols:*)",
+      "Bash(./bin/hoist-core-mcp:*)",
+      "Bash(./gradlew installHoistCoreTools:*)"
+    ]
+  }
+}
+```
 
 ## MCP Tools
 
