@@ -52,6 +52,12 @@
 #                          Repeatable. `git worktree add` populates only TRACKED files,
 #                          so without this a Hoist app has no .env and will not start.
 #                          Absent files are skipped with a notice (not an error).
+#   --enable-plugin <id>   Claude Code plugin to enable in the worktree's own
+#                          .claude/settings.local.json, e.g. `xh@hoist-ai`. Repeatable.
+#                          Runs after --local, and leaves an id that file already sets
+#                          (true or false) alone. A plugin enabled only by the committed
+#                          .claude/settings.json is lost on any branch older than that
+#                          commit. A local entry keeps it on whatever the branch.
 #   --toolchain <name>     Path-scoped toolchain manager to activate in the new
 #                          directory: `mise` or `direnv`. Repeatable. Trust in both
 #                          tools is keyed to the config file's PATH, so a new worktree
@@ -84,6 +90,7 @@ BASE_SHA=""   # set only when we create the worktree; empty on the adopt-existin
 UPSTREAM=""   # set only in --existing-branch mode, when the branch has one
 EXISTING_BRANCH=0
 LOCALS=()
+PLUGINS=()
 TOOLCHAINS=()
 DEPS=()
 GRADLE_TASKS=()
@@ -120,6 +127,7 @@ while [[ $# -gt 0 ]]; do
         --branch)       BRANCH="${2:-}"; shift 2 ;;
         --base)         BASE="${2:-}"; shift 2 ;;
         --local)        LOCALS+=("${2:-}"); shift 2 ;;
+        --enable-plugin) PLUGINS+=("${2:-}"); shift 2 ;;
         --toolchain)    TOOLCHAINS+=("${2:-}"); shift 2 ;;
         --deps)         DEPS+=("${2:-}"); shift 2 ;;
         --gradle-task)  GRADLE_TASKS+=("${2:-}"); shift 2 ;;
@@ -174,6 +182,12 @@ if [[ ${#DEPS[@]} -gt 0 ]]; then
             yarn|npm|pnpm) ;;
             *) die "unknown package manager '${spec##*:}' in --deps '$spec' (expected 'yarn', 'npm', or 'pnpm')" ;;
         esac
+    done
+fi
+
+if [[ ${#PLUGINS[@]} -gt 0 ]]; then
+    for id in "${PLUGINS[@]}"; do
+        [[ "$id" == ?*@?* ]] || die "--enable-plugin expects <plugin>@<marketplace>, got '$id'"
     done
 fi
 
@@ -313,7 +327,43 @@ if [[ ${#TOOLCHAINS[@]} -gt 0 ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Step 4: install dependencies.
+# Step 4: enable Claude Code plugins in the worktree's local settings.
+#
+# A plugin enabled only by the committed .claude/settings.json follows the branch: check
+# out a branch that predates that commit and the plugin silently drops out of the
+# worktree. A local entry keeps it on whatever the branch. Runs after Step 3 so a
+# mise-pinned node resolves. A missing node is a warning, not a failure. The worktree still
+# works, and the entry is a one-line manual fix.
+# ---------------------------------------------------------------------------
+if [[ ${#PLUGINS[@]} -gt 0 ]]; then
+    echo "==> Enabling Claude Code plugins in .claude/settings.local.json..."
+    SETTINGS_LOCAL="$DEST/.claude/settings.local.json"
+    for id in "${PLUGINS[@]}"; do
+        if ! command -v node >/dev/null 2>&1; then
+            echo "    WARNING: node not on PATH -- add \"enabledPlugins\": {\"$id\": true}" >&2
+            echo "    to $SETTINGS_LOCAL by hand." >&2
+            continue
+        fi
+        mkdir -p "$DEST/.claude"
+        # Prints "enabled", or "kept" when the file already sets this id either way.
+        result="$(cd "$DEST" && node -e '
+            const fs = require("fs");
+            const [file, id] = process.argv.slice(1);
+            const data = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
+            const plugins = (data.enabledPlugins ??= {});
+            if (id in plugins) {
+                console.log("kept");
+            } else {
+                plugins[id] = true;
+                fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+                console.log("enabled");
+            }' "$SETTINGS_LOCAL" "$id")"
+        echo "    $result $id"
+    done
+fi
+
+# ---------------------------------------------------------------------------
+# Step 5: install dependencies.
 #
 # The package manager is dictated by the app's lockfile and is passed in by the
 # caller -- running npm in a yarn app writes a competing lockfile and re-resolves the
@@ -335,7 +385,7 @@ if [[ ${#DEPS[@]} -gt 0 ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Step 5: run Gradle tasks.
+# Step 6: run Gradle tasks.
 #
 # Typically `installHoistCoreTools`, which regenerates the server-side AI tooling
 # launchers. Those launchers embed an ABSOLUTE path to this worktree's JAR, so they
@@ -351,7 +401,7 @@ if [[ ${#GRADLE_TASKS[@]} -gt 0 ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Step 6: verify toolchain parity.
+# Step 7: verify toolchain parity.
 #
 # Outcome check rather than a step check: if the interpreters differ between the two
 # checkouts, some path-scoped activation didn't carry over -- including from a manager

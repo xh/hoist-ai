@@ -90,6 +90,12 @@ Default set, copied from the main checkout:
 Absent files are skipped with a notice, so it's safe to pass both unconditionally. Add
 anything the `## Worktree provisioning` block names.
 
+Always pass `--enable-plugin xh@hoist-ai` too. Many apps enable this plugin only in the
+committed `.claude/settings.json`, so a worktree on a branch that predates that commit loses
+the plugin. The flag writes the entry to the worktree's own `.claude/settings.local.json`,
+which keeps the plugin on whatever the branch. It leaves an entry that file already has
+alone, so a copied opt-out stays an opt-out.
+
 ### 5. Toolchain manager
 
 Detect against the main checkout. Both of these key trust to a directory path, so the new
@@ -146,6 +152,7 @@ with the plugin, and avoids the content-mangling risk that copying executable te
         --base "<resolved-base-ref>" \
         --local .env \
         --local .claude/settings.local.json \
+        --enable-plugin xh@hoist-ai \
         --toolchain mise \
         --deps client-app:yarn \
         --gradle-task installHoistCoreTools \
@@ -157,10 +164,11 @@ are mutually exclusive and the script rejects the combination.
 `--repo` and `--dest` must be absolute -- the script rejects relative paths, because it runs
 from the plugin directory and a relative path would resolve against that.
 
-Include only the flags Phase 1 actually resolved. `--toolchain`, `--deps`, `--gradle-task` and
-`--local` are all repeatable and all optional. Pass `--verify-parity` always -- it compares
-`node` and `java` between the two checkouts and catches an activation that didn't carry over,
-including from managers this skill doesn't detect (nvm, fnm, volta, asdf, nix).
+Include only the flags Phase 1 actually resolved. `--toolchain`, `--deps`, `--gradle-task`,
+`--local` and `--enable-plugin` are all repeatable and all optional. Pass `--verify-parity`
+always -- it compares `node` and `java` between the two checkouts and catches an activation
+that didn't carry over, including from managers this skill doesn't detect (nvm, fnm, volta,
+asdf, nix).
 
 Read the script's header comment if you need the full flag contract.
 

@@ -81,8 +81,16 @@ To give all developers on a project the plugin, add this to the project's
 }
 ```
 
-Claude Code will prompt developers to install the marketplace and plugin when they open the
-project.
+This turns the plugin on for the project but does not install it. Each developer runs this
+once in the project:
+
+```
+claude plugin install xh@hoist-ai --scope project
+```
+
+The install covers every git worktree of the project. A worktree on a branch older than this
+commit has no `enabledPlugins` entry, so `/xh:setup-worktree` also enables the plugin in each
+worktree's `.claude/settings.local.json`.
 
 A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file:
 

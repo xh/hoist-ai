@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+* `setup-worktree`: enables the plugin in each new worktree's `.claude/settings.local.json`.
+  A plugin enabled only in the committed `.claude/settings.json` dropped out of worktrees on
+  branches older than that commit.
+
 ## 1.6.2 - 2026-09-26
 
 * `using-hoist-react-reference`: retrieval rules now branch on what the tools return, not on a
