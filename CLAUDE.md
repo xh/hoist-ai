@@ -22,9 +22,11 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
 2. Test locally: install from local path in a Hoist project.
    - In Claude Code: `/plugin install /path/to/hoist-ai --scope project`
    - Verify skills run correctly and MCP server starts.
-3. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
+3. Run `python3 .github/scripts/check-removed-apis.py`. CI runs it too. It fails when skill text
+   teaches a hoist-react API that a major removed, outside text marked as version-gated.
+4. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
    before pushing.
-4. Push to `main` - marketplace consumers pick up updates automatically.
+5. Push to `main` - marketplace consumers pick up updates automatically.
 
 ## Skill Authoring Conventions
 

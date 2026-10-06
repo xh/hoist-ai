@@ -1,0 +1,14 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  removed-apis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check skills for removed hoist-react APIs
+        run: python3 .github/scripts/check-removed-apis.py

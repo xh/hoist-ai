@@ -20,7 +20,7 @@
       "expectations": [
         "The skill `using-hoist-react-reference` was invoked",
         "The agent consulted the reference tools (MCP or CLI) for @bindable semantics",
-        "The proposed code uses `@bindable sortField: string = 'name'` (or equivalent) and does not invent setter signatures"
+        "The proposed code matches the fixture's decorator style (`@bindable accessor sortField: string = 'name'` or equivalent) and does not invent setter signatures"
       ]
     },
     {

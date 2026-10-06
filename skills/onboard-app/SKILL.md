@@ -32,6 +32,10 @@ a React/TypeScript frontend in `client-app/`. Key locations:
 2. Determine the installed `@xh/hoist` version. Read `client-app/package.json` and check
    `dependencies` for `@xh/hoist`.
    - **Direct dependency:** If `@xh/hoist` appears in `dependencies`, extract the version.
+   - **Dist-tag spec:** The spec can be an npm dist-tag such as `next` instead of a version
+     range. Then the app tracks hoist-react SNAPSHOTs ("canary mode"), and the spec has no
+     version in it. Read the resolved version from `client-app/node_modules/@xh/hoist/package.json`, or
+     from the lockfile if dependencies are not installed. Record canary mode for Phase 2.
    - **Transitive dependency:** If not found directly, `@xh/hoist` may be pulled in via a
      client-specific plugin. Run (from `client-app/`):
      - Yarn: `yarn why @xh/hoist`
@@ -97,12 +101,20 @@ a React/TypeScript frontend in `client-app/`. Key locations:
    more frequently updated package and the one applications depend on most heavily. Upgrades to
    hoist-react drive the process and specify the required `hoist-core` version to match.
 
-   **SNAPSHOT handling.** If the installed version contains `-SNAPSHOT` (e.g.
-   `85.0.0-SNAPSHOT.1777529713059`), the developer is intentionally on a pre-release that is
-   typically *ahead* of the published `latest` tag. Do not flag this as "behind latest" --
-   semver comparison against `dist-tags.latest` will lie. Treat SNAPSHOT installs as up-to-date
-   for upgrade-prompt purposes; surface "on a pre-release SNAPSHOT" in Phase 2's detection
-   summary instead of an upgrade nudge.
+   **SNAPSHOT handling.** If the app is in canary mode (step 2) or the installed version
+   contains `-SNAPSHOT` (e.g. `85.0.0-SNAPSHOT.1777529713059`), the developer is intentionally
+   on a pre-release that is typically *ahead* of the published `latest` tag. Do not flag this as
+   "behind latest". Semver comparison against `dist-tags.latest` will lie. Treat SNAPSHOT
+   installs as up-to-date for upgrade-prompt purposes; surface "on a pre-release SNAPSHOT" in
+   Phase 2's detection summary instead of an upgrade nudge.
+<!-- legacy-api:start -->
+8. **Detect the decorator style.** It picks the Models and Decorators section of the generated
+   CLAUDE.md (Phase 4). Read `client-app/tsconfig.json`, and any config it `extends`:
+   - `experimentalDecorators: true`: **legacy** decorators.
+   - Otherwise: **TC39** decorators, with `accessor` fields.
+   If no tsconfig can be read, use the installed `@xh/hoist` major from step 2: v88 or later is
+   TC39, earlier is legacy.
+<!-- legacy-api:end -->
 
 ## Phase 2: Present Findings
 
@@ -111,7 +123,8 @@ Display a summary of what was detected:
 ```
 ## Project Detection Results
 
-- **@xh/hoist (hoist-react):** v[version] [(direct | via [plugin name])] ([up to date | upgrade available: v[latest]])
+- **@xh/hoist (hoist-react):** v[version] [(direct | via [plugin name])] [(canary: tracks `next`)] ([up to date | upgrade available: v[latest]])
+- **Decorators:** [TC39 | legacy]
 - **hoist-core:** v[version] [(direct | via [plugin name])]
 - **Client plugins:** [None detected | See table below]
 - **Existing CLAUDE.md:** [Yes -- merge needed | No -- will create fresh]
@@ -328,6 +341,11 @@ Read the base template from the matched path.
 
    The generated CLAUDE.md should show only the commands that match the project's actual
    package manager -- not both with a "(or X)" parenthetical that implies a preference.
+
+   **Do** replace `{{MODEL_PRIMER}}` with the full content of the models template for the
+   decorator style detected in Phase 1, from the same templates directory:
+   - TC39: `claude-md-models-tc39.md`
+   - legacy: `claude-md-models-legacy.md`
 2. If client plugins were detected in Phase 1, also read `claude-md-client-plugins.md` from
    the same templates directory and append its content. Replace the placeholder table with a
    row for each detected plugin:
@@ -340,10 +358,21 @@ Read the base template from the matched path.
 3. If an existing `CLAUDE.md` is present:
    - Read the existing file.
    - Check which Hoist sections are already present (look for headings like
-     "Architecture Primer", "MCP Tools", "hoist-core", "Writing Style", "Commands",
-     "Client Plugins").
+     "Architecture Primer", "Models and Decorators", "MCP Tools", "hoist-core", "Writing Style",
+     "Commands", "Client Plugins").
    - Append only sections that are missing. Do NOT overwrite or duplicate existing content.
-   - Show the user what will be added before writing.
+   <!-- legacy-api:start -->
+   - **Exception: a stale model primer.** Hoist primer text that teaches the other decorator
+     style is wrong for this app. Older onboarding runs put the HoistModel example inside
+     "Architecture Primer", not in a "Models and Decorators" section. Judge it by the
+     primer's HoistModel code example, not by prose that only names an API. The primer is
+     stale if the app uses TC39 decorators and the example declares `@observable` or
+     `@bindable` fields without `accessor`, or calls `makeObservable(this)`. It is also stale
+     if the app uses legacy decorators and the example uses `accessor` fields.
+     Offer to replace the "Architecture Primer" and "Models and Decorators" sections with the
+     generated ones. Keep any project-specific text the user added inside them.
+   <!-- legacy-api:end -->
+   - Show the user what will be added or replaced before writing.
    - Preserve all existing project-specific content.
 4. If no `CLAUDE.md` exists: write the complete generated template to `./CLAUDE.md`.
 

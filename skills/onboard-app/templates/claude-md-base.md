@@ -53,41 +53,6 @@ or without it.
 When context holds more than one model of the same type, for example two `GridModel` instances,
 pass the model explicitly: `grid({model: model.leftGridModel})`.
 
-**HoistModel** is the core state holder:
-```typescript
-class UserListModel extends HoistModel {
-    @observable.ref users: User[] = [];
-    @bindable selectedUserId: string = null;
-    @managed detailModel = new UserDetailModel();
-
-    constructor() {
-        super();
-        makeObservable(this);  // Required when class adds new observables
-    }
-
-    override async doLoadAsync(loadSpec: LoadSpec) {
-        const users = await XH.fetchJson({url: 'api/users', loadSpec});
-        runInAction(() => this.users = users);
-    }
-}
-```
-
-**Key decorators:**
-
-| Decorator | Purpose |
-|-----------|---------|
-| `@observable` / `@observable.ref` | MobX observable state |
-| `@bindable` | Observable + auto-generated action-wrapped setter |
-| `@managed` | Mark child object for automatic cleanup on `destroy()` |
-| `@persist` | Sync property with a persistence provider (requires `persistWith`) |
-| `@lookup(ModelClass)` | Inject ancestor model (linked models only, available after `onLinked`) |
-| `@computed` | Cached derived value |
-| `@action` | Mark method as state-modifying |
-
-**`makeObservable(this)`.** Call it in the constructor of any class that adds new `@observable`,
-`@bindable`, or `@computed` properties. The base class call does not cover subclass decorators.
-Forgetting this is the most common Hoist bug.
-
 **`doLoadAsync(loadSpec)`.** Implement this template method to opt into managed data loading.
 Trigger a load with `model.loadAsync()` or `model.refreshAsync()`. Never call `doLoadAsync`
 directly. A linked model that implements `doLoadAsync` loads on mount.
@@ -105,12 +70,13 @@ XH.<yourCustomService>.<yourMethodAsync>();  // Your app's services, registered 
 navigation (`navigate`, `appendRoute`), and app state (`appState`, `darkTheme`).
 
 **Critical pitfalls:**
-1. **Forgetting `makeObservable(this)`.** Observables silently stop reacting.
-2. **Managing objects you do not own.** Only `@managed` objects your class creates. The provider
+1. **Managing objects you do not own.** Only `@managed` objects your class creates. The provider
    owns objects passed in from outside.
-3. **Mutating observables outside actions.** Use `runInAction()`, `@action`, or `@bindable`.
-4. **Calling `lookupModel()` too early.** It only works during or after `onLinked()`.
-5. **Calling `doLoadAsync()` directly.** Use the `loadAsync()` or `refreshAsync()` entry points.
+2. **Mutating observables outside actions.** Use `runInAction()`, `@action`, or `@bindable`.
+3. **Calling `lookupModel()` too early.** It only works during or after `onLinked()`.
+4. **Calling `doLoadAsync()` directly.** Use the `loadAsync()` or `refreshAsync()` entry points.
+
+{{MODEL_PRIMER}}
 
 ## Hoist Reference Skills
 

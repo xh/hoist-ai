@@ -41,13 +41,14 @@ Each rule below removes a lookup that agents often waste. Apply them in this ord
   - `utils/js` becomes `@xh/hoist/utils/js`
 - **Inherited props: assume the standard ones.** A Props interface that extends a Blueprint or React type, such as `ButtonProps`, does not list the props it inherits, such as `onClick`. Assume the standard props exist. Do not search for them.
 - **Budget: about six lookups before you write code.** If you pass it while you look up names one at a time, stop and read the README for the area.
-- **Version: trust the installed one.** The local MCP and CLI describe the `@xh/hoist` version in `client-app/node_modules`. Docs on GitHub `develop` and the default Context7 entry can describe a different major. If they disagree with the installed version, read the upgrade notes for that major, for example `hoist-read-doc` with `id: "v87"`.
+- **Version: trust the installed one.** The local MCP and CLI describe the `@xh/hoist` version in `client-app/node_modules`. Docs on GitHub `develop` and the default Context7 entry can describe a different major. If they disagree with the installed version, read the upgrade notes for that major, for example `hoist-read-doc` with `id: "v87"`. The MCP server reads the installed version when it starts. After `@xh/hoist` is installed or upgraded in this session, use the CLI, which reads it on each call, until the server is reconnected with `/mcp`.
 
 ## Pitfalls
 
 - **Config interface or model class.** `GridConfig` holds configuration options. `GridModel` holds runtime state. Call `hoist-get-members` on the one that answers your question.
 - **Name collisions.** Some names exist in more than one package, for example `View` in `cmp/viewmanager` and `data/cube`. When the tool says so, pass `filePath` to pick one.
 - **Reading framework source.** The reference tools show JSDoc and decorators more clearly than the source. Read the source only as a last resort.
+- **Decorator syntax.** Write new fields in the form the app's existing models and the installed `conventions` doc use, for example whether `@observable` and `@bindable` fields take `accessor`. Older Hoist code in your training data uses a different form, and a field in the wrong form can compile and still not react.
 - **Trusting training data.** Decorators change names and base classes move between versions. Check the API with the reference tools before you write it.
 
 ## CLI launchers

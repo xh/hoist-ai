@@ -1,7 +1,7 @@
 ---
 name: hoist-upgrade
 description: Upgrade a Hoist app's `@xh/hoist` dependency across one or more major versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, checks the hoist-react version-compatibility matrix and bumps `@xh/hoist-dev-utils` when the target version requires or recommends it, bumps `hoistCoreVersion` (and refreshes the hoist-core MCP+CLI launchers if previously installed), and produces a comprehensive upgrade report.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-read-doc, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-ping, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-list-docs, mcp__hoist-react__hoist-read-doc, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols, mcp__hoist-react__hoist-get-members
 ---
 
 # Hoist Version Upgrade
@@ -34,6 +34,13 @@ from `client-app/` using this package manager.
 Read `client-app/package.json`. Find `@xh/hoist` in `dependencies` and extract the current
 version. Handle version strings like `^82.0.0-SNAPSHOT` -- extract the numeric portion
 (e.g. `82.0.0`).
+
+The spec can be an npm dist-tag such as `next` instead of a version range. Then the app is in
+**canary mode**: it tracks hoist-react SNAPSHOTs, which publish under the `next` tag. The spec
+has no version to extract. Read the installed version from
+`client-app/node_modules/@xh/hoist/package.json`. If dependencies are not installed, use the
+lockfile's resolved version (for pnpm, `importers` -> `.` -> `dependencies` -> `'@xh/hoist'` ->
+`version`). Record canary mode for Phase 2.
 
 If `@xh/hoist` is not a direct dependency, it may be pulled in transitively via a client plugin.
 Run from `client-app/`:
@@ -101,6 +108,16 @@ confirms.
 
 If a target version was provided via arguments in Phase 1, use it.
 
+**Canary mode.** A dist-tag spec is a deliberate choice to track SNAPSHOTs. Do not treat it as
+a version string to bump. Run `npm view @xh/hoist dist-tags` to see where `next` and `latest`
+point, then ask the developer which path they want:
+- **Stay on canary:** re-resolve `next` to its current SNAPSHOT and apply the migrations for
+  every major it crosses. The spec stays `next`.
+- **Move to a stable release:** pick a target from the list below. The spec becomes a caret
+  range. If the target is older than the installed SNAPSHOT, warn that this is a downgrade.
+
+Wait for the developer to choose before continuing.
+
 If no target version was specified, query npm for available versions:
 ```bash
 npm view @xh/hoist versions --json
@@ -136,6 +153,13 @@ the sequence [v77->v78, v78->v79, v79->v80, v80->v81].
 
 For minor version jumps within the same major version (e.g. v80.0.0 -> v80.1.0), treat that as
 a single hop.
+
+On the canary path, the target is the version `next` resolves to. The tag cannot install
+intermediate majors, so Phase 3 installs once and applies each hop's guide in order. The
+installed package carries the upgrade notes for every earlier major. A SNAPSHOT may ship a
+partial guide for its own major, or none yet. If `next` resolves within the installed major,
+there is one hop. Read the breaking changes for that major at the top of the installed
+`CHANGELOG.md`.
 
 ### 3. Check version compatibility (hoist-core AND hoist-dev-utils)
 
@@ -242,13 +266,33 @@ Verify the current branch is NOT main or develop before any commits.
 ### 3b. Bump version and install
 
 Update the `@xh/hoist` version in `client-app/package.json` `dependencies` to the hop's target
-version (e.g. `"@xh/hoist": "^{target}"`).
+version (e.g. `"@xh/hoist": "^{target}"`). Never write a caret range on a SNAPSHOT version.
+Under pnpm it freezes to an exact pin that later updates cannot move. If the app tracks
+SNAPSHOTs, the spec is `next`.
+
+On the canary path, do this step for the first hop only. Leave the spec as `next` and
+re-resolve it with the package manager's update command for the package:
+- pnpm: `pnpm update @xh/hoist`
+- yarn 1: `yarn upgrade @xh/hoist`
+- yarn 2+: `yarn up @xh/hoist`
+- npm: `npm update @xh/hoist`
+
+Then confirm `package.json` still reads `next`, and restore it if the command rewrote it.
 
 Run the detected package manager's install command from `client-app/` to update the lockfile
 and install the new version.
 
+Then remove duplicate packages. An in-place upgrade can leave an old copy of a package that the
+new Hoist version needs at a newer version. `tsc` then fails inside Hoist with conflicting types.
+- pnpm: `pnpm dedupe`, then `pnpm dedupe --check` to confirm.
+- npm: `npm dedupe`.
+- yarn 2+: `yarn dedupe`. Yarn 1 has no dedupe command. Use `npx yarn-deduplicate`, then
+  `yarn install`.
+
 **Important:** The upgrade notes for version N ship with version N. They are only available on
-the filesystem after installing the target version.
+the filesystem after installing the target version. A guide may ask for its `package.json` and
+build-config edits before the install. Because you already installed to read it, apply those
+edits next, then re-run the install and dedupe.
 
 ### 3c. Read upgrade guide for this hop
 
@@ -261,7 +305,7 @@ client-app/node_modules/@xh/hoist/docs/upgrade-notes/v{TARGET}-upgrade-notes.md
 the previous version's content after install. The `Read` tool always reflects the installed
 version.
 
-For versions WITHOUT upgrade notes (pre-v78): Read `client-app/node_modules/@xh/hoist/CHANGELOG.md` and
+For versions WITHOUT upgrade notes (pre-v73): Read `client-app/node_modules/@xh/hoist/CHANGELOG.md` and
 parse the `Breaking Changes` section for the target version. Alert the developer:
 > "No dedicated upgrade guide exists for this version. Using CHANGELOG breaking changes section.
 > Guidance may be less thorough for this hop."
@@ -282,8 +326,11 @@ Read the upgrade guide carefully. For each migration step:
 4. These will be included in the upgrade report for developer review
 
 When migration involves API changes and you need to verify new API shapes, prefer the
-before/after code examples in the upgrade guide. MCP API lookups (`hoist-get-symbol`,
-`hoist-search-symbols`) may reflect the previous version until the MCP server is reconnected.
+before/after code examples in the upgrade guide. For other lookups, use the hoist-react CLI from
+`client-app/`: `npx hoist-ts search|symbol|members` and `npx hoist-docs search|read`. The CLI
+reads the installed version on each call. The MCP server reads it only at startup, so until it
+is reconnected in Phase 4, its docs and symbols describe the pre-upgrade version. Do not use
+the MCP tools between the first install and that reconnect.
 
 ### 3e. Check and bump hoist-core version
 
@@ -332,10 +379,10 @@ If a bump is required or recommended:
    reverse-lookup table -- it lists each major's minimum hoist-react, Node floor, and headline
    breaking changes. For full detail, fetch the CHANGELOG from GitHub if network access allows:
    `curl -s https://raw.githubusercontent.com/xh/hoist-dev-utils/develop/CHANGELOG.md`.
-   dev-utils majors carry their own breaking changes -- Node version floors, `configureWebpack`
-   option changes, and eslint-config migrations. Verify the local Node version satisfies any
-   new floor (`node --version`) and record anything requiring app-side action as a judgment
-   call.
+   dev-utils majors carry their own breaking changes: Node version floors, build-config
+   changes up to a change of bundler, script and CI flag changes, and eslint-config migrations.
+   Verify the local Node version satisfies any new floor (`node --version`) and record
+   anything requiring app-side action as a judgment call.
 3. If the app uses pnpm (or is adopting it as part of this upgrade): dev-utils >= 14 is
    required, and pnpm additionally requires the app to declare every package it imports
    directly -- phantom dependencies that yarn's hoisting concealed will fail to resolve.
@@ -356,6 +403,8 @@ git add -A
 git commit -m "Upgrade @xh/hoist v{FROM} -> v{TO}"
 ```
 
+On the canary path, the first hop's commit carries the `package.json` and lockfile changes.
+
 ### 3i. Progress reporting
 
 After each hop, display a brief status showing progress through the sequence:
@@ -367,6 +416,28 @@ After each hop, display a brief status showing progress through the sequence:
 [in progress] v78 -> v79 -- in progress...
 [pending] v79 -> v80 -- pending
 ```
+
+### 3j. Refresh agent docs (after the last hop)
+
+The app's agent docs can still teach APIs that the upgrade removed. `CLAUDE.md` is the main
+one. Also check `AGENTS.md`, `.claude/rules/`, and other docs written for agents.
+
+1. Re-run the "find affected files" greps from each hop's guide against these docs. Fix each
+   hit, or record it as a judgment call if the text is project-specific.
+<!-- legacy-api:start -->
+2. If `CLAUDE.md` holds the Hoist primer from `/xh:onboard-app` (an "Architecture Primer"
+   heading), check that it matches the app's decorator style. The style is legacy if
+   `client-app/tsconfig.json`, or a config it extends, sets `experimentalDecorators: true`.
+   Otherwise it is TC39. Judge the primer by its HoistModel code example. If the example uses
+   the other style, regenerate the "Architecture Primer" and "Models and Decorators" sections. `Glob` for
+   `**/onboard-app/templates/claude-md-base.md`, and follow the merge rules in that skill's
+   Phase 4 for an existing `CLAUDE.md`. Keep project-specific text, and show the developer the
+   diff before writing.
+<!-- legacy-api:end -->
+3. Commit any changes on their own:
+   ```bash
+   git commit -am "Refresh agent docs for @xh/hoist v{TO}"
+   ```
 
 ## Phase 4: Verify
 
@@ -421,16 +492,30 @@ Report pass/fail.
 Run the project's lint command from `client-app/` using the detected package manager.
 Report pass/fail.
 
-### 4. Guided verification
+### 4. Build, dev server, and tests
+
+`tsc` and lint miss problems that only show up when the app builds, boots, or runs its tests.
+Run these when any hop crossed a major version, or when `@xh/hoist-dev-utils` changed:
+
+- **Production build.** Run the app's build script from `client-app/` (for example `pnpm build`).
+  Report pass/fail.
+- **Dev server.** Start the app's start script in the background. Wait until it reports a
+  successful compile, or an error. Then stop it. Report pass/fail. If the developer can open
+  the app, ask them to check the browser console for errors at startup.
+- **Tests.** If the app has a unit or E2E test suite (for example a `test` or `test:e2e`
+  script, or a Playwright config), run it. E2E tests may need the running app and server. Ask
+  the developer before you start them. Report pass/fail per suite.
+
+### 5. Guided verification
 
 If the final version's upgrade guide includes a verification checklist, present it to the
 developer and work through each item.
 
 If verification fails, present the errors and work with the developer to resolve them before
 proceeding to the report phase. If the dev server or a production build fails after the upgrade
-(webpack/loader errors, dev-server startup failures), suspect a missed hoist-dev-utils pairing
-first -- dev-utils mismatches surface at build / dev-server time, not runtime. Re-check the
-version-compatibility doc (Phase 2.3) before debugging app code.
+(bundler or loader errors, dev-server startup failures), suspect a missed hoist-dev-utils
+pairing first. dev-utils mismatches surface at build / dev-server time, not runtime. Re-check
+the version-compatibility doc (Phase 2.3) and the app's build config before debugging app code.
 
 ### Verification cadence
 
@@ -457,6 +542,7 @@ when they don't apply.
 - **Hops:** {N} ({comma-separated hop list, e.g. v77 -> v78, v78 -> v79})
 - **Branch:** {branch name}
 - **Package manager:** {yarn | npm | pnpm}
+- **Spec:** {`^{TO}` | `next` (canary)}
 
 ### Hop Overview
 
@@ -484,6 +570,9 @@ when they don't apply.
 
 - TypeScript (`tsc --noEmit`): {pass | fail with brief detail}
 - Lint: {pass | fail with brief detail}
+- Production build: {pass | fail | not run}
+- Dev server startup: {pass | fail | not run}
+- Tests: {pass | fail per suite | no suite | not run}
 - hoist-react CLI (`npx hoist-docs index`): {ok | error}
 - hoist-react MCP reconnect: {reconnected | skipped | failed}
 - hoist-core CLI (if launchers refreshed): {ok | error | N/A}
@@ -501,6 +590,11 @@ when they don't apply.
 
 - {old} -> {new} (required/recommended for hoist-react v{version} per the compatibility matrix)
 - {Note any new Node version floor or config changes from the dev-utils CHANGELOG.}
+
+### Agent Docs
+{Include only if Phase 3j changed anything.}
+
+- {file}: {what changed, e.g. "regenerated the Hoist primer for TC39 decorators"}
 
 ### Client Plugin Notes
 {Include only if client plugins were detected.}

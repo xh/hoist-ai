@@ -4,11 +4,10 @@ import {bindable} from '@xh/hoist/mobx';
 
 export class SamplePanelModel extends HoistModel {
     @managed gridModel: GridModel;
-    @bindable filterText: string = '';
+    @bindable accessor filterText: string = '';
 
     constructor() {
         super();
-        this.makeObservable();
         this.gridModel = new GridModel({
             columns: [
                 {field: 'name'},

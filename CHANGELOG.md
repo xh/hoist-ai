@@ -1,7 +1,22 @@
 # Changelog
 
-## Unreleased
+## 1.7.0 - 2026-10-06
 
+* `onboard-app`: the CLAUDE.md primer matches the app's decorator style. TC39 apps (`@xh/hoist`
+  v88+) get `accessor` fields and no MobX constructor setup. Legacy apps keep the old primer.
+  Onboarding offers to replace an existing primer that teaches the other style.
+* `onboard-app`, `hoist-upgrade`: support apps that spec `@xh/hoist` as the `next` dist-tag to
+  track SNAPSHOTs. They read the installed version from the package, not the spec.
+* `hoist-upgrade`: asks a canary app whether to stay on `next` or move to a stable release.
+  Never writes a caret range on a SNAPSHOT, because pnpm freezes it to an exact pin.
+* `hoist-upgrade`: dedupes packages after each install, and uses the hoist-react CLI for
+  lookups until the MCP server reconnects to the upgraded version.
+* `hoist-upgrade`: after a major hop, also runs the production build, starts the dev server,
+  and runs the app's test suites. Then it refreshes CLAUDE.md and other agent docs that still
+  teach removed APIs.
+* `hoist-upgrade`: build guidance covers Rsbuild as well as webpack.
+* `using-hoist-react-reference`: new rules to match the app's decorator syntax, and to use the
+  CLI after an install until the MCP server reconnects.
 * `setup-worktree`: enables the plugin in each new worktree's `.claude/settings.local.json`.
   A plugin enabled only in the committed `.claude/settings.json` dropped out of worktrees on
   branches older than that commit.
