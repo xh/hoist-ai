@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+* `using-hoist-core-reference`: install snippet bumped to `hoist-core-install/v2`, matching
+  hoist-core v43's `mcp/README.md`. It resolves the hoist-core version via
+  `configurations.hoistCoreCli.withDependencies`, deferred to task execution. The `v1` snippet
+  resolved `runtimeClasspath` at configuration time, which fails under Grails 8. `v2` also works
+  on Grails 7 / Gradle 8, so the skill offers it to apps on any supported hoist-core version, and
+  requires it on hoist-core v43+.
+* `hoist-upgrade`: refreshes a `v1` install snippet before re-running `installHoistCoreTools`
+  when an upgrade crosses into hoist-core v43.
+
 ## 1.7.0 - 2026-10-06
 
 * `onboard-app`: the CLAUDE.md primer matches the app's decorator style. TC39 apps (`@xh/hoist`

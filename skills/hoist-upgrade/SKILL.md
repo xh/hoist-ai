@@ -349,7 +349,10 @@ If the current version is below the requirement:
 4. **Refresh the hoist-core MCP+CLI launchers if they were previously installed.** Check
    whether `bin/hoist-core-mcp` exists at the project root. If it does, the launchers embed an
    absolute path to a version-suffixed JAR (e.g. `hoist-core-mcp-{old}-all.jar`) and are now
-   stale. Re-run:
+   stale. If the bump crosses into hoist-core v43+ (Grails 8) and `build.gradle` carries a
+   `// hoist-ai-snippet: hoist-core-install/v1` marker (or none), refresh the install snippet
+   first, following "Refreshing a stale install snippet" in `using-hoist-core-reference` - the
+   `v1` snippet fails under Grails 8. Then re-run:
    ```bash
    ./gradlew installHoistCoreTools
    ```

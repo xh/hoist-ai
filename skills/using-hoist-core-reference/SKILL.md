@@ -44,9 +44,9 @@ Skip this if you're working through MCP only. For the CLI surface, before the fi
 
        grep -E '^// hoist-ai-snippet: hoist-core-install/v[0-9]+' build.gradle
 
-   The current canonical version is **`v1`**. Three possible outcomes:
-   - **Match on `v1`**: snippet is current. No action.
-   - **Match on a lower version** (e.g. `v0`): snippet has drifted from the canonical. Jump to **[Refreshing a stale install snippet](#refreshing-a-stale-install-snippet)** and offer to update.
+   The current canonical version is **`v2`**. Three possible outcomes:
+   - **Match on `v2`**: snippet is current. No action.
+   - **Match on a lower version** (e.g. `v1`): snippet has drifted from the canonical. Jump to **[Refreshing a stale install snippet](#refreshing-a-stale-install-snippet)** and offer to update. A `v1` snippet fails under Grails 8 (hoist-core v43+), so if `hoistCoreVersion` is 43.0 or later, the refresh is required, not optional - `installHoistCoreTools` will not run until it is applied.
    - **No match**: snippet was installed before the drift marker was introduced (or hand-removed). Treat the same as the lower-version case.
 
 If any launcher file is **missing**, jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** and run the full install procedure.
@@ -124,28 +124,27 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
    - CLI: `./bin/hoist-core-docs read mcp/README.md` (only if the launchers are already present from a prior install — typical when upgrading), OR
    - Read `mcp/README.md` directly from a sibling hoist-core checkout if available.
 
-   The README is the source of truth. The snippet below is a current-as-of-v39.0 mirror; if it diverges from what the README shows, trust the README.
+   The README is the source of truth. The snippet below is a current-as-of-v43.0 mirror; if it diverges from what the README shows, trust the README. Exception: apps on hoist-core before v43 have a README that still shows the older `v1` snippet. Use the `v2` mirror below for those apps - it works on Grails 7 / Gradle 8 as well as Grails 8 / Gradle 9.
 
 2. **Add the install snippet to the app's `build.gradle`.** Insert at the top level (outside any subproject block):
 
     ```groovy
-    // hoist-ai-snippet: hoist-core-install/v1 -- DO NOT REMOVE (drift marker, see hoist-core/mcp/README.md)
+    // hoist-ai-snippet: hoist-core-install/v2 -- DO NOT REMOVE (drift marker, see hoist-core/mcp/README.md)
     configurations {
         hoistCoreCli
     }
 
-    dependencies {
-        // Resolve the active hoist-core version lazily from the runtime classpath. Works whether
-        // hoist-core is declared directly, via gradle.properties, or pulled in transitively via a
-        // client plugin -- the install task stays aligned with whatever hoist-core version actually
-        // resolves at build time.
-        hoistCoreCli providers.provider {
-            def hc = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
-                .find { it.moduleVersion?.group == 'io.xh' && it.moduleVersion?.name == 'hoist-core' }
-            if (!hc) throw new GradleException(
-                'hoist-core not found on the runtimeClasspath -- cannot install hoist-core tools.')
-            "io.xh:hoist-core-mcp:${hc.moduleVersion.version}:all@jar"
-        }
+    // Resolve the active hoist-core version lazily from the runtime classpath, so the install task
+    // stays aligned with whatever version actually resolves at build time. `withDependencies` defers
+    // this to when `hoistCoreCli` is resolved (task execution), avoiding configuration-time resolution
+    // of runtimeClasspath -- which under the Grails/Spring Boot plugin would lock `developmentOnly`
+    // before its afterEvaluate hook can populate it.
+    configurations.hoistCoreCli.withDependencies { deps ->
+        def hc = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+            .find { it.moduleVersion?.group == 'io.xh' && it.moduleVersion?.name == 'hoist-core' }
+        if (!hc) throw new GradleException(
+            'hoist-core not found on the runtimeClasspath -- cannot install hoist-core tools.')
+        deps.add(project.dependencies.create("io.xh:hoist-core-mcp:${hc.moduleVersion.version}:all@jar"))
     }
 
     tasks.register('installHoistCoreTools', Sync) {
