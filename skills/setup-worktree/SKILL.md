@@ -178,8 +178,8 @@ Read the script's header comment if you need the full flag contract.
 them. If `<repo>/bin/hoist-docs` exists, the dev uses that surface and the worktree needs it
 too.
 
-Install them via the **Installing the CLI launchers** procedure in the
-`using-hoist-react-reference` skill -- a `Glob` for the canonical templates plus `Bash cp`.
+Install them into the worktree via the **Install** procedure in the `using-hoist-react-reference`
+skill's `reference/cli-launchers.md` -- a `Glob` for the canonical templates plus `Bash cp`.
 Don't copy the main checkout's copies: they may be stamped at an older
 `# hoist-ai-launcher: hoist-react/v<N>` version, and copying propagates the drift.
 
