@@ -35,6 +35,8 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
 - Set `disable-model-invocation: true` for skills that should only run on explicit invocation.
 - Supporting files (templates, rules) go in subdirectories of the skill folder.
 - Test skills against real Hoist projects.
+- `setup-hoist-dev-worktree` reuses `setup-worktree`'s script and cites its section headings by
+  name. When you rename a heading or change the script's flags or location, update it too.
 
 ## Key Rules
 
