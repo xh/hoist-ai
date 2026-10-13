@@ -18,11 +18,11 @@
 #                          cluster name, no joining other local instances).
 #   client-app/.env.local  XH_DEV_PORT, XH_DEV_GRAILS_PORT, and XH_INLINE_HOIST=true if
 #                          hoist-react is present.
-#   client-app/tsconfig.json  `paths` to ../../hoist-react uncommented if hoist-react present.
-#   gradle.properties      runHoistInline=true if hoist-core present.
-# Tracked files edited above are marked --skip-worktree in this worktree's index only.
+#   client-app/tsconfig.json  `paths` to ../../hoist-react uncommented if hoist-react present,
+#                          and marked --skip-worktree in this worktree's index only.
 #
-# Prints the slot, ports, and run commands.
+# Prints the slot, ports, and run commands. With hoist-core present, the server command passes
+# -PrunHoistInline=true rather than editing the tracked gradle.properties.
 #
 set -euo pipefail
 
@@ -55,7 +55,6 @@ HAS_CORE=0;  [[ -d "$TASK_DIR/hoist-core" ]] && HAS_CORE=1
 ENV_FILE="$TB/.env"
 ENV_LOCAL="$TB/client-app/.env.local"
 TSCONFIG="$TB/client-app/tsconfig.json"
-GRADLE_PROPS="$TB/gradle.properties"
 
 set_env_var() {
     local file="$1" key="$2" val="$3"
@@ -70,10 +69,6 @@ set_env_var() {
 
 read_env_var() {
     [[ -f "$1" ]] && sed -n "s/^$2=//p" "$1" | tail -1
-}
-
-skip_worktree() {
-    git -C "$TB" update-index --skip-worktree "$1"
 }
 
 # ---------------------------------------------------------------------------
@@ -113,17 +108,7 @@ if [[ $HAS_REACT -eq 1 ]]; then
     perl -0pi -e 's#// "paths": \{\n(\s*)//   ("\@xh/hoist/\*": \[[^\]\n]*\])\n(\s*)// \}#"paths": {\n$1  $2\n$3}#' "$TSCONFIG"
     grep -qE '^\s*"paths": \{' "$TSCONFIG" \
         || die "could not enable \"paths\" in $TSCONFIG -- its commented-out block has changed shape"
-    skip_worktree client-app/tsconfig.json
-fi
-
-# ---------------------------------------------------------------------------
-# hoist-core inline
-# ---------------------------------------------------------------------------
-if [[ $HAS_CORE -eq 1 ]]; then
-    echo "==> Enabling inline hoist-core"
-    grep -q '^runHoistInline=' "$GRADLE_PROPS" || die "no runHoistInline property in $GRADLE_PROPS"
-    sed -i.bak 's/^runHoistInline=.*/runHoistInline=true/' "$GRADLE_PROPS" && rm -f "$GRADLE_PROPS.bak"
-    skip_worktree gradle.properties
+    git -C "$TB" update-index --skip-worktree client-app/tsconfig.json
 fi
 
 echo
@@ -132,6 +117,7 @@ echo "  hoist-react: $([[ $HAS_REACT -eq 1 ]] && echo inline || echo published)"
 echo "  hoist-core:  $([[ $HAS_CORE -eq 1 ]] && echo inline || echo published)"
 echo
 echo "Run:"
-echo "  server:  (cd $TB && ./gradlew bootRun)"
+SERVER_ARGS=""; [[ $HAS_CORE -eq 1 ]] && SERVER_ARGS=" -PrunHoistInline=true"
+echo "  server:  (cd $TB && ./gradlew bootRun$SERVER_ARGS)"
 echo "  client:  (cd $TB/client-app && pnpm start)"
 echo "  app:     http://localhost:$CLIENT_PORT/app"

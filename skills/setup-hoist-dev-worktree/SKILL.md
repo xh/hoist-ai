@@ -81,16 +81,20 @@ It detects which repos are present and, in the toolbox worktree only:
 
 - Assigns a port slot unique among sibling task dirs (client `3000+N`, server `8080+N`).
 - Disables multi-instance clustering, which also gives the instance a unique cluster name.
-- Enables inline hoist-react (`XH_INLINE_HOIST`, tsconfig `paths`) and inline hoist-core
-  (`runHoistInline`) for the repos present.
+- Enables inline hoist-react (`XH_INLINE_HOIST`, tsconfig `paths`) if hoist-react is present.
+- Adds `-PrunHoistInline=true` to the printed server command if hoist-core is present. It does
+  not edit the tracked `gradle.properties`.
 
 ## Report
 
 Relay the script's summary: slot, ports, run commands. Then tell the user:
 
-- The script edits `client-app/tsconfig.json` and/or `gradle.properties` and marks them
-  `--skip-worktree`, so they never show as changed. To commit a real change to one, first run
-  `git update-index --no-skip-worktree <file>` and revert the inline toggle.
+- The script edits `client-app/tsconfig.json` and marks it `--skip-worktree`, so it never shows
+  as changed. To commit a real change to it, first run
+  `git update-index --no-skip-worktree client-app/tsconfig.json` and revert the inline toggle.
+- With hoist-core, start the server with the printed `-PrunHoistInline=true` command. Without
+  the flag, toolbox runs against the published hoist-core. An IDE Gradle sync does not see the
+  flag, so the IDE resolves hoist-core as the published JAR.
 - Plain `pnpm start` runs inline - `startWithHoist` is not needed here.
 - If `.env` sets an OAuth provider other than `NONE`, the callback for
   `localhost:<client-port>` may need registering with the provider.
