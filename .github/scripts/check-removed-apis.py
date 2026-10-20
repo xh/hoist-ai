@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail when skill or template text teaches hoist-react APIs that v88 removed.
 
-Scans every file under skills/. Text that must name a removed API on purpose, such as a
+Scans every file under plugins/. Text that must name a removed API on purpose, such as a
 pre-v88 primer or a rule that detects stale docs, can opt out in two ways:
 
 - Put "legacy" in the file name, for example claude-md-models-legacy.md.
@@ -49,9 +49,9 @@ def scan(path):
 
 
 def main():
-    root = Path('skills')
+    root = Path('plugins')
     if not root.is_dir():
-        sys.exit('Run from the repo root: skills/ not found.')
+        sys.exit('Run from the repo root: plugins/ not found.')
     hits = []
     for path in sorted(root.rglob('*')):
         if not path.is_file() or 'legacy' in path.name:

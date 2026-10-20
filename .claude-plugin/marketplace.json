@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "xh",
-      "source": "./",
+      "source": "./plugins/xh",
       "description": "AI augmentation for Hoist application development"
     }
   ]
