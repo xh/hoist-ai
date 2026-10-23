@@ -57,6 +57,7 @@ This will:
 | Upgrade | `/xh:hoist-upgrade` | Upgrade `@xh/hoist` across one or more major versions |
 | Worktree | `/xh:setup-worktree` | Create a runnable git worktree for a Hoist app |
 | Clear Writing | `/xh:clear-writing` | House style for CHANGELOG entries, PR descriptions, docs, and comments |
+| Complexity Tradeoff | `/xh:complexity-tradeoff` | Weighs the complexity a change adds against the cases it covers, and offers a menu from simplest to most complete. Loads itself when you ask whether a change is as simple as it can be |
 | hoist-react reference | `/xh:using-hoist-react-reference` | Routes Hoist React questions to the docs and TypeScript API tools. Loads itself when you write Hoist code |
 | hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs the tools |
 
