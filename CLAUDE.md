@@ -12,6 +12,9 @@ Hoist application development. Maintained by Extremely Heavy Industries (https:/
 skills/                  Plugin skills (invoked via /xh:skill-name)
   onboard-app/           Project setup and AI configuration
   hoist-upgrade/         Guided @xh/hoist version upgrade
+  setup-worktree/        Runnable git worktree for a Hoist app
+  clear-writing/         House style for prose that ships with code
+  complexity-tradeoff/   Menu of simpler options for a hardening change
   using-hoist-core-reference/    Authoritative reference + install for hoist-core MCP/CLI tools
   using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
 ```

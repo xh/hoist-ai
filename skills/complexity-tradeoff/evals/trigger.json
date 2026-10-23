@@ -1,0 +1,66 @@
+[
+  {
+    "query": "Is this as simple as it possibly can be? Looking for opportunities to get 80% of the benefit with minimal complexity.",
+    "should_trigger": true
+  },
+  {
+    "query": "Do we still need the sequence counter? I don't understand this complexity and want to follow an 80/20 rule.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can we just rely on standard debouncing instead of the dirty flag?",
+    "should_trigger": true
+  },
+  {
+    "query": "The recursion in writeState is novel and makes me nervous.",
+    "should_trigger": true
+  },
+  {
+    "query": "What would an overlap actually cost us here? Aren't they much less likely now?",
+    "should_trigger": true
+  },
+  {
+    "query": "The loop scares me.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this PR. It adds in-flight tracking and a retry queue to the save path and I want to know if all of that is warranted.",
+    "should_trigger": true
+  },
+  {
+    "query": "Fix the race where a refresh reverts a pin that was saved a moment ago.",
+    "should_trigger": true
+  },
+  {
+    "query": "Write the PR description for the state writer change.",
+    "should_trigger": true
+  },
+  {
+    "query": "This feels over-engineered for what it protects against. What are my options?",
+    "should_trigger": true
+  },
+  {
+    "query": "Rename these variables to match the surrounding file and drop the unused import.",
+    "should_trigger": false
+  },
+  {
+    "query": "Find the bug that makes the grid lose its selection after a reload.",
+    "should_trigger": false
+  },
+  {
+    "query": "Use lodash groupBy here instead of the hand-rolled loop.",
+    "should_trigger": false
+  },
+  {
+    "query": "I know the retry queue is heavy. Keep it, we need every write to land. Just tidy the naming.",
+    "should_trigger": false
+  },
+  {
+    "query": "Add a column chooser to the positions grid.",
+    "should_trigger": false
+  },
+  {
+    "query": "The payment must never be charged twice. Make the idempotency key handling complete.",
+    "should_trigger": false
+  }
+]
