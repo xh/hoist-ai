@@ -28,6 +28,8 @@ Scrutinize a mechanism when:
 - Its spec needs held requests and fake timers to reach the case at all.
 - Something else already bounds the damage: the next refresh resyncs, a server fix is tracked,
   the user can redo the action.
+- It optimizes work the platform already bounds, such as scoping a refresh the library already
+  virtualizes to visible cells, or caching a lookup that runs once per user action.
 
 ## Step 2: Score each case
 
@@ -91,7 +93,9 @@ decide whether to keep them.
 - The fix for the reported bug is not complexity to trade away.
 - Follow the clear-writing skill for the menu and the PR text.
 
-## Worked example
+## Worked examples
+
+### A state writer
 
 A model wrote three keys of user state to the server from three reactions. The writes
 overlapped, and the server lost one. The first draft built the complete mechanism. It had a
@@ -111,3 +115,29 @@ removed a layer each:
 
 The final change was one debounced reaction, a plain write method, and a refresh guard that
 already existed. The menu above is the one that should have opened the conversation.
+
+### A targeted cell refresh
+
+Column group edge borders in `Grid` are cell classes, and they stayed on their original columns
+when the column chooser reordered or hid columns, because the refresh that re-evaluated them only
+ran on header drags. The fix was one gridOptions handler on `displayedColumnsChanged`. The first
+draft also added a `GridModel` method that walked the column tree, collected the leaf columns
+inside bordered groups, and passed their ids to `refreshCells`, so only those cells re-ran.
+
+The developer asked whether that beat refreshing all cells. It did not, by much. `refreshCells`
+touches rendered cells only, and without `force` it re-applies class rules but re-renders a cell
+only when its value changed. The scoping saved value getters and formatters on the other visible
+columns of a grid, once per column move. The tree walk cost fifteen lines, a public method and a
+second place that had to know what `borders: false` means.
+
+The part worth keeping was the guard: skip the refresh on grids with no bordered groups, since
+the event also fires on init and pinning. That needed one existing method:
+
+```ts
+if (model.getColumnGroups().some(g => g.borders)) api.refreshCells();
+```
+
+The question to ask before scoping work is what the library already skips. Here it already
+skipped everything off screen and every unchanged value, and the optimization was left guarding
+the remainder.
+

@@ -40,6 +40,10 @@
     "should_trigger": true
   },
   {
+    "query": "Is this better than just refreshing all cells?",
+    "should_trigger": true
+  },
+  {
     "query": "Rename these variables to match the surrounding file and drop the unused import.",
     "should_trigger": false
   },
