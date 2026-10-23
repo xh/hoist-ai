@@ -130,14 +130,16 @@ only when its value changed. The scoping saved value getters and formatters on t
 columns of a grid, once per column move. The tree walk cost fifteen lines, a public method and a
 second place that had to know what `borders: false` means.
 
-The part worth keeping was the guard: skip the refresh on grids with no bordered groups, since
-the event also fires on init and pinning. That needed one existing method:
+The second draft kept one guard, skipping grids with no bordered groups. The developer asked
+whether it was safer to always refresh. The guard matched exactly the one rule Hoist ships, so it
+protected nothing an app rule might need, and a read of the refresh path plus a test in the inline
+editing demo showed the refresh never touches focus or an open editor. The final handler:
 
 ```ts
-if (model.getColumnGroups().some(g => g.borders)) api.refreshCells();
+onDisplayedColumnsChanged = ev => ev.api.refreshCells();
 ```
 
-The question to ask before scoping work is what the library already skips. Here it already
-skipped everything off screen and every unchanged value, and the optimization was left guarding
-the remainder.
-
+Two questions to ask before scoping work. What does the library already skip? Here it skipped
+everything off screen and every unchanged value. And what does the guard buy beyond the case in
+front of you? Here the unconditional version gave a simpler contract, that cell class rules are
+re-evaluated whenever displayed columns change, for a cost nobody would measure.
