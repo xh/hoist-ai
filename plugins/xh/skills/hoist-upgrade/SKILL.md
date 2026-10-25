@@ -14,9 +14,10 @@ Gather project information needed to plan and execute the upgrade.
 
 ### 1. Parse arguments
 
-Check `$ARGUMENTS` for an optional target version (e.g. `81.0.0` or `v81`). If present, normalize
-it: strip any leading `v`, store as the target version for Phase 2. If no argument is provided,
-the skill will prompt the developer to choose a target in Phase 2.
+Check the user's request for an optional target version (e.g. `81.0.0` or `v81`). Claude Code
+passes the skill arguments here: `$ARGUMENTS`. If present, normalize it: strip any leading `v`,
+store as the target version for Phase 2. If no version is given, the skill will prompt the
+developer to choose a target in Phase 2.
 
 ### 2. Detect package manager
 
@@ -83,7 +84,8 @@ If the version is not set directly (e.g. it is inherited from a client-specific 
 dependency), check `build.gradle` for the plugin dependency and note the transitive hoist-core
 version if determinable.
 
-**Assess server-side significance:** Check `CLAUDE.md` for notes about server-side complexity.
+**Assess server-side significance:** Check `AGENTS.md` and `CLAUDE.md` for notes about
+server-side complexity.
 Also scan the Grails app package (e.g. `grails-app/controllers/`, `grails-app/services/`) for
 custom controllers and services. If extensive custom server code is present, note this -- it
 means hoist-core version bumps warrant extra attention in the upgrade report.
@@ -93,7 +95,8 @@ means hoist-core version bumps warrant extra attention in the upgrade report.
 Scan `client-app/package.json` dependencies for packages that are NOT `@xh/hoist` but appear to
 be Hoist-related client plugins (e.g. `@client/hoist-plugin`, `@client/hoist-*`).
 
-Also read `CLAUDE.md` for any documented plugin-to-Hoist version mapping or plugin notes.
+Also read `AGENTS.md` and `CLAUDE.md` for any documented plugin-to-Hoist version mapping or
+plugin notes.
 
 When a client plugin is detected, note the package name, current version, and any version
 mapping information for use in Phase 2 planning.
@@ -187,7 +190,7 @@ Record any required or recommended bumps for the plan display below.
 
 ### 4. Check guide availability
 
-For each hop in the sequence, check if a dedicated upgrade guide exists. Use Glob to look for:
+For each hop in the sequence, check if a dedicated upgrade guide exists. List the files that match:
 ```
 client-app/node_modules/@xh/hoist/docs/upgrade-notes/v*-upgrade-notes.md
 ```
@@ -206,7 +209,7 @@ If client plugins were detected in Phase 1, present the detection:
 
 | Plugin | Current Version | Hoist Version Mapping |
 |--------|----------------|----------------------|
-| {plugin name} | {version} | {mapping from CLAUDE.md, or "No mapping found"} |
+| {plugin name} | {version} | {mapping from the agent docs, or "No mapping found"} |
 
 How should I handle the plugin version during this upgrade?
 - Bump to a specific version?
@@ -296,13 +299,13 @@ edits next, then re-run the install and dedupe.
 
 ### 3c. Read upgrade guide for this hop
 
-Use the `Read` tool to read upgrade notes directly from the filesystem:
+Read the upgrade notes directly from the filesystem:
 ```
 client-app/node_modules/@xh/hoist/docs/upgrade-notes/v{TARGET}-upgrade-notes.md
 ```
 
 **Do NOT use the MCP doc tools for upgrade notes.** The MCP server may still be serving
-the previous version's content after install. The `Read` tool always reflects the installed
+the previous version's content after install. A file read always reflects the installed
 version.
 
 For versions WITHOUT upgrade notes (pre-v73): Read `client-app/node_modules/@xh/hoist/CHANGELOG.md` and
@@ -316,7 +319,7 @@ Read the upgrade guide carefully. For each migration step:
 
 **Mechanical changes** (renames, import updates, CSS class changes):
 1. Use the grep commands from the upgrade guide to find affected files in the project
-2. Apply changes using the Edit tool
+2. Apply the changes to each file
 3. Verify with a second grep that the old patterns are gone
 
 **Judgment calls** (behavior changes, multiple replacement options, architectural decisions):
@@ -360,8 +363,8 @@ If the current version is below the requirement:
    is `>= 39.0` AND `bin/hoist-core-mcp` does NOT exist (i.e., the install task was never run
    here), the user is now eligible for the hoist-core MCP server + `hoist-core-docs` /
    `hoist-core-symbols` CLI tools (introduced in v39.0). Add a "Next Steps" item to the upgrade
-   report: "Install the hoist-core MCP+CLI tools by running `/xh:onboard-app` -- onboarding
-   will detect the new eligibility and offer to install."
+   report: "Install the hoist-core MCP+CLI tools by running the `onboard-app` skill --
+   onboarding will detect the new eligibility and offer to install."
 
 ### 3f. Check and bump hoist-dev-utils version
 
@@ -419,19 +422,20 @@ After each hop, display a brief status showing progress through the sequence:
 
 ### 3j. Refresh agent docs (after the last hop)
 
-The app's agent docs can still teach APIs that the upgrade removed. `CLAUDE.md` is the main
-one. Also check `AGENTS.md`, `.claude/rules/`, and other docs written for agents.
+The app's agent docs can still teach APIs that the upgrade removed. `AGENTS.md` and `CLAUDE.md`
+are the main ones. Also check `.claude/rules/`, `.cursor/rules/`, and other docs written for
+agents.
 
 1. Re-run the "find affected files" greps from each hop's guide against these docs. Fix each
    hit, or record it as a judgment call if the text is project-specific.
 <!-- legacy-api:start -->
-2. If `CLAUDE.md` holds the Hoist primer from `/xh:onboard-app` (an "Architecture Primer"
-   heading), check that it matches the app's decorator style. The style is legacy if
+2. If `AGENTS.md` or `CLAUDE.md` holds the Hoist primer from the `onboard-app` skill (an
+   "Architecture Primer" heading), check that it matches the app's decorator style. The style is legacy if
    `client-app/tsconfig.json`, or a config it extends, sets `experimentalDecorators: true`.
    Otherwise it is TC39. Judge the primer by its HoistModel code example. If the example uses
-   the other style, regenerate the "Architecture Primer" and "Models and Decorators" sections. `Glob` for
-   `**/onboard-app/templates/claude-md-base.md`, and follow the merge rules in that skill's
-   Phase 4 for an existing `CLAUDE.md`. Keep project-specific text, and show the developer the
+   the other style, regenerate the "Architecture Primer" and "Models and Decorators" sections. The templates
+   are in `../onboard-app/templates/` from this skill's folder. Follow the merge rules in that
+   skill's Phase 4 for an existing file. Keep project-specific text, and show the developer the
    diff before writing.
 <!-- legacy-api:end -->
 3. Commit any changes on their own:
@@ -460,12 +464,15 @@ errors before continuing.
 **hoist-react MCP reconnect (only if MCP is part of your workflow).** The MCP server is still
 serving the pre-upgrade version's types and docs. Prompt the developer:
 
-> "If you use MCP in this environment, please run `/mcp` in Claude Code to reconnect the
-> hoist-react server, then say 'continue'. If you don't use MCP (for example, in MCP-blocked
-> enterprise environments), say 'skip' -- the CLI surface above is the working path and
-> already reflects the upgrade."
+> "If you use MCP in this environment, please reconnect the hoist-react server, then say
+> 'continue'. If you don't use MCP (for example, in MCP-blocked enterprise environments), say
+> 'skip' -- the CLI surface above is the working path and already reflects the upgrade."
 
-After 'continue': call `mcp__hoist-react__hoist-ping` to confirm. After 'skip', or if the ping
+Name the reconnect step for the current harness: `/mcp` in Claude Code, or turn the server off
+and on in Cursor's MCP settings. If the harness has no reconnect command, the developer starts a
+new session and runs this phase there.
+
+After 'continue': call the hoist-react server's `hoist-ping` tool to confirm. After 'skip', or if the ping
 fails or the tool isn't in your context, proceed without error -- the CLI verification above is
 sufficient.
 
@@ -611,7 +618,7 @@ when they don't apply.
 - [ ] Confirm CI / build agents meet the new minimum Node version
 {Include if hoistCoreVersion >= 39.0 AND bin/hoist-core-mcp does NOT exist:}
 - [ ] Install the hoist-core MCP+CLI tools now that you're eligible (>= v39.0):
-      run `/xh:onboard-app` -- it will detect the new eligibility and offer to install
+      run the `onboard-app` skill -- it will detect the new eligibility and offer to install
 {Include if client plugins were detected:}
 - [ ] Verify client plugin compatibility with the upgraded Hoist version
 - [ ] Open / merge the pull request for this upgrade branch

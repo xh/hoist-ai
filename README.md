@@ -1,55 +1,83 @@
 # @xh/hoist-ai
 
-Claude Code plugin for AI-augmented Hoist application development, by
-[Extremely Heavy Industries](https://xh.io).
+Agent plugin for AI-augmented Hoist application development, by
+[Extremely Heavy Industries](https://xh.io). It supports Claude Code, Cursor, and Codex. The skills
+follow the [Agent Skills](https://agentskills.io) spec, so other harnesses that read that format can
+load them, without support from us.
 
 ## What It Provides
 
 - **MCP Servers** - onboarding adds the hoist-react and hoist-core MCP servers to your project's
-  `.mcp.json`. They give Claude access to Hoist docs and API lookups.
+  MCP config: `.mcp.json` for Claude Code, `.cursor/mcp.json` for Cursor. They give the agent
+  Hoist docs and API lookups. Codex and MCP-blocked environments use the equivalent CLI
+  launchers.
 - **Skills** - project onboarding, version upgrades, worktree setup, a house writing style, and
   Hoist API reference for AI agents (see [Available Skills](#available-skills) below).
-- **Tool Pre-Approval** - each skill pre-approves the MCP tools it calls while it runs. To
-  allow them outside the skills, see [Project-Level Setup](#project-level-setup).
+- **Agent Docs** - onboarding writes the Hoist conventions to `AGENTS.md`, which every harness
+  reads, and a `CLAUDE.md` that imports it.
+- **Tool Pre-Approval** - in Claude Code, each skill pre-approves the MCP tools it calls while it
+  runs. To allow them outside the skills, see [Project-Level Setup](#project-level-setup).
 
 ## Requirements
 
-- [Claude Code](https://claude.com/code) CLI installed and authenticated.
+- An agent harness: [Claude Code](https://claude.com/code), [Cursor](https://cursor.com), or
+  [Codex](https://developers.openai.com/codex).
 - `@xh/hoist` installed in your project's `node_modules` (provides the MCP server).
 
 ## Installation
 
-### 1. Add the Marketplace
+### Claude Code
 
 In a Claude Code session:
 
 ```
 /plugin marketplace add xh/hoist-ai
-```
-
-### 2. Install the Plugin
-
-```
 /plugin install xh@hoist-ai
 ```
 
 The plugin is now active for all your projects.
 
-### 3. Run Onboarding
+### Cursor
 
-In any Hoist project directory:
+In the Customize view, add a marketplace from GitHub with the URL
+`https://github.com/xh/hoist-ai`, then install the `xh` plugin. With the Cursor CLI:
 
 ```
-/xh:onboard-app
+agent plugin marketplace add https://github.com/xh/hoist-ai
 ```
+
+On a Teams or Enterprise plan, an admin should import the repo as a team marketplace instead,
+from Dashboard > Plugins & MCPs, with Auto Refresh on. A marketplace that one user adds from GitHub
+stays on the commit it was added at and does not get new releases.
+
+### Codex
+
+```
+codex plugin marketplace add xh/hoist-ai
+codex plugin add xh@hoist-ai
+```
+
+### Run Onboarding
+
+In any Hoist project directory, run the `onboard-app` skill:
+
+| Harness | Command |
+|---------|---------|
+| Claude Code | `/xh:onboard-app` |
+| Cursor | `/onboard-app` |
+| Codex | `$xh:onboard-app` |
 
 This will:
-1. Detect your project and its installed Hoist versions.
+1. Detect your project, its installed Hoist versions, and your agent harness.
 2. Show what it found and what it plans to configure.
-3. Generate or merge a CLAUDE.md with Hoist conventions (after your confirmation).
+3. Generate or merge `AGENTS.md` with Hoist conventions, and a `CLAUDE.md` that imports it
+   (after your confirmation).
 4. Verify MCP server connectivity.
 
 ## Available Skills
+
+The Command column shows the Claude Code form. Cursor drops the `xh:` prefix, and Codex starts
+with `$` instead of `/`.
 
 | Skill | Command | Description |
 |-------|---------|-------------|
@@ -61,6 +89,8 @@ This will:
 | hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs the tools |
 
 ## Project-Level Setup
+
+### Claude Code
 
 To give all developers on a project the plugin, add this to the project's
 `.claude/settings.json`:
@@ -110,6 +140,29 @@ A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the s
     ]
   }
 }
+```
+
+### Cursor
+
+Commit this to the project's `.cursor/settings.json`. Each developer still adds the marketplace
+once, as in [Installation](#cursor), unless a team marketplace provides it:
+
+```json
+{
+  "plugins": {
+    "xh@hoist-ai": { "enabled": true }
+  }
+}
+```
+
+### Codex
+
+Commit this to the project's `.codex/config.toml`. Codex reads it only in a trusted project, and
+each developer still adds the marketplace once:
+
+```toml
+[plugins."xh@hoist-ai"]
+enabled = true
 ```
 
 ## MCP Tools

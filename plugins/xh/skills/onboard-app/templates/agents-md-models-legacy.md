@@ -1,8 +1,8 @@
 #### Models and Decorators
 
 This app uses TypeScript's legacy `experimentalDecorators`. Hoist v88 replaced them with TC39
-decorators. After an upgrade to v88 or later, regenerate this section with `/xh:hoist-upgrade` or
-`/xh:onboard-app`.
+decorators. After an upgrade to v88 or later, regenerate this section with the `hoist-upgrade` or
+`onboard-app` skill.
 
 **HoistModel** is the core state holder:
 ```typescript

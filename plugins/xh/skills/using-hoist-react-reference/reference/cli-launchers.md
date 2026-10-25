@@ -41,16 +41,16 @@ If `node_modules` is missing, tell the user it is a separate step. Still install
 
 The canonical launchers are the template files `templates/hoist-docs` and `templates/hoist-ts` in this skill. Copy them byte for byte. Do not transcribe them. Shell expansions with nested double quotes, such as `"$(dirname "$0")"`, can break when content goes through serialization layers. The `$0` literal has been observed to disappear in some skill-loading paths. A byte copy avoids that risk.
 
-1. Use `Glob` with the pattern `**/using-hoist-react-reference/templates/hoist-docs` to find the template folder on disk. Both launchers are in the parent folder of the match.
+1. Find the template folder: `templates/` in the `using-hoist-react-reference` skill folder, the parent of this file's folder. If you cannot find it there, search for `**/using-hoist-react-reference/templates/hoist-docs`. Both launchers are in that folder.
 
-2. Use `Bash` to copy the templates into the project's `bin/` and make them executable:
+2. Use a shell to copy the templates into the project's `bin/` and make them executable:
 
        mkdir -p bin
        cp "<templates-dir>/hoist-docs" bin/hoist-docs
        cp "<templates-dir>/hoist-ts" bin/hoist-ts
        chmod +x bin/hoist-docs bin/hoist-ts
 
-   Replace `<templates-dir>` with the folder from the Glob result. Do **not** use `Read` and `Write` to copy the content. That path serializes the file body through tools that can break shell content with nested quotes. `cp` is byte-exact.
+   Replace `<templates-dir>` with the folder from step 1. Do **not** copy the content with file read and write tools. That path serializes the file body through tools that can break shell content with nested quotes. `cp` is byte-exact.
 
 3. Check what landed:
 
@@ -68,7 +68,7 @@ The templates are canonical for `hoist-react/v2`. If launchers on disk differ fr
 ./bin/hoist-ts members GridConfig
 ```
 
-`--help` checks that the launcher resolves its path. Exit 0 with usage output is a pass. `No such file or directory` from `--help` means the launcher itself is broken. The usual cause is a `$0` literal lost during the copy, so run the procedure again with `Bash cp`. If `--help` works but `index` or `members` fails with "command not found" from the `node_modules/.bin/` target, the `client-app` package install has not run.
+`--help` checks that the launcher resolves its path. Exit 0 with usage output is a pass. `No such file or directory` from `--help` means the launcher itself is broken. The usual cause is a `$0` literal lost during the copy, so run the procedure again with `cp`. If `--help` works but `index` or `members` fails with "command not found" from the `node_modules/.bin/` target, the `client-app` package install has not run.
 
 ## Git tracking
 

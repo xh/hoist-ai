@@ -4,7 +4,7 @@
 Scans every file under plugins/. Text that must name a removed API on purpose, such as a
 pre-v88 primer or a rule that detects stale docs, can opt out in two ways:
 
-- Put "legacy" in the file name, for example claude-md-models-legacy.md.
+- Put "legacy" in the file name, for example agents-md-models-legacy.md.
 - Wrap the lines in "legacy-api:start" and "legacy-api:end" markers. Any comment syntax works,
   for example <!-- legacy-api:start --> in Markdown.
 

@@ -80,7 +80,7 @@ navigation (`navigate`, `appendRoute`), and app state (`appState`, `darkTheme`).
 
 ## Hoist Reference Skills
 
-The `xh` Claude Code plugin ships two reference skills: `using-hoist-react-reference` and
+The `xh` plugin ships two reference skills: `using-hoist-react-reference` and
 `using-hoist-core-reference`. They load themselves when you are about to author Hoist code or ask
 for orientation. Each one routes you to the right MCP tool or CLI command. The hoist-core skill also
 loads on a request to install or upgrade the hoist-core MCP and CLI tools. You do not need to
@@ -88,7 +88,10 @@ invoke them.
 
 Each skill has two interchangeable surfaces: MCP tools when MCP is enabled, and CLI launchers once
 installed. In MCP-blocked environments the CLI is the working path, and the skills route to it. If
-neither surface is reachable, run `/xh:onboard-app` to configure them.
+neither surface is reachable, run the `onboard-app` skill to configure them.
+
+To run a skill by name, type `/xh:<skill>` in Claude Code, `/<skill>` in Cursor, or `$xh:<skill>`
+in Codex.
 
 ### hoist-core (server-side)
 
@@ -102,8 +105,8 @@ neither surface is reachable, run `/xh:onboard-app` to configure them.
 For server-side work, the `using-hoist-core-reference` skill routes you to the hoist-core
 developer tools. Two surfaces ship from the same fat JAR:
 
-- **MCP tools**: `mcp__hoist-core__*`. Available when MCP is enabled, after you run
-  `installHoistCoreTools` and restart Claude Code.
+- **MCP tools**: the `hoist-core` server. Available when MCP is enabled, after you run
+  `installHoistCoreTools` and start a new agent session.
 - **CLI launchers**: `./bin/hoist-core-docs` and `./bin/hoist-core-symbols`, once installed. These
   work in any environment, including MCP-blocked ones.
 
@@ -114,8 +117,8 @@ The hoist-core docs are also on GitHub at https://github.com/xh/hoist-core.
 Prose that ships with this code follows the `clear-writing` skill from the `xh` plugin: CHANGELOG
 entries, PR descriptions, docs, and code comments. Short active sentences, one idea each, no
 semicolons, no em dashes. The skill loads itself when you write a CHANGELOG entry, a PR
-description, or a document. It also loads when you review a diff that includes comments. Invoke
-`/xh:clear-writing` to apply it to any text.
+description, or a document. It also loads when you review a diff that includes comments. Run the
+`clear-writing` skill to apply it to any text.
 
 ## Commands
 

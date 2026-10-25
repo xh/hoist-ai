@@ -6,9 +6,11 @@ on:
   pull_request:
 
 jobs:
-  removed-apis:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Check skills for removed hoist-react APIs
         run: python3 .github/scripts/check-removed-apis.py
+      - name: Check that manifest versions match
+        run: python3 .github/scripts/sync-versions.py

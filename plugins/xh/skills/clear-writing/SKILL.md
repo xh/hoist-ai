@@ -1,7 +1,7 @@
 ---
 name: clear-writing
 description: |
-  House writing style for the prose that ships with Hoist code: CHANGELOG entries, PR descriptions, READMEs and design docs, code comments. Why this matters: unaided agents write durable text that is too long and reads as machine-made. Sentences run past 25 words and join with semicolons and em dashes, passive voice hides the actor, "leverage" and "seamless" creep in, and a PR body restates the diff and lists every file. That text lands in CHANGELOGs and PRs that humans read for years. TRIGGER when writing or updating a CHANGELOG entry or release notes; writing a PR title or description; writing a new document or substantially editing one (README, design doc, guide, ADR, CLAUDE.md, wiki page); reviewing a diff, branch, or PR that includes comments, JSDoc, or docs; or any ask to make text clearer, shorter, plainer, more readable, less verbose, less wordy, or less like AI wrote it. SKIP for a single code comment or commit message written in the normal flow of coding (apply the same rules, do not load the skill), chat replies to the user, code and identifiers, UI strings and error messages, and marketing copy.
+  House writing style for the prose that ships with Hoist code: CHANGELOG entries, PR descriptions, READMEs and design docs, code comments. Why this matters: unaided agents write durable text that is too long and reads as machine-made. Sentences run past 25 words and join with semicolons and em dashes, passive voice hides the actor, "leverage" and "seamless" creep in, and a PR body restates the diff. TRIGGER when writing a CHANGELOG entry or release notes; writing a PR title or description; writing or substantially editing a document (README, design doc, guide, ADR, AGENTS.md, CLAUDE.md, wiki page); reviewing a diff or PR that includes comments, JSDoc, or docs; or any ask to make text clearer, shorter, plainer, less wordy, or less like AI wrote it. SKIP for a single code comment or commit message written while coding (apply the rules, do not load the skill), chat replies, code and identifiers, UI strings and error messages, and marketing copy.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -63,8 +63,8 @@ Comments and PR descriptions describe the code as it is now, not how it got ther
 X, now Y", no record of what changed during review, no work-in-progress notes. Bring in the past
 only when the reader cannot understand the present without it.
 
-**README, CLAUDE.md, and guides.** Answer three questions in order: what it is, how to use it,
-what it depends on. Then the details. One topic per paragraph.
+**README, AGENTS.md, CLAUDE.md, and guides.** Answer three questions in order: what it is, how
+to use it, what it depends on. Then the details. One topic per paragraph.
 
 State each rule once. If two passages say the same thing, keep the one at its natural home and
 link to it from the other. A pitfalls or FAQ section that restates a rule with its consequence is
@@ -161,10 +161,11 @@ When a rule and a guard conflict, the guard wins.
 Lint any prose over about 40 words before you present it or write it to a file:
 
 ```
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/clear-writing/scripts/ste-lint.py" draft.md
+python3 "<skill-dir>/scripts/ste-lint.py" draft.md
 ```
 
-If `${CLAUDE_PLUGIN_ROOT}` is empty, use the folder that holds this SKILL.md.
+`<skill-dir>` is the folder that holds this SKILL.md. In Claude Code it is
+`${CLAUDE_SKILL_DIR}`.
 
 The one-line output ends with `per100w=` and `em_dash=`. Target: under 2.5 and zero. Fix the
 reported categories, lint once more, then stop. Two passes at most. Report those two numbers

@@ -1,7 +1,7 @@
 ---
 name: setup-worktree
 description: |
-  Create a ready-to-run git worktree for a Hoist app -- new branch off the right base, gitignored locals restored, toolchain trusted, dependencies installed with the app's own package manager, server-side AI tooling regenerated. Why this matters: `git worktree add` checks out tracked files only, so a fresh Hoist worktree has no `.env` and no `.claude/settings.local.json` and the app won't start; the `bin/hoist-core-*` launchers embed an absolute JAR path, so copying them from the main checkout points them at the wrong tree; `mise` and `direnv` trust is keyed to a directory path and never transfers to a new one; running `npm install` in a yarn app writes a competing lockfile; and defaulting the base ref to the repo's default branch silently bases feature work on `master`/`main` when the integration branch is `develop`. TRIGGER when the user asks for a worktree ("worktree", "git worktree", "new worktree", "worktree off develop", "worktree for AS-1234"), for a separate or isolated checkout to work on something without disturbing the current one, or for a parallel workspace for a ticket or branch. SKIP when the user wants a branch in place (`git checkout -b`, `git switch -c`, "make a branch", "switch to branch") with no second directory -- provisioning a worktree there means an unwanted multi-GB dependency install. SKIP for removing, pruning, or listing existing worktrees.
+  Create a ready-to-run git worktree for a Hoist app: a new branch off the right base, gitignored locals restored, toolchain trusted, dependencies installed with the app's own package manager, server-side AI tooling regenerated. Why this matters: `git worktree add` checks out tracked files only, so a fresh worktree has no `.env` and the app won't start. The `bin/hoist-core-*` launchers embed an absolute JAR path, so copies point at the wrong tree. `mise` and `direnv` trust is keyed to a path. `npm install` in a yarn app writes a competing lockfile. Feature work belongs on `develop`, not the default `main`. TRIGGER when the user asks for a worktree ("new worktree", "worktree off develop", "worktree for AS-1234"), a separate checkout that leaves the current one alone, or a parallel workspace for a ticket or branch. SKIP for a branch in place (`git checkout -b`, `git switch -c`, "make a branch") with no second directory, which would cost a multi-GB install, and for removing, pruning, or listing worktrees.
 allowed-tools: Read, Glob, Grep, Bash, Edit
 ---
 
@@ -31,8 +31,8 @@ of detection before anything is created.
 
 ### 1. Per-app overrides
 
-Read `<repo>/CLAUDE.md` and look for a `## Worktree provisioning` section. If present it is
-authoritative -- it may name extra locals to copy, a toolchain, or post-install steps that
+Read `<repo>/AGENTS.md` and `<repo>/CLAUDE.md`, and look for a `## Worktree provisioning`
+section. If present it is authoritative -- it may name extra locals to copy, a toolchain, or post-install steps that
 detection can't infer. Use it and let the steps below fill only what it doesn't specify.
 
 ### 2. Branch: new or existing?
@@ -85,16 +85,17 @@ them all.
 Default set, copied from the main checkout:
 
 - `.env`
-- `.claude/settings.local.json`
+- `.claude/settings.local.json` (Claude Code local settings)
 
 Absent files are skipped with a notice, so it's safe to pass both unconditionally. Add
 anything the `## Worktree provisioning` block names.
 
-Always pass `--enable-plugin xh@hoist-ai` too. Many apps enable this plugin only in the
-committed `.claude/settings.json`, so a worktree on a branch that predates that commit loses
-the plugin. The flag writes the entry to the worktree's own `.claude/settings.local.json`,
-which keeps the plugin on whatever the branch. It leaves an entry that file already has
-alone, so a copied opt-out stays an opt-out.
+**Claude Code.** If the main checkout has a `.claude/` folder, or you run in Claude Code, also
+pass `--enable-plugin xh@hoist-ai`. Many apps enable this plugin only in the committed
+`.claude/settings.json`, so a worktree on a branch that predates that commit loses the plugin.
+The flag writes the entry to the worktree's own `.claude/settings.local.json`, which keeps the
+plugin on whatever the branch. It leaves an entry that file already has alone, so a copied
+opt-out stays an opt-out.
 
 ### 5. Toolchain manager
 
@@ -141,8 +142,8 @@ Before starting, tell the user this creates a full dependency tree -- a Hoist ap
 
 ## Phase 2: Provision
 
-Locate the bundled script with `Glob`, pattern `**/setup-worktree/templates/provision-worktree.sh`,
-and run it in place. Don't copy it into the app -- executing from the plugin means it upgrades
+The bundled script is `templates/provision-worktree.sh` in this skill's folder. If you cannot
+find it there, search for `**/setup-worktree/templates/provision-worktree.sh`. Run it in place. Don't copy it into the app -- executing from the plugin means it upgrades
 with the plugin, and avoids the content-mangling risk that copying executable text carries.
 
     bash "<script-path>" \
@@ -178,8 +179,8 @@ Read the script's header comment if you need the full flag contract.
 them. If `<repo>/bin/hoist-docs` exists, the dev uses that surface and the worktree needs it
 too.
 
-Install them via the **Installing the CLI launchers** procedure in the
-`using-hoist-react-reference` skill -- a `Glob` for the canonical templates plus `Bash cp`.
+Install them with the **Install** procedure in the `using-hoist-react-reference` skill's
+`reference/cli-launchers.md`, which copies the canonical templates with `cp`.
 Don't copy the main checkout's copies: they may be stamped at an older
 `# hoist-ai-launcher: hoist-react/v<N>` version, and copying propagates the drift.
 
@@ -188,7 +189,7 @@ Phase 2 regenerates them with this worktree's absolute JAR path.
 
 ## When bash isn't available
 
-On Windows without bash, don't improvise. `Read` the script, follow its numbered steps in
+On Windows without bash, don't improvise. Read the script, follow its numbered steps in
 order, and translate each to the local shell. The step ordering is load-bearing: toolchain
 before dependency install before Gradle, because mise supplies the Node and Java the later
 steps need.

@@ -1,7 +1,7 @@
 ---
 name: using-hoist-core-reference
 description: |
-  Authoritative reference for the io.xh:hoist-core Grails/Groovy framework -- use when writing, modifying, debugging, or explaining Groovy/Java backend code that touches hoist-core, or installing/refreshing the hoist-core MCP/CLI tooling. Why this matters: hoist-core's base classes and infrastructure types have conventions that differ from plain Spring/Grails for injection, clustering, and config. Guessing produces code that compiles and runs single-node, then misbehaves under cluster failover -- invalidations that don't propagate, timers that double-fire, scheduled tasks that miss their slot. TRIGGER when the user mentions a hoist-core symbol (`BaseService`, `BaseController`, `Cache`, `Timer`, `ConfigService`, `ClusterService`, `MonitorService`, `JSONClient`); a hoist-core concept (caching, cluster-aware, distributed cache, config-driven, monitoring, scheduled task, conventions); a service/controller under `grails-app/`/`src/`; doing a backend task the framework way or using our conventions; installing/upgrading the hoist-core MCP server, CLI tools, `bin/hoist-core-*` launchers, or `installHoistCoreTools`; `hoistCoreVersion`; "hoist-core"/"io.xh.hoist"/"our framework". SKIP for plain Spring without hoist-core, Grails not importing `io.xh.hoist`, Liquibase/Flyway migrations, and build-tooling-only changes. Reach for the reference tools (MCP `mcp__hoist-core__*` or CLI `./bin/hoist-core-docs`/`./bin/hoist-core-symbols`) first.
+  Reference for the io.xh:hoist-core Grails/Groovy framework, for writing, changing, debugging, or explaining backend code that uses it, and for installing its MCP/CLI tools. Why this matters: hoist-core's base classes differ from plain Spring/Grails for injection, clustering, and config. Guesses run on one node, then fail under cluster failover: invalidations that don't propagate, timers that double-fire, scheduled tasks that miss their slot. TRIGGER on a hoist-core symbol (`BaseService`, `BaseController`, `Cache`, `Timer`, `ConfigService`, `ClusterService`, `JSONClient`) or concept (caching, cluster-aware, config-driven, monitoring, scheduled task); a service or controller under `grails-app/`; a backend task done the framework way; installing the hoist-core MCP server, CLI, `bin/hoist-core-*` launchers, or `installHoistCoreTools`; `hoistCoreVersion`; "hoist-core", "io.xh.hoist", "our framework". SKIP for plain Spring, Grails without `io.xh.hoist`, Liquibase/Flyway migrations, and build-only changes.
 allowed-tools: Read, Edit, Write, Bash, mcp__hoist-core__hoist-core-ping, mcp__hoist-core__hoist-core-search-docs, mcp__hoist-core__hoist-core-list-docs, mcp__hoist-core__hoist-core-read-doc, mcp__hoist-core__hoist-core-search-symbols, mcp__hoist-core__hoist-core-get-symbol, mcp__hoist-core__hoist-core-get-members
 ---
 
@@ -11,21 +11,21 @@ You're about to write or modify Groovy/Java backend code that consumes the `io.x
 
 ## Routing table
 
-Each workflow step has two interfaces. Use the column that matches what's in your tool context.
+Each workflow step has two interfaces. Use the column that matches what's in your tool context. The MCP column gives the tool names of the `hoist-core` MCP server. Some harnesses add a prefix, for example `mcp__hoist-core__hoist-core-ping` in Claude Code and Codex.
 
 | Step | MCP tool | CLI command |
 |---|---|---|
-| Sanity check | `mcp__hoist-core__hoist-core-ping` | `./bin/hoist-core-docs ping` |
-| Search docs | `mcp__hoist-core__hoist-core-search-docs` | `./bin/hoist-core-docs search "<query>"` |
-| List docs by category | `mcp__hoist-core__hoist-core-list-docs` | `./bin/hoist-core-docs list --category <category>` |
-| Read a specific doc | `mcp__hoist-core__hoist-core-read-doc` | `./bin/hoist-core-docs read <docId>` |
-| Read the docs index | `mcp__hoist-core__hoist-core-list-docs` (no args) | `./bin/hoist-core-docs index` |
-| Read coding conventions | `mcp__hoist-core__hoist-core-read-doc` with `id: "docs/coding-conventions.md"` | `./bin/hoist-core-docs conventions` |
-| Search symbols / members | `mcp__hoist-core__hoist-core-search-symbols` | `./bin/hoist-core-symbols search "<query>"` |
-| Get symbol details | `mcp__hoist-core__hoist-core-get-symbol` | `./bin/hoist-core-symbols symbol <name>` |
-| List class members | `mcp__hoist-core__hoist-core-get-members` | `./bin/hoist-core-symbols members <name>` |
+| Sanity check | `hoist-core-ping` | `./bin/hoist-core-docs ping` |
+| Search docs | `hoist-core-search-docs` | `./bin/hoist-core-docs search "<query>"` |
+| List docs by category | `hoist-core-list-docs` | `./bin/hoist-core-docs list --category <category>` |
+| Read a specific doc | `hoist-core-read-doc` | `./bin/hoist-core-docs read <docId>` |
+| Read the docs index | `hoist-core-list-docs` (no args) | `./bin/hoist-core-docs index` |
+| Read coding conventions | `hoist-core-read-doc` with `id: "docs/coding-conventions.md"` | `./bin/hoist-core-docs conventions` |
+| Search symbols / members | `hoist-core-search-symbols` | `./bin/hoist-core-symbols search "<query>"` |
+| Get symbol details | `hoist-core-get-symbol` | `./bin/hoist-core-symbols symbol <name>` |
+| List class members | `hoist-core-get-members` | `./bin/hoist-core-symbols members <name>` |
 
-If `mcp__hoist-core__*` tools are listed in your tool context, prefer them - they amortize the Groovy AST index across calls. The CLI launchers pay a ~2-3s cold-start hit on the first symbols invocation per process. Both surfaces share the same formatters, so output is byte-identical apart from formatting; `--json` on any CLI subcommand emits the same shape an MCP client would receive.
+If the hoist-core MCP tools are in your tool context, prefer them - they amortize the Groovy AST index across calls. The CLI launchers pay a ~2-3s cold-start hit on the first symbols invocation per process. Both surfaces share the same formatters, so output is byte-identical apart from formatting; `--json` on any CLI subcommand emits the same shape an MCP client would receive.
 
 The CLI launchers are project-local (created at `<project>/bin/hoist-core-*` by the `installHoistCoreTools` Gradle task). Always invoke them as `./bin/hoist-core-...` from the app project root, not `npx`-style.
 
@@ -51,7 +51,7 @@ Skip this if you're working through MCP only. For the CLI surface, before the fi
 
 If any launcher file is **missing**, jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** and run the full install procedure.
 
-If the files exist but `ping` **fails** (most common cause: `./gradlew clean` wiped the JAR the absolute path in each launcher points at, but the launcher itself was retained on disk), re-run only `./gradlew installHoistCoreTools` — it's idempotent and re-resolves the JAR. No need to re-edit `build.gradle` or `.mcp.json`.
+If the files exist but `ping` **fails** (most common cause: `./gradlew clean` wiped the JAR the absolute path in each launcher points at, but the launcher itself was retained on disk), re-run only `./gradlew installHoistCoreTools` — it's idempotent and re-resolves the JAR. No need to re-edit `build.gradle` or the MCP config.
 
 Briefly mention the refresh in your next user-facing message (e.g. "refreshed hoist-core launchers after the JAR was cleaned").
 
@@ -61,7 +61,7 @@ The preflight runs once per session — once you've confirmed (or fixed) the lau
 
 Standard sequence for any hoist-core authoring task:
 
-1. **Index first.** Use `mcp__hoist-core__hoist-core-list-docs` (or `./bin/hoist-core-docs index`) when you're new to the area. Find the right doc.
+1. **Index first.** Use `hoist-core-list-docs` (or `./bin/hoist-core-docs index`) when you're new to the area. Find the right doc.
 2. **Search docs** for context on conventions, architecture, and common patterns in the area you're touching.
 3. **Search symbols** for specific class/method names. Multi-word queries are AND-matched against names AND Groovydoc.
 4. **Drill** with `get-symbol` for full details, or `get-members` to list a class's properties and methods with types and annotations.
@@ -72,23 +72,23 @@ Member-indexed classes (those whose public members are individually searchable):
 ## Common queries
 
 **Look up the methods on `BaseService`.**
-- MCP: `mcp__hoist-core__hoist-core-get-members` with `name: "BaseService"`.
+- MCP: `hoist-core-get-members` with `name: "BaseService"`.
 - CLI: `./bin/hoist-core-symbols members BaseService`
 
 **Find which class provides a method like `getOrCreate`.**
-- MCP: `mcp__hoist-core__hoist-core-search-symbols` with `query: "getOrCreate"` - returns matching symbols and matching members with their owning class.
+- MCP: `hoist-core-search-symbols` with `query: "getOrCreate"` - returns matching symbols and matching members with their owning class.
 - CLI: `./bin/hoist-core-symbols search getOrCreate`
 
 **Find the convention for something cross-cutting (caching, monitoring, cluster).**
-- MCP: `mcp__hoist-core__hoist-core-search-docs` with `query: "cache cluster"` (multi-word AND match).
+- MCP: `hoist-core-search-docs` with `query: "cache cluster"` (multi-word AND match).
 - CLI: `./bin/hoist-core-docs search "cache cluster"`
 
 **Read the docs index.**
-- MCP: `mcp__hoist-core__hoist-core-list-docs` (with no `category` param).
+- MCP: `hoist-core-list-docs` (with no `category` param).
 - CLI: `./bin/hoist-core-docs index`
 
 **Look up an annotation or trait by name.**
-- MCP: `mcp__hoist-core__hoist-core-get-symbol` with `name: "<TraitName>"`. Use `kind: trait` on `search-symbols` to filter.
+- MCP: `hoist-core-get-symbol` with `name: "<TraitName>"`. Use `kind: trait` on `search-symbols` to filter.
 - CLI: `./bin/hoist-core-symbols search "<TraitName>" --kind trait` then `./bin/hoist-core-symbols symbol <TraitName>`.
 
 ## Common pitfalls
@@ -104,7 +104,7 @@ Member-indexed classes (those whose public members are individually searchable):
 Trigger this section when:
 
 - The user asks to install, set up, wire up, or upgrade the hoist-core MCP server or CLI tools in an app.
-- You attempted a tool call from the routing table and neither the `mcp__hoist-core__*` tools nor the `./bin/hoist-core-*` launchers are present.
+- You attempted a tool call from the routing table and neither the hoist-core MCP tools nor the `./bin/hoist-core-*` launchers are present.
 - The user just upgraded `hoistCoreVersion` and the existing `bin/` launchers are now stale (they're version-locked to the JAR they wrap).
 
 Both surfaces ship from the same fat JAR (`io.xh:hoist-core-mcp:<version>:all`). One Gradle task installs project-local launchers for both.
@@ -115,12 +115,12 @@ Both surfaces ship from the same fat JAR (`io.xh:hoist-core-mcp:<version>:all`).
 - `hoistCoreVersion` resolves to a release that includes the install task and bundled-content fat JAR. **Floor: v39.0** (first release containing the bundled JAR + CLI subsystem). For pre-release work against `develop`, use `39.0-SNAPSHOT` from a Sonatype snapshot repo or `mavenLocal()` (after `./gradlew :mcp:publishToMavenLocal` in a hoist-core checkout).
 - Java 17+ on PATH (already required by Hoist).
 
-If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade` first. Do not attempt to back-port the install task to older versions.
+If `hoistCoreVersion` is below the floor, stop and recommend the `hoist-upgrade` skill first. Do not attempt to back-port the install task to older versions.
 
 ### Procedure
 
 1. **Read the canonical install snippet.** Either:
-   - MCP: `mcp__hoist-core__hoist-core-read-doc` with `id: "mcp/README.md"` and look for the **App-Side Distribution** section, OR
+   - MCP: `hoist-core-read-doc` with `id: "mcp/README.md"` and look for the **App-Side Distribution** section, OR
    - CLI: `./bin/hoist-core-docs read mcp/README.md` (only if the launchers are already present from a prior install — typical when upgrading), OR
    - Read `mcp/README.md` directly from a sibling hoist-core checkout if available.
 
@@ -212,7 +212,7 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
 
    Expect the task to download (or resolve from cache) the fat JAR into `build/hoist-core-tools/lib/` and write six launchers under `bin/`: three POSIX (`hoist-core-mcp`, `hoist-core-docs`, `hoist-core-symbols`) and three Windows `.bat` mirrors.
 
-4. **Sanity-check the CLI immediately.** This is fast (no Claude restart needed) and catches snapshot-resolution / Java-version issues:
+4. **Sanity-check the CLI immediately.** This is fast (no new agent session needed) and catches snapshot-resolution / Java-version issues:
 
     ```bash
     ./bin/hoist-core-docs ping
@@ -221,7 +221,12 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
 
    The first symbols invocation pays a ~2-3s AST cold-start. If `ping` doesn't return cleanly, surface the error to the user before proceeding.
 
-5. **Wire up `.mcp.json`.** The MCP server now launches via the local launcher (`./bin/hoist-core-mcp`), not via a `bootstrap.sh` or any version-suffixed JAR path. Edit (or create) `.mcp.json` at the project root:
+5. **Wire up the MCP config.** The MCP server launches through the local launcher (`bin/hoist-core-mcp`), not through a `bootstrap.sh` or any version-suffixed JAR path. Add the entry to the project MCP config of each harness the team uses. Edit the file, or create it:
+
+   | Harness | File | `command` |
+   |---|---|---|
+   | Claude Code | `.mcp.json` | `./bin/hoist-core-mcp` |
+   | Cursor | `.cursor/mcp.json` | `${workspaceFolder}/bin/hoist-core-mcp` |
 
     ```json
     {
@@ -233,16 +238,16 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
     }
     ```
 
-   If `.mcp.json` already exists, preserve other entries (e.g. `hoist-react`) and only update or add the `hoist-core` entry. Replace any prior `start-hoist-core-mcp.sh` or `mcp/bootstrap.sh` command with the new launcher path.
+   If the file already exists, preserve other entries (e.g. `hoist-react`) and only update or add the `hoist-core` entry. Replace any prior `start-hoist-core-mcp.sh` or `mcp/bootstrap.sh` command with the new launcher path. Codex needs no entry: it resolves a relative `command` against the session's working directory, so it uses the CLI launchers.
 
 6. **Commit `bin/.gitignore`.** The install task writes a scoped `bin/.gitignore` excluding only the generated launchers (each launcher embeds an absolute path to the resolved JAR and is therefore machine-specific -- a committed launcher silently breaks for every other developer). Commit `bin/.gitignore` once; subsequent regenerations stay out of source control automatically. The rest of `bin/` (if the project uses it for other things) is untouched. The `build/hoist-core-tools/` directory is normally already covered by the project's top-level `build/` ignore.
 
-7. **Tell the user to restart Claude Code** so it picks up the new `.mcp.json` entry. Until restart, only the CLI surface will be available.
+7. **Tell the user to start a new agent session** so the harness picks up the new MCP entry, and to approve the server when the harness asks. Until then, only the CLI surface is available.
 
 ### Verification after install
 
 - CLI: `./bin/hoist-core-docs ping` returns cleanly. `./bin/hoist-core-symbols members BaseService` lists BaseService's public methods/properties.
-- MCP (after Claude restart): `mcp__hoist-core__hoist-core-ping` returns cleanly. `mcp__hoist-core__hoist-core-list-docs` returns the doc registry.
+- MCP (in a new agent session): `hoist-core-ping` returns cleanly. `hoist-core-list-docs` returns the doc registry.
 
 If both surfaces work, the routing table at the top of this skill is now usable in either column.
 
@@ -256,7 +261,7 @@ Triggered when the preflight's snippet-currency check finds a missing or outdate
 
 This is an **in-place edit of the user's source-controlled `build.gradle`**, not a regenerated file copy. Be careful:
 
-1. **Read the current canonical** the same way as a fresh install -- step 1 of the install procedure above (`mcp__hoist-core__hoist-core-read-doc` with `id: "mcp/README.md"`, or `./bin/hoist-core-docs read mcp/README.md`, or a sibling hoist-core checkout). Trust the README's snippet over the mirror in this SKILL.md if they diverge -- but they shouldn't if both repos have been kept in lockstep.
+1. **Read the current canonical** the same way as a fresh install -- step 1 of the install procedure above (`hoist-core-read-doc` with `id: "mcp/README.md"`, or `./bin/hoist-core-docs read mcp/README.md`, or a sibling hoist-core checkout). Trust the README's snippet over the mirror in this SKILL.md if they diverge -- but they shouldn't if both repos have been kept in lockstep.
 
 2. **Locate the existing snippet boundaries** in `build.gradle`:
 
@@ -280,7 +285,7 @@ If the user defers the refresh, do not re-prompt during the session. They can re
 
 ## When the tools aren't available
 
-If neither MCP tools (`mcp__hoist-core__*`) nor the CLI launchers (`./bin/hoist-core-*`) are present in your context:
+If neither the hoist-core MCP tools nor the CLI launchers (`./bin/hoist-core-*`) are present in your context:
 
 1. Default action: jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** above and offer to install them. This is almost always the right next step for an app project on a recent enough hoist-core.
 2. If the user declines or the project is on `hoistCoreVersion < 39.0` and they don't want to upgrade right now, do **not** improvise hoist-core APIs from training data - class names and member signatures evolve, and stale guesses produce real bugs. Tell the user the limitation explicitly.
