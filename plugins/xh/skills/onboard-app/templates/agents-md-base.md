@@ -90,6 +90,9 @@ Each skill has two interchangeable surfaces: MCP tools when MCP is enabled, and 
 installed. In MCP-blocked environments the CLI is the working path, and the skills route to it. If
 neither surface is reachable, run the `onboard-app` skill to configure them.
 
+Without the `xh` plugin, run the hoist-react CLI from `client-app/` with `npx hoist-docs` and
+`npx hoist-ts`. They read the installed `@xh/hoist` version. Do not write Hoist code from memory.
+
 To run a skill by name, type `/xh:<skill>` in Claude Code, `/<skill>` in Cursor, or `$xh:<skill>`
 in Codex.
 

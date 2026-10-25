@@ -14,10 +14,11 @@ Findings 7 and 8 explain why.
 
 ### Fixture
 
-The fixture is `xh/app-template` at commit `1eb5e72` with its AI files removed: `AGENTS.md`,
-`CLAUDE.md`, `.claude/`, and `.mcp.json`. It runs `@xh/hoist` 86.2.0 with npm, legacy decorators,
-and hoist-core 40.1.0. Its `build.gradle` already holds the `installHoistCoreTools` task without
-the `hoist-ai-snippet` markers.
+The fixture is `xh/app-template` at commit `1eb5e72`, from the `upgrade/hoist-v73.0.1-to-v86.2.0`
+branch, with its AI files removed: `AGENTS.md`, `CLAUDE.md`, `.claude/`, and `.mcp.json`. It runs
+`@xh/hoist` 86.2.0 with npm, legacy decorators, and hoist-core 40.1.0. Its `build.gradle` already
+holds the `installHoistCoreTools` task without the `hoist-ai-snippet` markers. The template's `main`
+branch has since moved to pnpm, `@xh/hoist` 87, and hoist-core 41, so the next round uses `main`.
 
 Each case is a fresh copy of the fixture, committed as its own git repo, so `git status` shows
 exactly what a run wrote. The copies share one `client-app/node_modules` through a symlink.
@@ -86,7 +87,7 @@ The states:
 | Claude Code | on | all six | `CLAUDE.md` and the imported `AGENTS.md` | in cc and all | the reference skill, then MCP where present, else the installed source |
 | Claude Code | off | none | the same | in cc and all | MCP where present, else from memory |
 | Codex | on | all six, as `xh:*` | `AGENTS.md` | none | the reference skill, then the installed source through the shell |
-| Codex | off | pending | pending | pending | pending |
+| Codex | off | none | `AGENTS.md` | none | the installed source, or hoist-react on GitHub at the installed tag |
 | Copilot | on | all six | `AGENTS.md` only | none, in every state | the reference skill, then local files or GitHub |
 | Copilot | off | none | `AGENTS.md` only | none | its built-in GitHub MCP server, reading `xh/hoist-react` on GitHub |
 | Cursor | on, off | not run | | | |
@@ -126,13 +127,16 @@ The probe told each agent to skip installs, so none did.
    short summary.
 10. **Onboarding writes `CLAUDE.md` for every harness.** A Cursor-only or Codex-only project still
     gets it. The planned design writes it only when the project uses Claude Code.
-11. **The snippet markers differ between repos.** Toolbox has `hoist-core-install/v2`. The local
+11. **Without the plugin, `AGENTS.md` points at a skill that is not there.** It tells the agent
+    to run `onboard-app` when no surface is reachable. Claude Code and Codex then answered from
+    the installed source or from memory. Fix: name `npx hoist-docs` and `npx hoist-ts` from
+    `client-app/`, which work without the plugin.
+12. **The snippet markers differ between repos.** Toolbox has `hoist-core-install/v2`. The local
     hoist-core README and `using-hoist-core-reference` both say `v1`. app-template has no marker.
 
 ## Not yet tested
 
 - Cursor: every onboarding and probe run, in the IDE and the CLI.
-- Codex with the plugin off, and Codex in the cursor and all states.
 - Claude Code onboarding in an interactive session, where `.mcp.json` can be written.
 - A project file that declares the plugin, which 1.8.0 does not write.
 - A teammate who has the plugin at user scope while the project declares it, and opting out of a
