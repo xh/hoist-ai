@@ -19,6 +19,8 @@
 * `onboard-app`, `using-hoist-core-reference`: detect the harness and write MCP entries to
   `.mcp.json` for Claude Code or `.cursor/mcp.json` for Cursor. Codex uses the CLI launchers.
 * Shorter skill descriptions that fit the Agent Skills length limit, which Codex enforces.
+* `onboard-app`, `hoist-upgrade`, `using-hoist-core-reference`: each SKILL.md is a short outline,
+  with the detailed steps in reference files that load per phase. Codex cut off the long files.
 
 ## 1.7.0 - 2026-10-06
 
