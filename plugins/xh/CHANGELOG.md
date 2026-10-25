@@ -9,6 +9,13 @@
   plugin in each harness's project config, so every developer on the project gets it.
 * `onboard-app`: writes the Hoist guidance to `AGENTS.md`, plus a `CLAUDE.md` that imports it
   when the team uses Claude Code. It offers to move a `CLAUDE.md` from an older run.
+* `onboard-app`: builds `AGENTS.md` with a bundled script, so the template text arrives unchanged.
+  It replaces Hoist sections from older runs with the harness-neutral versions, and keeps the
+  project's own lines.
+* `onboard-app`: a missing MCP binary skips only the MCP entries. In canary mode it compares the
+  installed version with `next`, and offers an upgrade only for a newer major.
+* All skills: check that a file exists with a file read or `test -f`. Some harnesses' search tools
+  skip gitignored folders such as `node_modules`.
 * `onboard-app`, `using-hoist-core-reference`: detect the harness and write MCP entries to
   `.mcp.json` for Claude Code or `.cursor/mcp.json` for Cursor. Codex uses the CLI launchers.
 * Shorter skill descriptions that fit the Agent Skills length limit, which Codex enforces.

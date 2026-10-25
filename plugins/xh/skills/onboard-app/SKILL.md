@@ -23,6 +23,10 @@ a React/TypeScript frontend in `client-app/`. Key locations:
   version is absent if a client-specific Grails plugin provides `hoist-core` transitively.
 - `grails-app/`: Grails controllers, services, domain classes
 
+`node_modules` and `bin/` launchers are often gitignored, and some harnesses' search tools skip
+gitignored paths. Check that a file exists with a file read or a shell command such as
+`test -f`, never with a search or glob tool alone.
+
 ## Agent Harnesses
 
 A harness is the agent app a developer uses. Onboarding sets up each harness the team uses, not
@@ -42,11 +46,13 @@ directory, not the project root. The CLI launchers work in Codex from any direct
 
 ## Phase 1: Detect Project
 
-1. **Detect the harness.** Run `env | grep -E '^(CLAUDECODE|CURSOR_AGENT|CODEX_THREAD_ID)='` and
-   match the result to the table above. If nothing matches and you do not know which harness you
-   run in, ask the user. The proposed harnesses are the current one plus each harness that
-   already has project config: `.mcp.json` or a `.claude/` folder for Claude Code, a `.cursor/`
-   folder for Cursor, a `.codex/` folder for Codex. The user confirms the list in Phase 2.
+1. **Detect the harness.** If you know which harness you run in, use it. Otherwise run
+   `env | grep -E '^(CLAUDECODE|CURSOR_AGENT|CODEX_THREAD_ID)='` and match the result to the
+   table above. A harness started from another harness's terminal inherits its variables, so
+   more than one can match. If none or several match, ask the user. The proposed harnesses are
+   the current one plus each harness that already has project config: `.mcp.json` or a
+   `.claude/` folder for Claude Code, a `.cursor/` folder for Cursor, a `.codex/` folder for
+   Codex. The user confirms the list in Phase 2.
 2. **Detect package manager.** Check which lockfile exists in `client-app/`:
    - `yarn.lock`: use `yarn` (for example `yarn install`, `yarn why`)
    - `package-lock.json`: use `npm` (for example `npm install`, `npm ls`)
@@ -123,12 +129,18 @@ directory, not the project root. The CLI launchers work in Codex from any direct
    use in Phase 2. `@xh/hoist` (hoist-react) is the primary upgrade signal. It changes more often
    than hoist-core, and each hoist-react release specifies the `hoist-core` version it needs.
 
-   **SNAPSHOT handling.** If the app is in canary mode (step 3) or the installed version
-   contains `-SNAPSHOT` (for example `85.0.0-SNAPSHOT.1777529713059`), the developer is on a
-   pre-release that is typically *ahead* of the published `latest` tag. Do not flag this as
-   "behind latest". Semver comparison against `dist-tags.latest` will lie. Treat SNAPSHOT
-   installs as up-to-date for upgrade-prompt purposes. Show "on a pre-release SNAPSHOT" in
-   Phase 2's detection summary instead of an upgrade nudge.
+   **Canary mode.** If the spec is a dist-tag such as `next` (step 3), never compare against
+   `latest`. Run `npm view @xh/hoist dist-tags.next` and compare the installed version with it:
+   - `next` is a newer major: offer the `hoist-upgrade` skill in Phase 2. Its canary path
+     applies the migrations for each major it crosses.
+   - Same major, newer build: show "behind `next`, run the package manager update" in the
+     detection summary. Ask no upgrade question.
+   - Otherwise the app is current.
+
+   **SNAPSHOT pin.** If the installed version contains `-SNAPSHOT` (for example
+   `85.0.0-SNAPSHOT.1777529713059`) and the spec is not a dist-tag, the developer pinned a
+   pre-release that is typically *ahead* of `latest`. Treat it as up to date and show "on a
+   pre-release SNAPSHOT" in the detection summary.
 <!-- legacy-api:start -->
 9. **Detect the decorator style.** It picks the Models and Decorators section of the generated
    AGENTS.md (Phase 4). Read `client-app/tsconfig.json`, and any config it `extends`:
@@ -192,7 +204,8 @@ List only the lines for the proposed harnesses. Use "Verify" for a file that alr
 entry. The confirmation below also asks the user to correct the harness list.
 
 If the installed `@xh/hoist` version is behind the latest stable release, add this section after
-the detection summary and BEFORE the "Proceed with setup?" confirmation:
+the detection summary and BEFORE the "Proceed with setup?" confirmation. In canary mode, use the
+comparison with `next` from Phase 1 instead, and offer an upgrade only for a newer major:
 
 The Hoist MCP server is first available in `@xh/hoist` v82.0. If the installed version is
 below v82, the MCP server will not exist and the AI tooling will be significantly limited.
@@ -244,8 +257,8 @@ to confirm before making any changes. Do NOT write any files until the user says
 ## Phase 3: Configure hoist-react MCP Server
 
 If the installed `@xh/hoist` version is v82.0 or later, add the hoist-react MCP server to the
-project's MCP config for each confirmed harness that has one: Claude Code and Cursor. The plugin cannot ship this entry, because
-the server binary lives in the project's own `node_modules`.
+project's MCP config for each confirmed harness that has one: Claude Code and Cursor. The plugin
+cannot ship this entry, because the server binary lives in the project's own `node_modules`.
 
 The entry is harmless in environments that block MCP: the harness does not connect to it, and
 it starts to work if the environment later permits MCP. In MCP-blocked environments, the CLI
@@ -253,9 +266,10 @@ surface (`./bin/hoist-docs`, `./bin/hoist-ts`) is the working path, and the gene
 documents it.
 
 1. **Before writing anything**, confirm the binary exists at
-   `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`. If it does not, warn the user that
-   they need to run their package manager install from `client-app/` first, then run
-   onboarding again.
+   `client-app/node_modules/@xh/hoist/bin/hoist-mcp.mjs`, with a file read or `test -f`. If it
+   does not exist, skip this phase only. Carry on with the rest of onboarding, and tell the user
+   in the Phase 6 report to run the package manager install from `client-app/` and then run
+   onboarding again to add the MCP entries.
 2. For each harness, check whether its config file exists and already has a `hoist-react` entry
    under `mcpServers`. If it does, skip that file.
 3. If the file exists without a `hoist-react` entry, add the entry to its `mcpServers` object.
@@ -309,7 +323,8 @@ works as soon as it is installed, with no new session and no MCP.
 
 ### Step 1: Detect current state
 
-1. Check whether `bin/hoist-core-mcp` exists at the project root and is executable.
+1. Check whether `bin/hoist-core-mcp` exists at the project root and is executable, with
+   `test -x`.
 2. Check whether the MCP config file of each confirmed harness that has one (Phase 3) has a
    `hoist-core` entry under `mcpServers`.
 3. If the launcher and every entry are present, this phase is already done. Skip it.
@@ -330,6 +345,7 @@ This will:
 - Run `./gradlew installHoistCoreTools` to resolve the version-locked fat JAR
   (`io.xh:hoist-core-mcp:<hoistCoreVersion>:all`) and write launchers under `bin/`.
 - Add a `hoist-core` entry that points at `bin/hoist-core-mcp` to [`.mcp.json` | `.cursor/mcp.json`].
+- [If `build.gradle` already has the task without them: add the `hoist-ai-snippet` marker comments around it.]
 
 The CLI surface (`./bin/hoist-core-docs`, `./bin/hoist-core-symbols`) works in any environment,
 including MCP-blocked ones. The MCP entry is harmless if MCP is blocked, and it starts to work
@@ -338,7 +354,9 @@ if MCP later becomes available.
 Proceed? (yes/no)
 ```
 
-If the user says no, record the decision and show a deferred-step note in the Phase 6 report.
+Make no change to `build.gradle` before the user says yes, and that includes the marker
+comments. If the user says no, record the decision and show a deferred-step note in the Phase 6
+report.
 The user can install later: an ask to install or set up the hoist-core MCP+CLI in this app loads
 the `using-hoist-core-reference` skill, which walks through it.
 
@@ -374,44 +392,34 @@ sanity check.
 Code, `CLAUDE.md` holds the line `@AGENTS.md`, which makes Claude Code load the same file. Skip
 every `CLAUDE.md` step below when Claude Code is not a confirmed harness.
 
-The templates are in the `templates/` folder beside this SKILL.md. If you cannot find that
-folder, search for `**/onboard-app/templates/agents-md-base.md`. Read
-`agents-md-base.md` from that folder.
+1. Build the Hoist sections with the bundled script, from the project root. Pass the package
+   manager and the decorator style from Phase 1:
 
-1. Read the base template. The base template includes both client-side (hoist-react) and
-   server-side (hoist-core) documentation. Do not substitute versions. Agents get the Hoist
-   versions from the dependency managers at runtime, and a version in AGENTS.md goes stale.
+   ```bash
+   node "<skill-dir>/scripts/build-agents-md.mjs" --pkg <yarn|npm|pnpm> --decorators <tc39|legacy>
+   ```
 
-   **Do** substitute the package-manager tokens in the Commands section to reflect the manager
-   detected in Phase 1 (yarn for `yarn.lock`, npm for `package-lock.json`, pnpm for
-   `pnpm-lock.yaml`):
-   - `{{PKG_MGR_INSTALL}}` → `yarn install`, `npm install`, or `pnpm install`
-   - `{{PKG_MGR_START}}` → `yarn start`, `npm start`, or `pnpm start`
-   - `{{PKG_MGR_LINT}}` → `yarn lint`, `npm run lint`, or `pnpm lint`
+   `<skill-dir>` is the folder that holds this SKILL.md. If you cannot find it, search for
+   `**/onboard-app/scripts/build-agents-md.mjs`. The script fills the templates in the
+   `templates/` folder beside it.
 
-   Show only the commands for the project's package manager. Do not add a second manager in
-   parentheses, which implies a preference.
-
-   **Do** replace `{{MODEL_PRIMER}}` with the full content of the models template for the
-   decorator style detected in Phase 1, from the same templates directory:
-   - TC39: `agents-md-models-tc39.md`
-   - legacy: `agents-md-models-legacy.md`
-2. If client plugins were detected in Phase 1, also read `agents-md-client-plugins.md` from
-   the same templates directory and append its content. Replace the placeholders:
-   - `{{PLUGIN_TABLE}}`: one row per plugin: `| name | npm or Grails | version | what it provides |`
-   - `{{PLUGIN_NOTES}}`: for each npm plugin, note if it provides `@xh/hoist` transitively,
-     which means the app does not depend on `@xh/hoist` directly. For Grails plugins, note if
-     `hoist-core` is provided transitively. Add a brief note that tells AI agents to check
-     plugin source and docs when changes touch plugin-provided APIs.
-   If no client plugins were detected, skip this template entirely.
+   For each client plugin from Phase 1, add
+   `--plugin "<name>|<npm or Grails>|<version>|<what it provides>"`. Add a `--plugin-note` for
+   each npm plugin that provides `@xh/hoist` transitively, and for each Grails plugin that
+   provides `hoist-core` transitively. Add one more note that tells agents to check the plugin's
+   source and docs when a change touches APIs the plugin provides.
+2. Put the script's output in place with the shell, for example `> AGENTS.md` for a new file.
+   Never retype it or copy it through a file editor, which can drop or change template lines.
+   To merge into an existing file, write the output to a scratch file, then copy in the sections
+   that step 4 selects.
 3. Pick the target file from what Phase 1 found. An `AGENTS.md` that only points readers to
    `CLAUDE.md` counts as absent: replace it when you move the content.
    - **Neither file exists.** Write the generated content to `./AGENTS.md`. For Claude Code,
      write `./CLAUDE.md` with the single line `@AGENTS.md`.
    - **`AGENTS.md` exists.** Merge into it with the rules in step 4. For Claude Code, make sure
-     `CLAUDE.md` imports it: create `CLAUDE.md` with the line `@AGENTS.md`, or add that line at the top of
-     an existing `CLAUDE.md` that lacks it. If `CLAUDE.md` also holds Hoist sections from an
-     older onboarding, move them into `AGENTS.md` and remove them from `CLAUDE.md`.
+     `CLAUDE.md` imports it: create `CLAUDE.md` with the line `@AGENTS.md`, or add that line at
+     the top of an existing `CLAUDE.md` that lacks it. If `CLAUDE.md` also holds Hoist sections
+     from an older onboarding, move them into `AGENTS.md` and remove them from `CLAUDE.md`.
    - **Only `CLAUDE.md` exists.** Older onboarding runs wrote the Hoist guidance there. Propose
      to move its content to a new `AGENTS.md`, so Cursor and Codex read it too. `CLAUDE.md` then
      keeps the line `@AGENTS.md` and any line that only Claude Code understands, such as an
@@ -421,11 +429,15 @@ folder, search for `**/onboard-app/templates/agents-md-base.md`. Read
 4. Merge rules for an existing file:
    - Read the existing file.
    - Check which Hoist sections are already present (look for headings like
-     "Architecture Primer", "Models and Decorators", "MCP Tools", "hoist-core", "Writing Style",
-     "Commands", "Client Plugins").
-   - Append only sections that are missing. Do NOT overwrite or duplicate existing content.
+     "Architecture Primer", "Models and Decorators", "Hoist Reference Skills", "MCP Tools",
+     "hoist-core", "Writing Style", "Commands", "Client Plugins").
+   - Append the sections that are missing.
+   - Replace each Hoist section that an older onboarding run wrote with the generated version.
+     Older runs wrote Claude Code-only text, such as "The `xh` Claude Code plugin", `mcp__`
+     tool names, and "restart Claude Code", which other harnesses cannot use. Keep any line the
+     user added inside the section, which is a line the generated version lacks.
    <!-- legacy-api:start -->
-   - **Exception: a stale model primer.** Hoist primer text that teaches the other decorator
+   - **A stale model primer.** Hoist primer text that teaches the other decorator
      style is wrong for this app. Older onboarding runs put the HoistModel example inside
      "Architecture Primer", not in a "Models and Decorators" section. Judge it by the
      primer's HoistModel code example, not by prose that only names an API. The primer is
@@ -507,7 +519,7 @@ Otherwise:
    present or fails → "MCP entry written, activates in the next agent session (or stays dormant
    in MCP-blocked environments)". This is not an error.
 2. **CLI launcher presence (informational).** Check whether `./bin/hoist-docs` and
-   `./bin/hoist-ts` exist at the project root.
+   `./bin/hoist-ts` exist at the project root, with `test -f`.
    - If both are present, optionally run `./bin/hoist-docs index` to confirm output. If
      `client-app/node_modules` is not installed yet, tell the user to run the package manager
      install.

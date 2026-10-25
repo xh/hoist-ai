@@ -176,8 +176,8 @@ Read the script's header comment if you need the full flag contract.
 ## Phase 3: hoist-react CLI launchers
 
 `bin/hoist-docs` and `bin/hoist-ts` are gitignored in most apps, so the worktree won't have
-them. If `<repo>/bin/hoist-docs` exists, the dev uses that surface and the worktree needs it
-too.
+them. If `test -f <repo>/bin/hoist-docs` succeeds, the dev uses that surface and the worktree
+needs it too.
 
 Install them with the **Install** procedure in the `using-hoist-react-reference` skill's
 `reference/cli-launchers.md`, which copies the canonical templates with `cp`.

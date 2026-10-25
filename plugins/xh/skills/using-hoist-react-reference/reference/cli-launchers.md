@@ -6,7 +6,7 @@ The CLI surface runs through two project-local launchers, `bin/hoist-docs` and `
 
 Run this once per session, before the first `./bin/hoist-docs` or `./bin/hoist-ts` call. Skip it if you work through MCP only.
 
-1. Check that `./bin/hoist-docs` and `./bin/hoist-ts` exist at the project root.
+1. Check that `./bin/hoist-docs` and `./bin/hoist-ts` exist at the project root, with `test -f`. The launchers are often gitignored, and some harnesses' search tools skip gitignored files.
 2. Read the first 3 lines of each. The second line should be exactly:
 
        # hoist-ai-launcher: hoist-react/v2

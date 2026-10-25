@@ -33,7 +33,7 @@ The CLI launchers are project-local (created at `<project>/bin/hoist-core-*` by 
 
 Skip this if you're working through MCP only. For the CLI surface, before the first `./bin/hoist-core-*` call in a session, verify the launchers are present and functional:
 
-1. Check that `./bin/hoist-core-docs`, `./bin/hoist-core-symbols`, and `./bin/hoist-core-mcp` exist at the project root.
+1. Check that `./bin/hoist-core-docs`, `./bin/hoist-core-symbols`, and `./bin/hoist-core-mcp` exist at the project root, with `test -x`. The launchers are gitignored, and some harnesses' search tools skip gitignored files.
 2. Sanity-check one of them:
 
        ./bin/hoist-core-docs ping

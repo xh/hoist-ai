@@ -190,9 +190,10 @@ Record any required or recommended bumps for the plan display below.
 
 ### 4. Check guide availability
 
-For each hop in the sequence, check if a dedicated upgrade guide exists. List the files that match:
-```
-client-app/node_modules/@xh/hoist/docs/upgrade-notes/v*-upgrade-notes.md
+For each hop in the sequence, check if a dedicated upgrade guide exists. List the guides with a
+shell command, because some harnesses' search tools skip the gitignored `node_modules`:
+```bash
+ls client-app/node_modules/@xh/hoist/docs/upgrade-notes/
 ```
 
 Match each hop's target version against the available files. If a guide does NOT exist for a
@@ -433,9 +434,9 @@ agents.
    "Architecture Primer" heading), check that it matches the app's decorator style. The style is legacy if
    `client-app/tsconfig.json`, or a config it extends, sets `experimentalDecorators: true`.
    Otherwise it is TC39. Judge the primer by its HoistModel code example. If the example uses
-   the other style, regenerate the "Architecture Primer" and "Models and Decorators" sections. The templates
-   are in `../onboard-app/templates/` from this skill's folder. Follow the merge rules in that
-   skill's Phase 4 for an existing file. Keep project-specific text, and show the developer the
+   the other style, regenerate the "Architecture Primer" and "Models and Decorators" sections. Build them with
+   `../onboard-app/scripts/build-agents-md.mjs` from this skill's folder, and follow the rules
+   in that skill's Phase 4 for an existing file. Keep project-specific text, and show the developer the
    diff before writing.
 <!-- legacy-api:end -->
 3. Commit any changes on their own:
