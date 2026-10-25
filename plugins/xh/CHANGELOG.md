@@ -5,8 +5,10 @@
 * The plugin also installs in Cursor and Codex from the same marketplace.
 * All skills: harness-neutral text. They name MCP tools by the server's tool names, and find
   their bundled files beside each SKILL.md.
-* `onboard-app`: writes the Hoist guidance to `AGENTS.md`, plus a `CLAUDE.md` that imports it.
-  It offers to move a `CLAUDE.md` from an older run into `AGENTS.md`.
+* `onboard-app`: asks which harnesses the team uses and sets up only those. It declares the
+  plugin in each harness's project config, so every developer on the project gets it.
+* `onboard-app`: writes the Hoist guidance to `AGENTS.md`, plus a `CLAUDE.md` that imports it
+  when the team uses Claude Code. It offers to move a `CLAUDE.md` from an older run.
 * `onboard-app`, `using-hoist-core-reference`: detect the harness and write MCP entries to
   `.mcp.json` for Claude Code or `.cursor/mcp.json` for Cursor. Codex uses the CLI launchers.
 * Shorter skill descriptions that fit the Agent Skills length limit, which Codex enforces.

@@ -1,6 +1,6 @@
 ---
 name: onboard-app
-description: Configure and verify AI setup for a Hoist project. Detects the project type and the agent harness, generates AGENTS.md (imported by CLAUDE.md), configures the hoist-react MCP server for Claude Code or Cursor, optionally installs the hoist-core MCP+CLI tools, and verifies the surfaces in the current environment.
+description: Configure and verify AI setup for a Hoist project. Detects the project type and the agent harnesses the team uses, generates AGENTS.md (imported by CLAUDE.md for Claude Code), configures the hoist-react MCP server for Claude Code and Cursor, declares the xh plugin in each harness's project config so every developer gets it, optionally installs the hoist-core MCP+CLI tools, and verifies the surfaces in the current environment.
 allowed-tools: Read, Glob, Grep, Bash, Write, Edit, mcp__hoist-react__*
 ---
 
@@ -25,13 +25,17 @@ a React/TypeScript frontend in `client-app/`. Key locations:
 
 ## Agent Harnesses
 
-The setup differs by harness, the agent app that runs this skill:
+A harness is the agent app a developer uses. Onboarding sets up each harness the team uses, not
+only the one that runs this skill, so every developer gets the same tooling:
 
-| Harness | Agent docs | MCP config | Detect |
-|---|---|---|---|
-| Claude Code | `CLAUDE.md`, which imports `AGENTS.md` | `.mcp.json` | `CLAUDECODE` is set |
-| Cursor | `AGENTS.md` | `.cursor/mcp.json` | `CURSOR_AGENT` is set |
-| Codex | `AGENTS.md` | none, the skills use the CLI | `CODEX_THREAD_ID` is set |
+| Harness | Agent docs | MCP config | Plugin declaration | Detect |
+|---|---|---|---|---|
+| Claude Code | `CLAUDE.md`, which imports `AGENTS.md` | `.mcp.json` | `.claude/settings.json` | `CLAUDECODE` is set |
+| Cursor | `AGENTS.md` | `.cursor/mcp.json` | `.cursor/settings.json` | `CURSOR_AGENT` is set |
+| Codex | `AGENTS.md` | none, the skills use the CLI | `.codex/config.toml` | `CODEX_THREAD_ID` is set |
+
+Every harness reads `AGENTS.md`. Write a harness's other files only if the team uses that
+harness. A Cursor-only project gets no `CLAUDE.md` and no `.claude/` folder.
 
 Codex gets no MCP config because it resolves relative server paths against the session's working
 directory, not the project root. The CLI launchers work in Codex from any directory.
@@ -40,9 +44,9 @@ directory, not the project root. The CLI launchers work in Codex from any direct
 
 1. **Detect the harness.** Run `env | grep -E '^(CLAUDECODE|CURSOR_AGENT|CODEX_THREAD_ID)='` and
    match the result to the table above. If nothing matches and you do not know which harness you
-   run in, ask the user. The harnesses to configure are the current one plus each harness that
+   run in, ask the user. The proposed harnesses are the current one plus each harness that
    already has project config: `.mcp.json` or a `.claude/` folder for Claude Code, a `.cursor/`
-   folder for Cursor.
+   folder for Cursor, a `.codex/` folder for Codex. The user confirms the list in Phase 2.
 2. **Detect package manager.** Check which lockfile exists in `client-app/`:
    - `yarn.lock`: use `yarn` (for example `yarn install`, `yarn why`)
    - `package-lock.json`: use `npm` (for example `npm install`, `npm ls`)
@@ -141,12 +145,12 @@ Display a summary of what was detected:
 ```
 ## Project Detection Results
 
-- **Harness:** [Claude Code | Cursor | Codex] [(also configuring: <other harnesses with project config>)]
+- **Harness:** [Claude Code | Cursor | Codex | other: <name>] [(existing config for: <other harnesses>)]
 - **@xh/hoist (hoist-react):** v[version] [(direct | via [plugin name])] [(canary: tracks `next`)] ([up to date | upgrade available: v[latest]])
 - **Decorators:** [TC39 | legacy]
 - **hoist-core:** v[version] [(direct | via [plugin name])]
 - **Client plugins:** [None detected | See table below]
-- **Agent docs:** [None, will create AGENTS.md and CLAUDE.md | AGENTS.md exists, merge needed | CLAUDE.md only, move to AGENTS.md proposed]
+- **Agent docs:** [None, will create AGENTS.md | AGENTS.md exists, merge needed | CLAUDE.md only, move to AGENTS.md proposed]
 ```
 
 For both hoist-react and hoist-core, report the resolved version from the dependency manager
@@ -171,17 +175,21 @@ Then list the planned actions:
 
 ```
 ### Planned Actions
-- [Configure | Verify] the hoist-react MCP server in [`.mcp.json` | `.cursor/mcp.json`] (if @xh/hoist v82+)
+Harnesses: [the proposed list from Phase 1]
+
 - [Create | Update] AGENTS.md with Hoist conventions (~[N] lines)
-- [Create CLAUDE.md that imports AGENTS.md | Add the AGENTS.md import to CLAUDE.md | Move CLAUDE.md content to AGENTS.md and leave the import]
 - [Include client plugin documentation (if plugins detected)]
+- Claude Code: [Create | Verify] CLAUDE.md with `@AGENTS.md`, the hoist-react MCP server in `.mcp.json` (if @xh/hoist v82+), and the plugin in `.claude/settings.json`
+- Cursor: [Create | Verify] the hoist-react MCP server in `.cursor/mcp.json` (if @xh/hoist v82+), and the plugin in `.cursor/settings.json`
+- Codex: [Create | Verify] the plugin in `.codex/config.toml`. No MCP config, Codex uses the CLI.
 - Detect whether hoist-core MCP+CLI tools are installed. If `hoistCoreVersion >= 39.0` and
   they are not yet wired up, ask separately whether to install them (modifies `build.gradle`)
 - Verify both surfaces: hoist-react MCP with a ping, hoist-core with the CLI launcher, which
   works even in MCP-blocked environments
 ```
 
-Name each harness the plan configures, so the user can add or remove one before confirming.
+List only the lines for the proposed harnesses. Use "Verify" for a file that already holds the
+entry. The confirmation below also asks the user to correct the harness list.
 
 If the installed `@xh/hoist` version is behind the latest stable release, add this section after
 the detection summary and BEFORE the "Proceed with setup?" confirmation:
@@ -227,14 +235,16 @@ command you show the user.
 If the installed version is already up to date, skip the upgrade recommendation and proceed
 directly to:
 
-Ask the user: **"Proceed with setup? (yes/no)"**
+Ask the user: **"Proceed with setup for [harness list]? Name a harness to add or remove: Claude
+Code, Cursor, Codex."**
 
-Wait for the user to confirm before making any changes. Do NOT write any files until the user says yes.
+If the user changes the list, show the planned actions again for the new list. Wait for the user
+to confirm before making any changes. Do NOT write any files until the user says yes.
 
 ## Phase 3: Configure hoist-react MCP Server
 
 If the installed `@xh/hoist` version is v82.0 or later, add the hoist-react MCP server to the
-project's MCP config for each harness from Phase 1. The plugin cannot ship this entry, because
+project's MCP config for each confirmed harness that has one: Claude Code and Cursor. The plugin cannot ship this entry, because
 the server binary lives in the project's own `node_modules`.
 
 The entry is harmless in environments that block MCP: the harness does not connect to it, and
@@ -300,7 +310,7 @@ works as soon as it is installed, with no new session and no MCP.
 ### Step 1: Detect current state
 
 1. Check whether `bin/hoist-core-mcp` exists at the project root and is executable.
-2. Check whether the MCP config file of each harness that gets MCP config (Phase 3) has a
+2. Check whether the MCP config file of each confirmed harness that has one (Phase 3) has a
    `hoist-core` entry under `mcpServers`.
 3. If the launcher and every entry are present, this phase is already done. Skip it.
 4. If `hoistCoreVersion < 39.0` (the first release containing the `installHoistCoreTools`
@@ -360,8 +370,9 @@ sanity check.
 
 ## Phase 4: Generate AGENTS.md
 
-`AGENTS.md` holds the project guidance, because every harness reads it. `CLAUDE.md` holds the
-line `@AGENTS.md`, which makes Claude Code load the same file.
+`AGENTS.md` holds the project guidance, because every harness reads it. If the team uses Claude
+Code, `CLAUDE.md` holds the line `@AGENTS.md`, which makes Claude Code load the same file. Skip
+every `CLAUDE.md` step below when Claude Code is not a confirmed harness.
 
 The templates are in the `templates/` folder beside this SKILL.md. If you cannot find that
 folder, search for `**/onboard-app/templates/agents-md-base.md`. Read
@@ -395,10 +406,10 @@ folder, search for `**/onboard-app/templates/agents-md-base.md`. Read
    If no client plugins were detected, skip this template entirely.
 3. Pick the target file from what Phase 1 found. An `AGENTS.md` that only points readers to
    `CLAUDE.md` counts as absent: replace it when you move the content.
-   - **Neither file exists.** Write the generated content to `./AGENTS.md`. Write `./CLAUDE.md`
-     with the single line `@AGENTS.md`.
-   - **`AGENTS.md` exists.** Merge into it with the rules in step 4. Then make sure `CLAUDE.md`
-     imports it: create `CLAUDE.md` with the line `@AGENTS.md`, or add that line at the top of
+   - **Neither file exists.** Write the generated content to `./AGENTS.md`. For Claude Code,
+     write `./CLAUDE.md` with the single line `@AGENTS.md`.
+   - **`AGENTS.md` exists.** Merge into it with the rules in step 4. For Claude Code, make sure
+     `CLAUDE.md` imports it: create `CLAUDE.md` with the line `@AGENTS.md`, or add that line at the top of
      an existing `CLAUDE.md` that lacks it. If `CLAUDE.md` also holds Hoist sections from an
      older onboarding, move them into `AGENTS.md` and remove them from `CLAUDE.md`.
    - **Only `CLAUDE.md` exists.** Older onboarding runs wrote the Hoist guidance there. Propose
@@ -426,6 +437,57 @@ folder, search for `**/onboard-app/templates/agents-md-base.md`. Read
    <!-- legacy-api:end -->
    - Show the user what will be added, moved, or replaced before writing.
    - Preserve all existing project-specific content.
+
+## Phase 4.5: Declare the Plugin for the Team
+
+The plugin runs onboarding, so it is installed for the current developer. Other developers on the
+project get it from a declaration in each harness's project config. Write the declaration for
+each confirmed harness.
+
+Merge into an existing file. Keep every other key and entry. If the file already enables or
+disables `xh@hoist-ai`, leave that value alone, because `false` is a developer's opt-out. If a
+`hoist-ai` marketplace entry already exists with a different source, such as a branch or a local
+folder, leave it and name it in the report.
+
+**Claude Code**, `.claude/settings.json`. Claude Code asks the user to approve a write to this
+file. If the write is refused, show the user the entry to add.
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "hoist-ai": {
+      "source": { "source": "github", "repo": "xh/hoist-ai" }
+    }
+  },
+  "enabledPlugins": {
+    "xh@hoist-ai": true
+  }
+}
+```
+
+**Cursor**, `.cursor/settings.json`. Cursor keeps marketplaces per account, so this entry only
+turns the plugin on. Each developer adds the marketplace once, unless a team marketplace
+provides it.
+
+```json
+{
+  "plugins": {
+    "xh@hoist-ai": { "enabled": true }
+  }
+}
+```
+
+**Codex**, `.codex/config.toml`. The entry names the marketplace and turns the plugin on. Codex
+reads project config only in a trusted project.
+
+```toml
+[marketplaces.hoist-ai]
+source_type = "git"
+source = "https://github.com/xh/hoist-ai.git"
+
+[plugins."xh@hoist-ai"]
+enabled = true
+```
 
 ## Phase 5: Verify Surfaces (CLI-first, MCP-opportunistic)
 
@@ -479,11 +541,17 @@ calls out the CLI fallback for MCP-blocked environments:
 ## Onboarding Complete
 
 ### Configuration
-- **Harnesses:** [Claude Code, Cursor, Codex: those configured]
 - **AGENTS.md:** [Created | Updated (added N sections) | Moved from CLAUDE.md | Already up to date]
-- **CLAUDE.md:** [Created with `@AGENTS.md` | Import added | Already imports AGENTS.md]
-- **MCP config:** [`.mcp.json`: Created | Updated (added entries: <list>) | Already configured] [`.cursor/mcp.json`: ...]
 - **Client plugins:** [N plugin(s) documented | None detected]
+
+### Harnesses
+Include a line for each confirmed harness only.
+- **Claude Code:** CLAUDE.md [Created with `@AGENTS.md` | Import added | Already imports AGENTS.md]. `.mcp.json` [Created | Updated (added: <list>) | Already configured]. Plugin in `.claude/settings.json` [Declared | Already declared | Not written, add it by hand].
+  Each developer: run `claude plugin install xh@hoist-ai --scope project` once.
+- **Cursor:** `.cursor/mcp.json` [Created | Updated (added: <list>) | Already configured]. Plugin in `.cursor/settings.json` [Declared | Already declared].
+  Each developer: add the marketplace once, in Customize from GitHub with `https://github.com/xh/hoist-ai`, or with `agent plugin marketplace add https://github.com/xh/hoist-ai`. Skip this if an admin provides it as a team marketplace.
+- **Codex:** no MCP config, Codex uses `AGENTS.md` and the CLI launchers. Plugin in `.codex/config.toml` [Declared | Already declared].
+  Each developer: trust the project when Codex asks, then run `codex plugin marketplace upgrade hoist-ai` once.
 
 ### hoist-react
 - **MCP entry:** [Written | Already present | Skipped (requires @xh/hoist v82+, run the hoist-upgrade skill first)]
@@ -511,6 +579,6 @@ do not need to run onboarding again.
 ### Next steps
 Start a new agent session to load the new MCP entries, and approve the hoist servers when the
 harness asks. Skip this if MCP is blocked in your environment: the CLI surfaces are already
-live. Commit AGENTS.md, CLAUDE.md, and the MCP config files so the whole team gets them. Then
+live. Commit AGENTS.md and the harness files listed above so the whole team gets them. Then
 start coding. The reference skills route you to framework docs and API lookups.
 ```

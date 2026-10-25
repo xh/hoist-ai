@@ -90,6 +90,10 @@ with `$` instead of `/`.
 
 ## Project-Level Setup
 
+`onboard-app` declares the plugin in the project config of each harness the team uses, so every
+developer on the project gets it. The entries below are what it writes, for a project you set up
+by hand.
+
 ### Claude Code
 
 To give all developers on a project the plugin, add this to the project's
@@ -157,10 +161,14 @@ once, as in [Installation](#cursor), unless a team marketplace provides it:
 
 ### Codex
 
-Commit this to the project's `.codex/config.toml`. Codex reads it only in a trusted project, and
-each developer still adds the marketplace once:
+Commit this to the project's `.codex/config.toml`. Codex reads it only in a trusted project.
+Each developer runs `codex plugin marketplace upgrade hoist-ai` once to fetch the plugin:
 
 ```toml
+[marketplaces.hoist-ai]
+source_type = "git"
+source = "https://github.com/xh/hoist-ai.git"
+
 [plugins."xh@hoist-ai"]
 enabled = true
 ```
