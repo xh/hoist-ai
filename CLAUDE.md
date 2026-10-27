@@ -1,36 +1,34 @@
 # hoist-ai Plugin Development
 
-This is the `xh` Claude Code plugin (from the `hoist-ai` marketplace) - AI augmentation for
-Hoist application development. Maintained by Extremely Heavy Industries (https://xh.io).
+This is the `hoist-ai` Claude Code marketplace - plugins for AI-augmented Hoist application
+development. Maintained by Extremely Heavy Industries (https://xh.io).
 
 ## Repository Structure
 
 ```
-.claude-plugin/          Plugin manifest and marketplace catalog
-  plugin.json            Name, version, description, author
-  marketplace.json       Marketplace entry for team installation
-skills/                  Plugin skills (invoked via /xh:skill-name)
-  onboard-app/           Project setup and AI configuration
-  hoist-upgrade/         Guided @xh/hoist version upgrade
-  using-hoist-core-reference/    Authoritative reference + install for hoist-core MCP/CLI tools
-  using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
+.claude-plugin/marketplace.json   Marketplace catalog
+plugins/<plugin>/                 One plugin per directory
+  .claude-plugin/plugin.json      Name, version, description, author
+  CHANGELOG.md                    Per-plugin release notes
+  skills/<skill>/SKILL.md         Invoked as /<plugin>:<skill>
 ```
 
 ## Development Workflow
 
 1. Make changes to skills, templates, or configuration files.
 2. Test locally: install from local path in a Hoist project.
-   - In Claude Code: `/plugin install /path/to/hoist-ai --scope project`
+   - In Claude Code: `/plugin marketplace add /path/to/hoist-ai`, then
+     `/plugin install xh@hoist-ai --scope project`
    - Verify skills run correctly and MCP server starts.
 3. Run `python3 .github/scripts/check-removed-apis.py`. CI runs it too. It fails when skill text
    teaches a hoist-react API that a major removed, outside text marked as version-gated.
-4. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
-   before pushing.
+4. If the change ships new behavior to consumers, bump the version in
+   `plugins/xh/.claude-plugin/plugin.json` before pushing.
 5. Push to `main` - marketplace consumers pick up updates automatically.
 
 ## Skill Authoring Conventions
 
-- Each skill lives in `skills/<skill-name>/SKILL.md`.
+- Each skill lives in `plugins/<plugin>/skills/<skill-name>/SKILL.md`.
 - Use YAML frontmatter: `name`, `description`, `allowed-tools`.
 - Set `disable-model-invocation: true` for skills that should only run on explicit invocation.
 - Supporting files (templates, rules) go in subdirectories of the skill folder.
@@ -54,20 +52,20 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
 - The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
-- Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
-  to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
-  or files the plugin never loads do not need a release.
+- Bump the plugin's `plugin.json` version and add an entry to its `CHANGELOG.md` only when a
+  change ships new behavior to consumers, such as edits to skills, templates, or scripts.
+  Changes to docs, repo-only files, or files the plugin never loads do not need a release.
 - Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
   skill-creator best practices on the `description:` frontmatter: single paragraph with no
   blank-line breaks (the harness truncates display at blank lines); lead with a "Why this
   matters:" line citing concrete failure modes rather than an "ALWAYS use this skill when..."
   imperative (skill-creator flags ALL-CAPS imperatives as a yellow flag); concrete TRIGGER/SKIP
   blocks anchoring on real keywords/symbols the user is likely to type. The trigger eval sets
-  live at `skills/<skill>/evals/trigger.json` and can be re-run via the skill-creator
-  `run_eval.py` script for a directional sanity check (FP rate should stay near 0%; positive
-  recall should not regress) - but the script simulates skills as slash commands under
-  `claude -p` and exhibits a measurement ceiling around 15% recall regardless of description
-  quality, so it is NOT a hard pass/fail bar. Keep each description under Claude Code's
+  live at `plugins/<plugin>/skills/<skill>/evals/trigger.json` and can be re-run via the
+  skill-creator `run_eval.py` script for a directional sanity check (FP rate should stay near
+  0%; positive recall should not regress) - but the script simulates skills as slash commands
+  under `claude -p` and exhibits a measurement ceiling around 15% recall regardless of
+  description quality, so it is NOT a hard pass/fail bar. Keep each description under Claude Code's
   per-skill listing cap (default 1536 chars) - anything over gets silently truncated in the
   model's `available_skills` view, dropping later content (typically the SKIP block) before
   it reaches the model.
