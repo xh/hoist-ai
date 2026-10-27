@@ -22,7 +22,7 @@ yarn-error.log*
 .env.*
 
 # Local plugin-dev MCP server config
-.mcp.json
+/.mcp.json
 
 # skill-creator eval workspace artifacts (generated, not committed)
 plugins/*/skills/*-workspace/

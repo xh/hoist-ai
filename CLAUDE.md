@@ -1,7 +1,7 @@
 # hoist-ai Plugin Development
 
-This is the `xh` Claude Code plugin (from the `hoist-ai` marketplace) - AI augmentation for
-Hoist application development. Maintained by Extremely Heavy Industries (https://xh.io).
+This is the `hoist-ai` Claude Code marketplace - plugins for AI-augmented Hoist application
+development. Maintained by Extremely Heavy Industries (https://xh.io).
 
 ## Repository Structure
 
@@ -9,6 +9,7 @@ Hoist application development. Maintained by Extremely Heavy Industries (https:/
 .claude-plugin/marketplace.json   Marketplace catalog
 plugins/<plugin>/                 One plugin per directory
   .claude-plugin/plugin.json      Name, version, description, author
+  CHANGELOG.md                    Per-plugin release notes
   skills/<skill>/SKILL.md         Invoked as /<plugin>:<skill>
 ```
 
@@ -51,9 +52,9 @@ plugins/<plugin>/                 One plugin per directory
   100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
 - The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
-- Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
-  to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
-  or files the plugin never loads do not need a release.
+- Bump the plugin's `plugin.json` version and add an entry to its `CHANGELOG.md` only when a
+  change ships new behavior to consumers, such as edits to skills, templates, or scripts.
+  Changes to docs, repo-only files, or files the plugin never loads do not need a release.
 - Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
   skill-creator best practices on the `description:` frontmatter: single paragraph with no
   blank-line breaks (the harness truncates display at blank lines); lead with a "Why this
