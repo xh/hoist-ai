@@ -4,6 +4,10 @@
 Code, `CLAUDE.md` holds the line `@AGENTS.md`, which makes Claude Code load the same file. Skip
 every `CLAUDE.md` step below when Claude Code is not a confirmed harness.
 
+Write `CLAUDE.md` even though Claude Code can read `AGENTS.md` by itself. A `CLAUDE.md` or
+`CLAUDE.local.md` in any directory above the project, such as the home directory, stops Claude
+Code from reading `AGENTS.md`, and the import does not.
+
 1. Build the Hoist sections with the bundled script, from the project root. Pass the package
    manager and the decorator style from Phase 1:
 

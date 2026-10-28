@@ -6,10 +6,10 @@ allowed-tools: Read, Glob, Grep, Bash, Write, Edit, mcp__hoist-react__*
 
 # Hoist Project Onboarding
 
-Configure this Hoist project for AI-augmented development. Follow each phase in order. Each
-phase has its detailed steps in a file in the `reference/` folder beside this SKILL.md. Read that
-file when the phase starts, and follow it from start to end. If you cannot find the folder, search
-for `**/onboard-app/reference/detect.md`.
+Configure this Hoist project for AI-augmented development. Follow each phase in order. The
+detailed steps are in the `reference/` folder beside this SKILL.md. When a phase starts, read the
+section it names and follow it from start to end. If you cannot find the folder, search for
+`**/onboard-app/reference/detect.md`.
 
 ## Hoist Project Structure
 
@@ -58,13 +58,11 @@ directory, not the project root. The CLI launchers work in Codex from any direct
 
 ## Phase 1: Detect Project
 
-Follow [reference/detect.md](reference/detect.md). It detects the harness, the package manager,
-the installed `@xh/hoist` version and canary mode, client plugins, the hoist-core version, the
-existing agent docs, the latest release, and the decorator style.
+Follow Phase 1 in [reference/detect.md](reference/detect.md).
 
 ## Phase 2: Present Findings and Confirm
 
-The templates for this phase are in [reference/findings.md](reference/findings.md).
+The templates for this phase are under Phase 2 in [reference/detect.md](reference/detect.md).
 
 1. Show the detection summary, the client plugins table if there are any, and the planned
    actions for the proposed harnesses.
@@ -73,42 +71,30 @@ The templates for this phase are in [reference/findings.md](reference/findings.m
    **"Would you like to upgrade first? (yes = run the hoist-upgrade skill, no = continue with
    current version)"**
    - If yes: tell the developer to run the `hoist-upgrade` skill, then to run `onboard-app`
-     again after the upgrade. Stop here. A skill cannot invoke another skill, so this is a
-     handoff.
+     again after the upgrade. Stop here.
    - If no: continue on the current version. If it is below v82, Phase 5 skips the MCP check.
 3. Ask: **"Proceed with setup for [harness list]? Name a harness to add or remove: Claude Code,
    Cursor, Codex."** If the user changes the list, show the planned actions again for the new
    list. Wait for a yes before you change anything.
 
-## Phase 3: Configure hoist-react MCP Server
+## Phase 3: Configure Each Harness
 
-Follow [reference/mcp-config.md](reference/mcp-config.md). It applies to Claude Code and Cursor,
-for `@xh/hoist` v82 or later. If the MCP binary is missing, skip this phase only and carry on.
+Follow Phase 3 in [reference/configure.md](reference/configure.md): the hoist-react MCP entry for
+Claude Code and Cursor, and the plugin declaration for every confirmed harness.
 
 ## Phase 3.5: Install hoist-core MCP Server and CLI Tools (optional)
 
-Follow [reference/hoist-core-tools.md](reference/hoist-core-tools.md). It detects the current
-state, asks before any Gradle-level change, and runs the install procedure from the
-`using-hoist-core-reference` skill.
+Follow Phase 3.5 in [reference/configure.md](reference/configure.md).
 
 ## Phase 4: Generate AGENTS.md
 
-Follow [reference/agent-docs.md](reference/agent-docs.md). Build the Hoist sections with the
-bundled `scripts/build-agents-md.mjs`, and put its output in place with the shell. Write
-`CLAUDE.md` only for Claude Code.
+Follow [reference/agent-docs.md](reference/agent-docs.md).
 
-## Phase 4.5: Declare the Plugin for the Team
+## Phase 5: Verify Surfaces
 
-Follow [reference/plugin-declarations.md](reference/plugin-declarations.md). It writes the entry
-for each confirmed harness, and leaves a developer's opt-out alone.
-
-## Phase 5: Verify Surfaces (CLI-first, MCP-opportunistic)
-
-Follow [reference/verify.md](reference/verify.md). A missing MCP connection is not an error: the
-CLI is the universal check.
+Follow Phase 5 in [reference/finish.md](reference/finish.md). A missing MCP connection is not an
+error: the CLI is the universal check.
 
 ## Phase 6: Report
 
-Follow [reference/report.md](reference/report.md). The report separates what works now from what
-activates in the next session, and names the one-time step each developer takes for each
-harness.
+Follow Phase 6 in [reference/finish.md](reference/finish.md).
