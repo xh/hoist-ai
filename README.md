@@ -106,7 +106,8 @@ To give all developers on a project the plugin, add this to the project's
       "source": {
         "source": "github",
         "repo": "xh/hoist-ai"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": {
@@ -115,16 +116,10 @@ To give all developers on a project the plugin, add this to the project's
 }
 ```
 
-This turns the plugin on for the project but does not install it. Each developer runs this
-once in the project:
-
-```
-claude plugin install xh@hoist-ai --scope project
-```
-
-The install covers every git worktree of the project. A worktree on a branch older than this
-commit has no `enabledPlugins` entry, so `/xh:setup-worktree` also enables the plugin in each
-worktree's `.claude/settings.local.json`.
+When a developer trusts the project folder, Claude Code adds the marketplace and loads the
+plugin. `autoUpdate` keeps it current: Claude Code does not update a third-party marketplace by
+default. A worktree on a branch older than this commit has no `enabledPlugins` entry, so
+`/xh:setup-worktree` also enables the plugin in each worktree's `.claude/settings.local.json`.
 
 A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file:
 
@@ -156,6 +151,21 @@ once, as in [Installation](#cursor), unless a team marketplace provides it:
   "plugins": {
     "xh@hoist-ai": { "enabled": true }
   }
+}
+```
+
+To stop prompts for the Hoist tools, commit a `.cursor/permissions.json`. A key in this file
+replaces the developer's own allowlist for that key, so list every entry the team needs:
+
+```json
+{
+  "mcpAllowlist": ["hoist-react:*", "hoist-core:*"],
+  "terminalAllowlist": [
+    "./bin/hoist-docs",
+    "./bin/hoist-ts",
+    "./bin/hoist-core-docs",
+    "./bin/hoist-core-symbols"
+  ]
 }
 ```
 
