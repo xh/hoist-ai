@@ -26,10 +26,9 @@ search for `**/hoist-upgrade/reference/detect.md`.
 
 ### Parse arguments
 
-Check the user's request for an optional target version (e.g. `81.0.0` or `v81`). Claude Code
-passes the skill arguments here: `$ARGUMENTS`. If present, normalize it: strip any leading `v`,
-store as the target version for Phase 2. If no version is given, the skill will prompt the
-developer to choose a target in Phase 2.
+Check the user's request for an optional target version (e.g. `81.0.0` or `v81`). If present,
+normalize it: strip any leading `v`, store as the target version for Phase 2. If no version is
+given, the skill will prompt the developer to choose a target in Phase 2.
 
 Then follow [reference/detect.md](reference/detect.md) for the rest of the detection: package
 manager, installed versions, canary mode, the working tree, hoist-core, and client plugins.

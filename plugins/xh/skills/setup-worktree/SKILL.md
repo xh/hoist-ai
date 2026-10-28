@@ -97,6 +97,12 @@ The flag writes the entry to the worktree's own `.claude/settings.local.json`, w
 plugin on whatever the branch. It leaves an entry that file already has alone, so a copied
 opt-out stays an opt-out.
 
+**Cursor and Codex.** They have no local settings file for the script to write. A worktree on a
+branch that predates the committed `.cursor/settings.json` or `.codex/config.toml` gets the plugin
+only from the developer's own install. Codex reads `.codex/config.toml` only in a trusted folder,
+so if the main checkout has a `.codex/` folder, tell the user to trust the new worktree when Codex
+asks.
+
 ### 5. Toolchain manager
 
 Detect against the main checkout. Both of these key trust to a directory path, so the new
@@ -143,8 +149,9 @@ Before starting, tell the user this creates a full dependency tree -- a Hoist ap
 ## Phase 2: Provision
 
 The bundled script is `templates/provision-worktree.sh` in this skill's folder. If you cannot
-find it there, search for `**/setup-worktree/templates/provision-worktree.sh`. Run it in place. Don't copy it into the app -- executing from the plugin means it upgrades
-with the plugin, and avoids the content-mangling risk that copying executable text carries.
+find it there, search for `**/setup-worktree/templates/provision-worktree.sh`. Run it in place.
+Don't copy it into the app -- executing from the plugin means it upgrades with the plugin, and
+avoids the content-mangling risk that copying executable text carries.
 
     bash "<script-path>" \
         --repo "<main-checkout>" \
@@ -180,8 +187,9 @@ them. If `test -f <repo>/bin/hoist-docs` succeeds, the dev uses that surface and
 needs it too.
 
 Install them with the **Install** procedure in the `using-hoist-react-reference` skill's
-`reference/cli-launchers.md`, which copies the canonical templates with `cp`.
-Don't copy the main checkout's copies: they may be stamped at an older
+`reference/cli-launchers.md`, which copies the canonical templates with `cp`. That skill's folder
+is `../using-hoist-react-reference/` from this skill's folder. If you cannot find it there, search
+for `**/using-hoist-react-reference/reference/cli-launchers.md`. Don't copy the main checkout's copies: they may be stamped at an older
 `# hoist-ai-launcher: hoist-react/v<N>` version, and copying propagates the drift.
 
 The hoist-core launchers (`bin/hoist-core-*`) need nothing here -- `installHoistCoreTools` in

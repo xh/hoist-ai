@@ -114,4 +114,4 @@ If neither the hoist-core MCP tools nor the CLI launchers (`./bin/hoist-core-*`)
 
 1. Default action: jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** above and offer to install them. This is almost always the right next step for an app project on a recent enough hoist-core.
 2. If the user declines or the project is on `hoistCoreVersion < 39.0` and they don't want to upgrade right now, do **not** improvise hoist-core APIs from training data - class names and member signatures evolve, and stale guesses produce real bugs. Tell the user the limitation explicitly.
-3. As a last resort only, if the project has hoist-core checked out as a sibling repo, you may use `Read` to consult its `docs/` or source. Surface this as a workaround, not a steady state.
+3. As a last resort only, if the project has hoist-core checked out as a sibling repo, you may read its `docs/` or source. Surface this as a workaround, not a steady state.

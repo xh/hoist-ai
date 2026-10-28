@@ -188,8 +188,9 @@ agents.
    Otherwise it is TC39. Judge the primer by its HoistModel code example. If the example uses
    the other style, regenerate the "Architecture Primer" and "Models and Decorators" sections.
    From the hoist-upgrade skill folder, build them with `../onboard-app/scripts/build-agents-md.mjs`
-   and follow the merge rules in `../onboard-app/reference/agent-docs.md`. Keep project-specific
-   text, and show the developer the diff before writing.
+   and follow the merge rules in `../onboard-app/reference/agent-docs.md`. If you cannot find the
+   onboard-app folder there, search for `**/onboard-app/scripts/build-agents-md.mjs`. Keep
+   project-specific text, and show the developer the diff before writing.
 <!-- legacy-api:end -->
 3. Commit any changes on their own:
    ```bash

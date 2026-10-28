@@ -121,6 +121,8 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
    | Claude Code | `.mcp.json` | `./bin/hoist-core-mcp` |
    | Cursor | `.cursor/mcp.json` | `${workspaceFolder}/bin/hoist-core-mcp` |
 
+   The entry for Claude Code. For Cursor, use the `command` from the table:
+
     ```json
     {
       "mcpServers": {
@@ -154,7 +156,7 @@ Triggered when the preflight's snippet-currency check finds a missing or outdate
 
 This is an **in-place edit of the user's source-controlled `build.gradle`**, not a regenerated file copy. Be careful:
 
-1. **Read the current canonical** the same way as a fresh install -- step 1 of the install procedure above (`hoist-core-read-doc` with `id: "mcp/README.md"`, or `./bin/hoist-core-docs read mcp/README.md`, or a sibling hoist-core checkout). Trust the README's snippet over the mirror in this SKILL.md if they diverge -- but they shouldn't if both repos have been kept in lockstep.
+1. **Read the current canonical** the same way as a fresh install -- step 1 of the install procedure above (`hoist-core-read-doc` with `id: "mcp/README.md"`, or `./bin/hoist-core-docs read mcp/README.md`, or a sibling hoist-core checkout). Trust the README's snippet over the mirror in this file if they diverge -- but they shouldn't if both repos have been kept in lockstep.
 
 2. **Locate the existing snippet boundaries** in `build.gradle`:
 
@@ -166,7 +168,7 @@ This is an **in-place edit of the user's source-controlled `build.gradle`**, not
 
 4. **Present the diff to the user and get explicit confirmation** before applying. Frame it as: "Your install snippet is at <old version or unstamped>; current canonical is <new version>. The diff below shows what would change. Proceed?"
 
-5. **Apply the refresh via Edit** -- replace the bounded block byte-for-byte with the canonical (merging in any preserved hand-edits). If the snippet was unstamped, add the markers as part of the refresh.
+5. **Apply the refresh** with a file edit -- replace the bounded block byte-for-byte with the canonical (merging in any preserved hand-edits). If the snippet was unstamped, add the markers as part of the refresh.
 
 6. **Re-run the install task** to regenerate launchers with the new logic:
 
