@@ -12,5 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check skills for removed hoist-react APIs
         run: python3 .github/scripts/check-removed-apis.py
-      - name: Check that manifest versions match
+      - name: Check skills, manifests, and marketplaces against their schemas
+        run: python3 .github/scripts/check-schemas.py
+      - name: Check that manifests and marketplaces agree
         run: python3 .github/scripts/sync-versions.py

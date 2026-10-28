@@ -4,8 +4,7 @@
   "version": "1.8.0",
   "description": "AI augmentation for Hoist application development",
   "author": {
-    "name": "Extremely Heavy Industries",
-    "url": "https://xh.io"
+    "name": "Extremely Heavy Industries"
   },
   "homepage": "https://xh.io",
   "repository": "https://github.com/xh/hoist-ai",
