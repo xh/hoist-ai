@@ -1,7 +1,7 @@
 # @xh/hoist-ai
 
-Claude Code plugin for AI-augmented Hoist application development, by
-[Extremely Heavy Industries](https://xh.io).
+Claude Code marketplace for AI-augmented Hoist application development, by
+[Extremely Heavy Industries](https://xh.io). It ships one plugin, `xh`.
 
 ## What It Provides
 
