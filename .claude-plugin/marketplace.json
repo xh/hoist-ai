@@ -3,6 +3,9 @@
   "owner": {
     "name": "Extremely Heavy Industries"
   },
+  "metadata": {
+    "description": "Plugins for AI-augmented Hoist application development"
+  },
   "plugins": [
     {
       "name": "xh",

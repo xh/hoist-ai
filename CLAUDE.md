@@ -51,7 +51,8 @@ plugins/<plugin>/                 One plugin per directory
   changes and let the diff show the rest. CHANGELOG entries are the exception: hard-wrap them at
   100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
-- The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
+- The onboarding skill configures the hoist-react MCP server in each consuming project's
+  `.mcp.json`.
 - Bump the plugin's `plugin.json` version and add an entry to its `CHANGELOG.md` only when a
   change ships new behavior to consumers, such as edits to skills, templates, or scripts.
   Changes to docs, repo-only files, or files the plugin never loads do not need a release.
