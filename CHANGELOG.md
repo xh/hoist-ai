@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9.0 - 2026-11-14
+
+* `onboard-app`: declares the plugin in the app's committed `.claude/settings.json`, with the
+  `hoist-ai` marketplace set to auto-update. Teammates get the plugin, and installs stay current,
+  because Claude Code does not update a third-party marketplace by default.
+* `onboard-app`: turns on auto-update in an existing `hoist-ai` entry, and leaves a `false`
+  opt-out or a custom marketplace source alone.
+
 ## 1.8.0 - 2026-11-14
 
 * `setup-worktree`: the provisioning script now detects the base ref, destination, locals,

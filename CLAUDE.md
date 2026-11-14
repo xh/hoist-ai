@@ -19,16 +19,16 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
 ## Development Workflow
 
 1. Make changes to skills, templates, or configuration files.
-2. Test locally: install from local path in a Hoist project.
-   - In Claude Code: `/plugin install /path/to/hoist-ai --scope project`
-   - Verify skills run correctly and MCP server starts.
+2. Test locally in a Hoist project: `claude --plugin-dir /path/to/hoist-ai` loads this checkout for
+   one session. Verify skills run correctly and MCP server starts.
 3. Run `python3 .github/scripts/check-removed-apis.py`. CI runs it too. It fails when skill text
    teaches a hoist-react API that a major removed, outside text marked as version-gated.
 4. If you change `skills/setup-worktree/scripts/provision-worktree.sh`, run
    `.github/scripts/test-provision-worktree.sh /bin/bash`. It tests on macOS system bash 3.2.
 5. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
    before pushing.
-6. Push to `main` - marketplace consumers pick up updates automatically.
+6. Push to `main`. Consumers with auto-update on get the release in the background after their
+   next startup, and it loads on the launch after that. Without a version bump, nobody gets it.
 
 ## Skill Authoring Conventions
 

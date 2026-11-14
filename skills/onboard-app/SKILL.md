@@ -154,6 +154,7 @@ Then list the planned actions:
 ```
 ### Planned Actions
 - [Configure | Verify] `.mcp.json` with hoist-react MCP server (if @xh/hoist v82+)
+- [Add | Verify] the `xh@hoist-ai` plugin declaration in `.claude/settings.json`, with auto-update on
 - [Create | Update] CLAUDE.md with Hoist conventions (~[N] lines)
 - [Include client plugin documentation (if plugins detected)]
 - Detect whether hoist-core MCP+CLI tools are installed; if `hoistCoreVersion >= 39.0` and
@@ -246,6 +247,47 @@ permits MCP. In MCP-blocked environments, the parallel CLI surface (`npx hoist-d
 Note: the MCP server will not be available until the next Claude Code restart after this file is
 written. Phase 5 will attempt to verify connectivity, but if this is a fresh configuration it
 may not be running yet.
+
+## Phase 3.2: Declare the Plugin
+
+The plugin runs onboarding, so the current developer has it. The other developers on the project
+get it from a declaration in the committed `.claude/settings.json`. Without one, a teammate who
+clones the repo never sees the plugin, and a developer who installed it by hand may run an old
+version.
+
+The declaration has two parts:
+
+- `extraKnownMarketplaces` registers the `hoist-ai` marketplace. `autoUpdate: true` keeps the
+  plugin current, because Claude Code does not update a third-party marketplace by default.
+- `enabledPlugins` turns the plugin on for the project.
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "hoist-ai": {
+      "source": { "source": "github", "repo": "xh/hoist-ai" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "xh@hoist-ai": true
+  }
+}
+```
+
+1. If `.claude/settings.json` does not exist, create it with the content above.
+2. If it exists, merge into it. Keep every other key and entry.
+3. If the file already sets `xh@hoist-ai` in `enabledPlugins`, to `true` or `false`, leave the
+   value alone. `false` is a team's opt-out.
+4. If a `hoist-ai` marketplace entry already exists with this source and lacks `autoUpdate` or
+   sets it to `false`, set it to `true`.
+5. If a `hoist-ai` entry exists with a different source, such as a branch or a local folder,
+   leave it alone and name it in the Phase 6 report.
+6. Never write this declaration to `.claude/settings.local.json`. That file is per developer, and
+   the point of this phase is a declaration the whole team gets.
+
+Tell the developer to commit `.claude/settings.json`. Branches cut before that commit lack the
+declaration. `/xh:setup-worktree` covers that case for worktrees.
 
 ## Phase 3.5: Install hoist-core MCP Server and CLI Tools (optional)
 
@@ -431,6 +473,7 @@ calls out the CLI fallback for MCP-blocked environments:
 ### Configuration
 - **CLAUDE.md:** [Created | Updated (added N sections) | Already up to date]
 - **`.mcp.json`:** [Created | Updated (added entries: <list>) | Already configured]
+- **Plugin declaration:** [Added to `.claude/settings.json` -- commit it | Turned on auto-update | Already present | Left alone: `hoist-ai` points at <source>]
 - **Client plugins:** [N plugin(s) documented | None detected]
 
 ### hoist-react

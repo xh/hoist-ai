@@ -33,9 +33,28 @@ In a Claude Code session:
 /plugin install xh@hoist-ai
 ```
 
-The plugin is now active for all your projects.
+This installs the plugin at user scope: one copy for every project and worktree on this machine.
+Install it once per machine. Do not also install it at project or local scope. Separate installs
+per project are harder to keep current, and projects can drift to different versions.
 
-### 3. Run Onboarding
+### 3. Turn On Auto-Update
+
+Claude Code does not update a third-party marketplace by default. In a session, run `/plugin`,
+open the Marketplaces tab, select `hoist-ai`, and select "Enable auto-update". Projects set up
+with `/xh:onboard-app` also turn it on in their committed settings.
+
+Updates run in the background shortly after startup. A running session keeps the version it
+loaded, so run `/reload-plugins` or restart to use the new one. To update by hand:
+
+```sh
+claude plugin marketplace update hoist-ai
+claude plugin update xh@hoist-ai
+```
+
+Claude Code clones the marketplace over SSH first. Without a GitHub SSH key, for example on a
+fresh Linux workstation, set `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`.
+
+### 4. Run Onboarding
 
 In any Hoist project directory:
 
@@ -46,8 +65,9 @@ In any Hoist project directory:
 This will:
 1. Detect your project and its installed Hoist versions.
 2. Show what it found and what it plans to configure.
-3. Generate or merge a CLAUDE.md with Hoist conventions (after your confirmation).
-4. Verify MCP server connectivity.
+3. Declare the plugin in `.claude/settings.json`, with auto-update on, so teammates get it.
+4. Generate or merge a CLAUDE.md with Hoist conventions (after your confirmation).
+5. Verify MCP server connectivity.
 
 ## Available Skills
 
@@ -90,8 +110,8 @@ patterns to the repo root.
 
 ## Project-Level Setup
 
-To give all developers on a project the plugin, add this to the project's
-`.claude/settings.json`:
+`/xh:onboard-app` adds this block to the project's committed `.claude/settings.json`. To set up a
+project by hand, add it yourself:
 
 ```json
 {
@@ -100,7 +120,8 @@ To give all developers on a project the plugin, add this to the project's
       "source": {
         "source": "github",
         "repo": "xh/hoist-ai"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": {
@@ -109,16 +130,13 @@ To give all developers on a project the plugin, add this to the project's
 }
 ```
 
-This turns the plugin on for the project but does not install it. Each developer runs this
-once in the project:
+The block registers the marketplace with auto-update on, and turns the plugin on for the
+project. Claude Code reads it only after a developer accepts the folder's trust dialog. It does
+not install the plugin: each developer installs it once per machine, as in
+[Installation](#installation).
 
-```
-claude plugin install xh@hoist-ai --scope project
-```
-
-The install covers every git worktree of the project. A worktree on a branch older than this
-commit has no `enabledPlugins` entry, so `/xh:setup-worktree` also enables the plugin in each
-worktree's `.claude/settings.local.json`.
+A branch cut before this commit has no `enabledPlugins` entry, so `/xh:setup-worktree` also
+enables the plugin in each new worktree's `.claude/settings.local.json`.
 
 A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file:
 
