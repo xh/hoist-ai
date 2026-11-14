@@ -60,6 +60,34 @@ This will:
 | hoist-react reference | `/xh:using-hoist-react-reference` | Routes Hoist React questions to the docs and TypeScript API tools. Loads itself when you write Hoist code |
 | hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs the tools |
 
+### Worktrees without an agent
+
+The worktree skill runs a script that needs no agent. Editor integrations, git hooks, and plain
+shells can call it directly:
+
+```sh
+provision-worktree.sh --repo <abs path> --branch <name> [--base <ref> | --existing-branch]
+```
+
+The script detects the base ref, the destination, the locals, the toolchain, and the package
+manager. On success, stdout holds only the worktree path. Progress goes to stderr. Exit code 3
+means the request needs a decision, such as a new branch name that already exists. Run it with
+`--help` for the full contract.
+
+Call it from Claude Code's clone of this marketplace, which tracks `main`:
+`~/.claude/plugins/marketplaces/hoist-ai/skills/setup-worktree/scripts/provision-worktree.sh`.
+That layout belongs to Claude Code and can change. As a fallback, use the highest version under
+`~/.claude/plugins/cache/hoist-ai/xh/`. A symlink to the script also works, for example in
+`~/.local/bin`.
+
+The script uses the caller's `PATH` and `JAVA_HOME`. A hook or editor process often skips the
+login shell, so set both before you call the script. Do not capture stdout through an
+interactive shell such as `zsh -ilc`: terminal integrations can write escape codes to stdout.
+
+Outside a Hoist repo, the script still copies locals and installs dependencies. It skips the
+Hoist steps. To copy extra gitignored files, add a `.worktreeinclude` file with gitignore
+patterns to the repo root.
+
 ## Project-Level Setup
 
 To give all developers on a project the plugin, add this to the project's

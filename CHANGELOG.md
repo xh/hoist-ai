@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.0 - 2026-11-14
+
+* `setup-worktree`: the provisioning script now detects the base ref, destination, locals,
+  toolchain, package manager, Gradle task, and hoist-react launchers itself. Editor hooks and
+  plain shells can create a worktree without an agent. The skill only reads the request.
+* `setup-worktree`: the script prints only the worktree path on stdout, and exits 3 when the
+  request needs a decision, such as a new branch that already exists. `--dry-run` previews the
+  plan.
+* `setup-worktree`: copies gitignored files that match the repo's `.worktreeinclude`. The
+  `## Worktree provisioning` section in CLAUDE.md is no longer read.
+* `setup-worktree`: in a non-Hoist repo, copies locals and installs dependencies, but skips the
+  plugin, Gradle, and launcher steps.
+
 ## 1.7.0 - 2026-10-06
 
 * `onboard-app`: the CLAUDE.md primer matches the app's decorator style. TC39 apps (`@xh/hoist`

@@ -24,9 +24,11 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
    - Verify skills run correctly and MCP server starts.
 3. Run `python3 .github/scripts/check-removed-apis.py`. CI runs it too. It fails when skill text
    teaches a hoist-react API that a major removed, outside text marked as version-gated.
-4. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
+4. If you change `skills/setup-worktree/scripts/provision-worktree.sh`, run
+   `.github/scripts/test-provision-worktree.sh /bin/bash`. It tests on macOS system bash 3.2.
+5. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
    before pushing.
-5. Push to `main` - marketplace consumers pick up updates automatically.
+6. Push to `main` - marketplace consumers pick up updates automatically.
 
 ## Skill Authoring Conventions
 
