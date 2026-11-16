@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.0 - 2026-11-20
+
+* `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`
+  key, as hoist-react v91 does, and names `item` / `items` as legacy aliases.
+* `hoist-upgrade`: runs codemods that an upgrade guide ships, and records spots they could not
+  convert as judgment calls. Agent docs are also checked for the patterns a codemod replaced.
+
 ## 1.10.0 - 2026-11-19
 
 * Supports Hoist Docs (`@xh/hoist-docs`), the one MCP server for hoist-react and hoist-core that

@@ -8,7 +8,7 @@ export const SamplePanel = hoistCmp.factory({
     render({model}) {
         return panel({
             title: 'Sample',
-            items: [grid({model: model.gridModel})]
+            children: [grid({model: model.gridModel})]
         });
     }
 });
