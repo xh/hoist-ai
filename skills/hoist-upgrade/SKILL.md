@@ -450,9 +450,10 @@ After each hop, display a brief status showing progress through the sequence:
 The app's agent docs can still teach APIs that the upgrade removed. `CLAUDE.md` is the main
 one. Also check `AGENTS.md`, `.claude/rules/`, and other docs written for agents.
 
-1. Re-run the "find affected files" greps from each hop's guide against these docs. Codemods
-   change source files only, so also search these docs for the old patterns that each codemod
-   replaced. Fix each hit, or record it as a judgment call if the text is project-specific.
+1. Re-run the "find affected files" greps from each hop's guide against these docs. Some
+   codemods change source files only, so also search these docs for the old patterns that each
+   codemod replaced. Review any doc text that a codemod reported but did not change. Fix each
+   hit, or record it as a judgment call if the text is project-specific.
 <!-- legacy-api:start -->
 2. If `CLAUDE.md` holds the Hoist primer from `/xh:onboard-app` (an "Architecture Primer"
    heading), check that it matches the app's decorator style. The style is legacy if
