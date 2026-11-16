@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.1 - 2026-11-16
+
+* `setup-worktree`: a worktree for an existing local branch now fast-forwards that branch to its
+  remote before installing dependencies. It used to install on the stale local copy. A diverged
+  branch is left alone with a warning.
+
 ## 1.9.0 - 2026-11-14
 
 * `onboard-app`: declares the plugin in the app's committed `.claude/settings.json`, with the

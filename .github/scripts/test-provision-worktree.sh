@@ -235,5 +235,48 @@ echo EDITED > "$WT/.env"
 run --repo "$T/app" --branch feature/foo
 [[ "$(cat "$WT/.env")" == EDITED ]] && grep -q 'kept   .env' <<<"$ERR" && ok "R10 re-run keeps edited local" || bad "R10: $(cat "$WT/.env")"
 
+# S. Existing local branch behind its remote gets fast-forwarded before install.
+# Remote commits on each branch come from the seed clone; the app clone holds stale copies.
+for b in s-behind s-div s-ahead s-noup s-dirty; do
+    ( cd "$T/seed"; git checkout -q -b "$b" main; git push -q "$T/origin.git" "$b" )
+done
+git -C "$T/app" fetch -q origin
+for b in s-behind s-div s-ahead s-dirty; do git -C "$T/app" branch -q --track "$b" "origin/$b"; done
+git -C "$T/app" branch -q --no-track s-noup origin/s-noup
+( cd "$T/seed"
+  # s-behind moves to a yarn lockfile, so detection must read the remote commit.
+  git checkout -q s-behind; git rm -q client-app/pnpm-lock.yaml; echo y > client-app/yarn.lock
+  git add -A; git commit -qm yarn; git push -q "$T/origin.git" s-behind
+  for b in s-div s-noup s-dirty; do git checkout -q "$b"; echo r > r.txt; git add -A; git commit -qm r; git push -q "$T/origin.git" "$b"; done
+  git checkout -q develop )
+( cd "$T/app"; git checkout -q s-div; git commit -q --allow-empty -m local; git checkout -q s-ahead; git commit -q --allow-empty -m local; git checkout -q develop )
+
+run --repo "$T/app" --branch s-behind --existing-branch --skip gradle --dry-run
+grep -q 'sync:       1 behind origin/s-behind, fast-forwarding' <<<"$ERR" && grep -q 'deps:       client-app:yarn' <<<"$ERR" \
+  && [[ "$(git -C "$T/app" rev-parse s-behind)" != "$(git -C "$T/app" rev-parse origin/s-behind)" ]] \
+  && ok "S1 dry-run plans fast-forward, reads deps from remote, moves nothing" || bad "S1: $ERR"
+run --repo "$T/app" --branch s-behind --existing-branch --skip gradle
+SW="$T/app-worktrees/s-behind"
+[[ $RC -eq 0 && "$(git -C "$SW" rev-parse HEAD)" == "$(git -C "$T/app" rev-parse origin/s-behind)" ]] \
+  && grep -q 'deps: yarn install' <<<"$ERR" && ok "S2 behind branch fast-forwarded before install" || bad "S2 rc=$RC $ERR"
+
+run --repo "$T/app" --branch s-div --existing-branch --skip gradle
+[[ $RC -eq 0 && "$(git -C "$T/app-worktrees/s-div" log -1 --format=%s)" == local ]] && grep -q 'WARNING: branch diverged' <<<"$ERR" \
+  && ok "S3 diverged branch left alone with warning" || bad "S3 rc=$RC $ERR"
+
+run --repo "$T/app" --branch s-ahead --existing-branch --skip gradle --dry-run
+grep -q 'sync:       1 ahead of origin/s-ahead' <<<"$ERR" && ok "S4 ahead branch reported" || bad "S4: $ERR"
+
+run --repo "$T/app" --branch s-noup --existing-branch --skip gradle
+[[ $RC -eq 0 && "$(git -C "$T/app-worktrees/s-noup" rev-parse HEAD)" == "$(git -C "$T/app" rev-parse origin/s-noup)" ]] \
+  && grep -q 'no upstream configured' <<<"$ERR" && ok "S5 no upstream compares with origin/<branch>" || bad "S5 rc=$RC $ERR"
+
+# S6. Adopted worktree, behind and dirty: not updated.
+git -C "$T/app" worktree add -q "$T/app-worktrees/s-dirty" s-dirty
+echo edit >> "$T/app-worktrees/s-dirty/build.gradle"
+run --repo "$T/app" --branch s-dirty --existing-branch --skip gradle
+[[ $RC -eq 0 ]] && grep -q 'adopting' <<<"$ERR" && grep -q 'with uncommitted changes, not updated' <<<"$ERR" \
+  && grep -q edit "$T/app-worktrees/s-dirty/build.gradle" && ok "S6 dirty adopted worktree left alone" || bad "S6 rc=$RC $ERR"
+
 echo "== $PASS passed, $FAIL failed ($BASH_BIN)"
 [[ $FAIL -eq 0 ]]

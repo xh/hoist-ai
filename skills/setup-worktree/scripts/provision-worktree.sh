@@ -59,9 +59,12 @@
 #                          `refs/heads/foo` to force the local branch. Default: `origin/develop`,
 #                          else the remote default branch (`origin/HEAD`, refreshed first).
 #                          Not valid with --existing-branch.
-#   --existing-branch      Check out a branch that already exists. A local branch is checked
-#                          out as-is. A branch only on origin gets a local branch that tracks
-#                          it. Reports how far the branch is behind or ahead of its upstream.
+#   --existing-branch      Check out a branch that already exists. A branch only on origin
+#                          gets a local branch that tracks it. A local branch that is only
+#                          behind its upstream (or origin/<branch> when it has none) is
+#                          fast-forwarded before anything installs. A diverged branch, or an
+#                          adopted worktree with uncommitted changes, is left as-is with a
+#                          warning.
 #
 # Location options:
 #   --repo <path>          Absolute path to the repo. Default: the git toplevel of the current
@@ -155,6 +158,9 @@ BASE_DATE=""
 BASE_NOTE=""
 ADOPT=0        # 1 when a worktree already exists at --dest
 UPSTREAM=""
+SYNC_REF=""    # existing-branch mode: ref to fast-forward the branch to after checkout
+SYNC_NOTE=""   # existing-branch mode: how the branch compares to its remote
+SYNC_WARNING="" # existing-branch mode: behind, but cannot be fast-forwarded
 LAUNCHERS=0
 NOTES=()
 
@@ -427,12 +433,47 @@ check_branch() {
     fi
 }
 
+# Existing-branch mode: compare a local branch with its remote. A new worktree means work is
+# about to start, so a branch that is only behind gets fast-forwarded. TREF moves to the
+# remote commit, so the facts detected below (lockfile, Gradle task) match what gets
+# installed. Fast-forward only, so this never loses commits or leaves a conflict.
+plan_sync() {
+    local head="$1" up counts behind ahead
+    up="$(git -C "$REPO" rev-parse --abbrev-ref --symbolic-full-name "refs/heads/$BRANCH@{upstream}" 2>/dev/null || true)"
+    if [[ -z "$up" ]] && ref_exists "refs/remotes/origin/$BRANCH"; then
+        # No upstream set, for example pushed without -u. The same-named origin branch is the
+        # obvious counterpart, and --ff-only cannot lose commits if it proves unrelated.
+        up="origin/$BRANCH"
+        NOTES+=("'$BRANCH' has no upstream configured, so it is compared with $up")
+    fi
+    if [[ -z "$up" ]]; then
+        SYNC_NOTE="no upstream and no origin/$BRANCH, not updated"
+        return 0
+    fi
+    counts="$(git -C "$REPO" rev-list --left-right --count "$up...$head" 2>/dev/null || true)"
+    [[ -n "$counts" ]] || { SYNC_NOTE="cannot compare with $up, not updated"; return 0; }
+    read -r behind ahead <<<"$counts"
+    if [[ "$behind" -eq 0 && "$ahead" -eq 0 ]]; then
+        SYNC_NOTE="level with $up"
+    elif [[ "$behind" -eq 0 ]]; then
+        SYNC_NOTE="$ahead ahead of $up (unpushed commits)"
+    elif [[ "$ahead" -gt 0 ]]; then
+        SYNC_WARNING="diverged from $up ($behind behind / $ahead ahead), not updated. Rebase or merge by hand."
+    elif [[ $ADOPT -eq 1 && -n "$(git -C "$DEST" status --porcelain 2>/dev/null)" ]]; then
+        SYNC_WARNING="$behind behind $up with uncommitted changes, not updated. Commit or stash, then pull."
+    else
+        SYNC_REF="$up"
+        TREF="$up"
+        SYNC_NOTE="$behind behind $up, fast-forwarding before install"
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # Main. Runs with stdout redirected to stderr, so only the final path reaches stdout.
 # ---------------------------------------------------------------------------
 
 main() {
-    local self tc spec id rel step dir pm task result counts src dst tool templates
+    local self tc spec id rel step dir pm task result src dst tool templates
 
     self="$(self_dir)"
 
@@ -508,13 +549,20 @@ main() {
         [[ "$current" == "$BRANCH" ]] \
             || decide "the worktree at $DEST is on '${current:-a detached HEAD}', not '$BRANCH'. Pass a different --dest."
         TREF="$(git -C "$DEST" rev-parse HEAD)"
+        [[ $EXISTING_BRANCH -eq 0 ]] || plan_sync "$TREF"
     elif [[ -e "$DEST" ]]; then
         decide "'$DEST' exists but is not a worktree of $REPO. Pass a different --dest."
     else
         fetch_remote origin
         check_branch
         if [[ $EXISTING_BRANCH -eq 1 ]]; then
-            if ref_exists "refs/heads/$BRANCH"; then TREF="refs/heads/$BRANCH"; else TREF="refs/remotes/origin/$BRANCH"; fi
+            if ref_exists "refs/heads/$BRANCH"; then
+                TREF="refs/heads/$BRANCH"
+                plan_sync "$TREF"
+            else
+                TREF="refs/remotes/origin/$BRANCH"
+                SYNC_NOTE="level with origin/$BRANCH (new local branch tracking it)"
+            fi
         else
             resolve_base
             TREF="$BASE_REF"
@@ -596,6 +644,8 @@ main() {
     else
         echo "    branch:     $BRANCH (new, off $BASE_REF @ $BASE_SHA, committed $BASE_DATE)"
     fi
+    [[ -z "$SYNC_NOTE" ]] || echo "    sync:       $SYNC_NOTE"
+    [[ -z "$SYNC_WARNING" ]] || echo "    WARNING: branch $SYNC_WARNING" >&2
     echo "    locals:     ${LOCALS[*]:-none}"
     echo "    plugins:    ${PLUGINS[*]:-none}"
     echo "    toolchain:  ${TOOLCHAINS[*]:-none}"
@@ -643,24 +693,16 @@ main() {
     fi
     DEST="$(cd "$DEST" && pwd -P)"
 
-    # An existing branch can be behind its remote. Report the divergence, as create mode
-    # reports the base date.
+    # Bring a stale existing branch up to date before anything installs. plan_sync decided
+    # this is a clean fast-forward and pointed TREF at the same commit.
+    if [[ -n "$SYNC_REF" ]]; then
+        echo "    fast-forwarding '$BRANCH' to $SYNC_REF..."
+        git -C "$DEST" merge --ff-only --quiet "$SYNC_REF" \
+            || die "fast-forward of '$BRANCH' to $SYNC_REF failed. Resolve it in $DEST and re-run."
+        echo "    now at $(git -C "$DEST" rev-parse --short HEAD), level with $SYNC_REF"
+    fi
     if [[ $EXISTING_BRANCH -eq 1 ]]; then
         UPSTREAM="$(git -C "$DEST" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
-        if [[ -n "$UPSTREAM" ]]; then
-            counts="$(git -C "$DEST" rev-list --left-right --count "$UPSTREAM...HEAD" 2>/dev/null || true)"
-            if [[ -n "$counts" ]]; then
-                # shellcheck disable=SC2086 # split "behind ahead" into $1 $2
-                set -- $counts
-                if [[ "${1:-0}" == 0 && "${2:-0}" == 0 ]]; then
-                    echo "    branch is level with $UPSTREAM"
-                else
-                    echo "    branch is ${1:-0} behind / ${2:-0} ahead of $UPSTREAM"
-                fi
-            fi
-        else
-            echo "    note: '$BRANCH' has no upstream configured"
-        fi
     fi
 
     # --- Step 2: copy gitignored locals -----------------------------------
@@ -808,6 +850,7 @@ main() {
     echo "==> done: $DEST"
     if [[ $EXISTING_BRANCH -eq 1 ]]; then
         echo "  branch: $BRANCH (existing${UPSTREAM:+, tracking $UPSTREAM})"
+        [[ -z "$SYNC_WARNING" ]] || echo "  WARNING: branch $SYNC_WARNING" >&2
     elif [[ $ADOPT -eq 0 ]]; then
         echo "  branch: $BRANCH (off $BASE_REF @ $BASE_SHA, --no-track)"
     fi

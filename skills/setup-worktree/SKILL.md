@@ -28,7 +28,8 @@ the script as an absolute path. The script resolves a linked worktree to its mai
   worktree.
 - If the user gives only a base, ask what to call the new branch. Do not invent a name.
 - If the user wants to work on a branch that already exists, pass `--existing-branch`. Typical
-  cases: resume a ticket, pick up a pushed branch, review a colleague's work.
+  cases: resume a ticket, pick up a pushed branch, review a colleague's work. The script
+  fast-forwards a stale local branch to its remote before it installs anything.
 - Otherwise the branch is new. Pass `--base <ref>` only when the user named a base. The script
   resolves the default: `origin/develop`, else the remote default branch.
 
@@ -64,7 +65,9 @@ Run the same command without `--dry-run`. The install and Gradle steps take minu
 stdout holds only the worktree path.
 
 Report the path, the branch, and the base. Also report every WARNING line, such as a node or
-java version mismatch, or a plugin entry the script could not write.
+java version mismatch, or a plugin entry the script could not write. A branch WARNING means the
+script did not update an existing branch that is behind its remote. The branch diverged, or the
+worktree has uncommitted changes. Tell the user the install ran on the older code.
 
 ## Overrides
 
