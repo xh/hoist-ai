@@ -3,7 +3,9 @@
 ## 1.11.0 - 2026-11-20
 
 * `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`
-  key, as hoist-react v91 does, and names `item` / `items` as legacy aliases.
+  key, as hoist-react v91 does, and names `item` / `items` as legacy aliases. The JSX
+  counter-example moves to its own `tsx` block, so a codemod that edits doc code blocks can
+  parse the primer.
 * `hoist-upgrade`: runs codemods that an upgrade guide ships, and records spots they could not
   convert as judgment calls. Agent docs are also checked for the patterns a codemod replaced.
 

@@ -22,7 +22,8 @@ A Hoist application has three artifact types:
 ```typescript
 // ✅ Hoist style
 panel({title: 'Users', children: [grid(), button({text: 'Refresh'})]})
-
+```
+```tsx
 // ❌ Not used in Hoist
 <Panel title="Users"><Grid /><Button text="Refresh" /></Panel>
 ```
