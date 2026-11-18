@@ -8,7 +8,7 @@
       "files": ["evals/files/SampleService.groovy"],
       "expectations": [
         "The skill `using-hoist-core-reference` was invoked",
-        "The agent called either `mcp__hoist-core__hoist-core-search-symbols` or `mcp__hoist-core__hoist-core-get-members` (or the CLI equivalent if available) to look up Cache",
+        "The agent called `mcp__hoist-docs__hoist-search-symbols` or `mcp__hoist-docs__hoist-get-members` with `library: \"core\"`, or before hoist-core v45 `mcp__hoist-core__hoist-core-search-symbols` or `mcp__hoist-core__hoist-core-get-members` (or the CLI equivalent if available), to look up Cache",
         "The proposed code uses Hoist's `Cache` (or `CachedValue`/`Timer`) class, not a hand-rolled map"
       ]
     },
@@ -136,6 +136,18 @@
       "files": [],
       "expectations": [
         "The skill `using-hoist-core-reference` was NOT invoked"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "We just bumped hoistCoreVersion to 45.0 and now ./gradlew installHoistCoreTools fails to resolve io.xh:hoist-core-mcp. Fix the hoist-core MCP and CLI tools in this app.",
+      "expected_output": "The agent invokes the using-hoist-core-reference skill, explains that hoist-core v45 publishes no bundled tools and that Hoist Docs serves hoist-core, and proposes removing the bundled tools rather than repairing them.",
+      "files": [],
+      "expectations": [
+        "The skill `using-hoist-core-reference` was invoked",
+        "The agent explained that hoist-core v45 no longer publishes `io.xh:hoist-core-mcp`, and that Hoist Docs (`@xh/hoist-docs`, `mcp__hoist-docs__*` with `library: \"core\"`) serves hoist-core instead",
+        "The agent proposed removing the install snippet from `build.gradle`, the `bin/hoist-core-*` launchers and the `hoist-core` entry in `.mcp.json`, and asked before editing `build.gradle`",
+        "The agent did NOT re-run `./gradlew installHoistCoreTools` or pin `io.xh:hoist-core-mcp` to an older version"
       ]
     }
   ]

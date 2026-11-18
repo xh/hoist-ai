@@ -5,8 +5,10 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 ## What It Provides
 
-- **MCP Servers** - onboarding adds the hoist-react and hoist-core MCP servers to your project's
-  `.mcp.json`. They give Claude access to Hoist docs and API lookups.
+- **MCP Servers** - onboarding adds the Hoist reference MCP server to your project's `.mcp.json`.
+  It gives Claude access to Hoist docs and API lookups. From `@xh/hoist` v91 that is
+  [Hoist Docs](https://github.com/xh/hoist-docs) (`@xh/hoist-docs`), one server for hoist-react
+  and hoist-core. Earlier versions use the servers bundled with hoist-react and hoist-core.
 - **Skills** - project onboarding, version upgrades, worktree setup, a house writing style, and
   Hoist API reference for AI agents (see [Available Skills](#available-skills) below).
 - **Tool Pre-Approval** - each skill pre-approves the MCP tools it calls while it runs. To
@@ -15,7 +17,9 @@ Claude Code plugin for AI-augmented Hoist application development, by
 ## Requirements
 
 - [Claude Code](https://claude.com/code) CLI installed and authenticated.
-- `@xh/hoist` installed in your project's `node_modules` (provides the MCP server).
+- `@xh/hoist` installed in your project's `node_modules`. From v91, onboarding adds the
+  `@xh/hoist-docs` dev dependency, which provides the MCP server. Before v91, `@xh/hoist`
+  provides it.
 
 ## Installation
 
@@ -67,7 +71,8 @@ This will:
 2. Show what it found and what it plans to configure.
 3. Declare the plugin in `.claude/settings.json`, with auto-update on, so teammates get it.
 4. Generate or merge a CLAUDE.md with Hoist conventions (after your confirmation).
-5. Verify MCP server connectivity.
+5. Verify the reference tools: on v91 and later, by starting Hoist Docs once and listing the
+   versions it serves.
 
 ## Available Skills
 
@@ -78,7 +83,7 @@ This will:
 | Worktree | `/xh:setup-worktree` | Create a runnable git worktree for a Hoist app |
 | Clear Writing | `/xh:clear-writing` | House style for CHANGELOG entries, PR descriptions, docs, and comments |
 | hoist-react reference | `/xh:using-hoist-react-reference` | Routes Hoist React questions to the docs and TypeScript API tools. Loads itself when you write Hoist code |
-| hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs the tools |
+| hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs or removes the bundled tools of hoist-core v39 to v44 |
 
 ### Worktrees without an agent
 
@@ -138,7 +143,19 @@ not install the plugin: each developer installs it once per machine, as in
 A branch cut before this commit has no `enabledPlugins` entry, so `/xh:setup-worktree` also
 enables the plugin in each new worktree's `.claude/settings.local.json`.
 
-A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file:
+A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file. From
+`@xh/hoist` v91, with Hoist Docs:
+
+```json
+{
+  "enabledMcpjsonServers": ["hoist-docs"],
+  "permissions": {
+    "allow": ["mcp__hoist-docs__*"]
+  }
+}
+```
+
+Before v91, with the tools bundled with hoist-react and hoist-core:
 
 ```json
 {
@@ -160,16 +177,19 @@ A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the s
 
 ## MCP Tools
 
-When the plugin is active in a project with `@xh/hoist` installed, these MCP tools are
-available:
+Once onboarding has configured a project, these MCP tools are available. With Hoist Docs
+(`@xh/hoist` v91 and later) they are `mcp__hoist-docs__*`, and serve hoist-react, hoist-core and
+Hoist Chat Kit: pass `library: "react"`, `"core"` or `"chat-kit"` to scope a call. Before v91,
+hoist-react's are `mcp__hoist-react__*`, and hoist-core's (v39 to v44) are
+`mcp__hoist-core__hoist-core-*`.
 
 | Tool | Description |
 |------|-------------|
-| `hoist-ping` | Verify MCP server connectivity |
+| `hoist-ping` | Verify MCP server connectivity, and list the Hoist versions served |
 | `hoist-search-docs` | Search framework documentation by keyword |
 | `hoist-list-docs` | Browse available documentation by category |
 | `hoist-read-doc` | Read one document by ID (`@xh/hoist` v86+) |
-| `hoist-search-symbols` | Find TypeScript classes, interfaces, and types |
+| `hoist-search-symbols` | Find classes, interfaces, types and their members |
 | `hoist-get-symbol` | Get detailed type signatures and JSDoc |
 | `hoist-get-members` | List members of a class or interface |
 
