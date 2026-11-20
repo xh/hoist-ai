@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.10.0 - unreleased
+## 1.10.0 - 2026-11-19
 
 * Supports Hoist Docs (`@xh/hoist-docs`), the one MCP server for hoist-react and hoist-core that
   replaces their bundled tools from `@xh/hoist` v91 and hoist-core v45. Apps on earlier versions
