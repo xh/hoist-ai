@@ -249,8 +249,9 @@ Follow 3A in Hoist Docs mode, 3B in bundled mode (Phase 1, step 9).
    - yarn: `yarn add -D @xh/hoist-docs`
    - npm: `npm install -D @xh/hoist-docs`
 
-   If the app tracks Hoist SNAPSHOTs (canary mode, Phase 1), use the `next` dist-tag instead:
-   `@xh/hoist-docs@next`. If the install fails because a registry proxy does not carry
+   Use the release even when the app tracks Hoist SNAPSHOTs (canary mode, Phase 1): each Hoist
+   build ships its own docs index, and `@xh/hoist-docs`'s `next` dist-tag is its own unreleased
+   next major version. If the install fails because a registry proxy does not carry
    `@xh/hoist-docs`, stop and tell the developer: their organization's npm proxy needs to allow
    it.
 2. **Write the `.mcp.json` entry.** Create `.mcp.json` at the project root if it does not exist.
