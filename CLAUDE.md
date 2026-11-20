@@ -12,7 +12,7 @@ Hoist application development. Maintained by Extremely Heavy Industries (https:/
 skills/                  Plugin skills (invoked via /xh:skill-name)
   onboard-app/           Project setup and AI configuration
   hoist-upgrade/         Guided @xh/hoist version upgrade
-  using-hoist-core-reference/    Authoritative reference + install for hoist-core MCP/CLI tools
+  using-hoist-core-reference/    Authoritative reference for hoist-core; installs or removes its bundled MCP/CLI tools
   using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
 ```
 
@@ -55,7 +55,11 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   changes and let the diff show the rest. CHANGELOG entries are the exception: hard-wrap them at
   100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
-- The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
+- The onboarding skill configures the Hoist reference MCP server in each consuming project's
+  `.mcp.json`: Hoist Docs (`@xh/hoist-docs`) from `@xh/hoist` v91, else the servers bundled with
+  hoist-react and hoist-core. Skills must keep working for apps on both, since the plugin
+  auto-updates for every app. Tell them apart by the `hoistDocs` key in the installed
+  `@xh/hoist/package.json`.
 - Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
   to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
   or files the plugin never loads do not need a release.

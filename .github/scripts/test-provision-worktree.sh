@@ -278,5 +278,35 @@ run --repo "$T/app" --branch s-dirty --existing-branch --skip gradle
 [[ $RC -eq 0 ]] && grep -q 'adopting' <<<"$ERR" && grep -q 'with uncommitted changes, not updated' <<<"$ERR" \
   && grep -q edit "$T/app-worktrees/s-dirty/build.gradle" && ok "S6 dirty adopted worktree left alone" || bad "S6 rc=$RC $ERR"
 
+# H1. An app on @xh/hoist v91+ and hoist-core v45+: Hoist Docs replaces both kinds of old tools,
+# so the install snippet left in build.gradle and the launchers in the main checkout are skipped.
+git init -q --bare "$T/hd-origin.git"
+git init -q -b develop "$T/hd-seed"
+(
+  cd "$T/hd-seed"
+  mkdir -p client-app
+  echo '{"dependencies":{"@xh/hoist":"91.0.0"}}' > client-app/package.json
+  echo 'lock' > client-app/pnpm-lock.yaml
+  printf 'bin/\n' > .gitignore
+  printf '#!/bin/sh\necho gradle "$@"\n' > gradlew; chmod +x gradlew
+  echo "tasks.register('installHoistCoreTools')" > build.gradle
+  printf 'xhAppCode=hd\nhoistCoreVersion=45.0.0\n' > gradle.properties
+  git add -A; git commit -qm init
+  git push -q "$T/hd-origin.git" develop
+)
+git clone -q "$T/hd-origin.git" "$T/hd"
+mkdir -p "$T/hd/bin"; printf '#!/usr/bin/env bash\nold $0\n' > "$T/hd/bin/hoist-docs"
+# A pnpm stub that installs an @xh/hoist declaring a Hoist Docs index, as v91 does.
+mkdir -p "$T/hdbin"
+printf '#!/bin/sh\nmkdir -p node_modules/@xh/hoist\necho %s > node_modules/@xh/hoist/package.json\n' \
+  "'{\"name\":\"@xh/hoist\",\"version\":\"91.0.0\",\"hoistDocs\":{\"id\":\"react\",\"index\":\"hoist-docs/index.json.gz\"}}'" > "$T/hdbin/pnpm"
+chmod +x "$T/hdbin/pnpm"
+OUT="$(PATH="$T/hdbin:$PATH" "$BASH_BIN" "$SCRIPT" --repo "$T/hd" --branch feature/hd 2>"$T/err")"; RC=$?; ERR="$(cat "$T/err")"
+WT="$T/hd-worktrees/feature-hd"
+[[ $RC -eq 0 ]] && grep -q 'gradle:     none' <<<"$ERR" && grep -q 'installHoistCoreTools is skipped' <<<"$ERR" \
+  && ok "H1 hoist-core v45 skips installHoistCoreTools" || bad "H1 gradle rc=$RC $ERR"
+[[ $RC -eq 0 && ! -e "$WT/bin/hoist-docs" ]] && grep -q 'launchers: skipped' <<<"$ERR" \
+  && ok "H1 @xh/hoist v91 skips the CLI launchers" || bad "H1 launchers rc=$RC $ERR"
+
 echo "== $PASS passed, $FAIL failed ($BASH_BIN)"
 [[ $FAIL -eq 0 ]]

@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.10.0 - unreleased
+
+* Supports Hoist Docs (`@xh/hoist-docs`), the one MCP server for hoist-react and hoist-core that
+  replaces their bundled tools from `@xh/hoist` v91 and hoist-core v45. Apps on earlier versions
+  keep the bundled tools. The skills tell the two apart by the installed `@xh/hoist`.
+* `onboard-app`: on v91 and later, adds the `@xh/hoist-docs` dev dependency and its `.mcp.json`
+  entry, removes the broken old entry, launchers and permissions, and checks the server without
+  a restart.
+* `hoist-upgrade`: a hop to v91 switches the app to Hoist Docs. A bump to hoist-core v45 removes
+  the bundled hoist-core tools instead of reinstalling them, and is never planned with a target
+  below v91, since hoist-core v45 requires hoist-react v91.
+* `using-hoist-react-reference`, `using-hoist-core-reference`: route to the Hoist Docs tools,
+  scoped with `library`. The hoist-core skill can remove the bundled tools.
+* `setup-worktree`: skips the hoist-react launchers on v91 and later, and `installHoistCoreTools`
+  on hoist-core v45 and later.
+
 ## 1.9.1 - 2026-11-16
 
 * `setup-worktree`: a worktree for an existing local branch now fast-forwards that branch to its

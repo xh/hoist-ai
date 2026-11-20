@@ -8,7 +8,7 @@
       "files": ["evals/files/SamplePanel.tsx", "evals/files/SampleModel.ts"],
       "expectations": [
         "The skill `using-hoist-react-reference` was invoked",
-        "The agent called either `mcp__hoist-react__hoist-search-symbols` or `npx hoist-ts search` (or `hoist-get-members` / `hoist-ts members`) to look up GridModel column config",
+        "The agent called `hoist-search-symbols` or `hoist-get-members` (as `mcp__hoist-docs__*`, or `mcp__hoist-react__*` before v91), or the CLI `hoist-ts search` / `hoist-ts members`, to look up GridModel column config",
         "The agent did not improvise prop names without verification"
       ]
     },

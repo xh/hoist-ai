@@ -114,9 +114,10 @@
 #   4. Enable Claude Code plugins in the worktree's local settings.
 #   5. Install dependencies with the package manager the lockfile names.
 #   6. Run Gradle tasks. `installHoistCoreTools` writes launchers with an absolute JAR path, so
-#      each worktree needs its own.
+#      each worktree needs its own. Skipped from hoist-core v45, which publishes no tools JAR.
 #   7. Install the hoist-react CLI launchers (`bin/hoist-docs`, `bin/hoist-ts`) when the repo
-#      has them. They are gitignored in most apps.
+#      has them. They are gitignored in most apps. Skipped when the worktree's installed
+#      @xh/hoist is v91 or later, which ships no CLI and reads docs through Hoist Docs.
 #   8. Compare `node` and `java` versions with the repo. A mismatch means some activation did
 #      not carry over, including from managers this script does not know (nvm, asdf, nix).
 #
@@ -305,9 +306,23 @@ detect_deps() {
 
 detect_gradle() {
     if ref_grep installHoistCoreTools build.gradle || ref_grep installHoistCoreTools build.gradle.kts; then
-        GRADLE_TASKS+=(installHoistCoreTools)
+        # hoist-core v45 publishes no io.xh:hoist-core-mcp, so the task would fail there.
+        local major
+        major="$(ref_hoist_core_major)"
+        if [[ -n "$major" && "$major" -ge 45 ]]; then
+            NOTES+=("hoistCoreVersion is v$major, which Hoist Docs serves, so installHoistCoreTools is skipped - remove it from build.gradle")
+        else
+            GRADLE_TASKS+=(installHoistCoreTools)
+        fi
     fi
     return 0
+}
+
+# The major version of hoistCoreVersion in the ref's gradle.properties, or nothing.
+ref_hoist_core_major() {
+    in_ref gradle.properties || return 0
+    git -C "$REPO" show "$TREF:gradle.properties" 2>/dev/null \
+        | sed -nE 's/^[[:space:]]*hoistCoreVersion[[:space:]]*[=:][[:space:]]*([0-9]+).*/\1/p' | head -1
 }
 
 # The launchers are gitignored, so read the main checkout. If the dev uses them there, the
@@ -651,7 +666,7 @@ main() {
     echo "    toolchain:  ${TOOLCHAINS[*]:-none}"
     echo "    deps:       ${DEPS[*]:-none}"
     echo "    gradle:     ${GRADLE_TASKS[*]:-none}"
-    if [[ $LAUNCHERS -eq 1 ]]; then echo "    launchers:  bin/hoist-docs bin/hoist-ts"; else echo "    launchers:  none"; fi
+    if [[ $LAUNCHERS -eq 1 ]]; then echo "    launchers:  bin/hoist-docs bin/hoist-ts (unless @xh/hoist is v91+)"; else echo "    launchers:  none"; fi
     [[ -z "$BASE_NOTE" ]] || echo "    note: $BASE_NOTE"
     if [[ ${#NOTES[@]} -gt 0 ]]; then
         for rel in "${NOTES[@]}"; do echo "    note: $rel"; done
@@ -815,6 +830,17 @@ main() {
     # --- Step 7: install the hoist-react CLI launchers --------------------
     # Copy the plugin's canonical templates byte for byte, not the repo's copies, which may be
     # stamped at an older launcher version.
+    # @xh/hoist v91 and later declare `hoistDocs` and ship no CLI: there, node_modules/.bin/hoist-docs
+    # is the Hoist Docs server, and a launcher would start it instead of answering a query.
+    if [[ $LAUNCHERS -eq 1 ]]; then
+        for pkg in "$DEST/client-app/node_modules/@xh/hoist/package.json" "$DEST/node_modules/@xh/hoist/package.json"; do
+            if [[ -f "$pkg" ]] && grep -q '"hoistDocs"' "$pkg"; then
+                echo "==> launchers: skipped - @xh/hoist ships Hoist Docs (v91+), which replaces them"
+                LAUNCHERS=0
+                break
+            fi
+        done
+    fi
     if [[ $LAUNCHERS -eq 1 ]]; then
         echo "==> launchers: bin/hoist-docs bin/hoist-ts"
         mkdir -p "$DEST/bin"
