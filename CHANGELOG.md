@@ -1,15 +1,54 @@
 # Changelog
 
-## Unreleased
+## 1.11.0 - 2026-11-20
 
-* `using-hoist-core-reference`: install snippet bumped to `hoist-core-install/v2`, matching
-  hoist-core v43's `mcp/README.md`. It resolves the hoist-core version via
-  `configurations.hoistCoreCli.withDependencies`, deferred to task execution. The `v1` snippet
-  resolved `runtimeClasspath` at configuration time, which fails under Grails 8. `v2` also works
-  on Grails 7 / Gradle 8, so the skill offers it to apps on any supported hoist-core version, and
-  requires it on hoist-core v43+.
-* `hoist-upgrade`: refreshes a `v1` install snippet before re-running `installHoistCoreTools`
-  when an upgrade crosses into hoist-core v43.
+* `using-hoist-core-reference`: the hoist-core install snippet moves to `v2`, which works under
+  Grails 8. The refresh is required on hoist-core v43 and v44, where the `v1` snippet fails.
+* `hoist-upgrade`: refreshes a `v1` install snippet before it reinstalls the hoist-core tools on
+  hoist-core v43 or v44.
+
+## 1.10.0 - 2026-11-19
+
+* Supports Hoist Docs (`@xh/hoist-docs`), the one MCP server for hoist-react and hoist-core that
+  replaces their bundled tools from `@xh/hoist` v91 and hoist-core v45. Apps on earlier versions
+  keep the bundled tools. The skills tell the two apart by the installed `@xh/hoist`.
+* `onboard-app`: on v91 and later, adds the `@xh/hoist-docs` dev dependency and its `.mcp.json`
+  entry, removes the broken old entry, launchers and permissions, and checks the server without
+  a restart.
+* `hoist-upgrade`: a hop to v91 switches the app to Hoist Docs. A bump to hoist-core v45 removes
+  the bundled hoist-core tools instead of reinstalling them, and is never planned with a target
+  below v91, since hoist-core v45 requires hoist-react v91.
+* `using-hoist-react-reference`, `using-hoist-core-reference`: route to the Hoist Docs tools,
+  scoped with `library`. The hoist-core skill can remove the bundled tools.
+* `setup-worktree`: skips the hoist-react launchers on v91 and later, and `installHoistCoreTools`
+  on hoist-core v45 and later.
+
+## 1.9.1 - 2026-11-16
+
+* `setup-worktree`: a worktree for an existing local branch now fast-forwards that branch to its
+  remote before installing dependencies. It used to install on the stale local copy. A diverged
+  branch is left alone with a warning.
+
+## 1.9.0 - 2026-11-14
+
+* `onboard-app`: declares the plugin in the app's committed `.claude/settings.json`, with the
+  `hoist-ai` marketplace set to auto-update. Teammates get the plugin, and installs stay current,
+  because Claude Code does not update a third-party marketplace by default.
+* `onboard-app`: turns on auto-update in an existing `hoist-ai` entry, and leaves a `false`
+  opt-out or a custom marketplace source alone.
+
+## 1.8.0 - 2026-11-14
+
+* `setup-worktree`: the provisioning script now detects the base ref, destination, locals,
+  toolchain, package manager, Gradle task, and hoist-react launchers itself. Editor hooks and
+  plain shells can create a worktree without an agent. The skill only reads the request.
+* `setup-worktree`: the script prints only the worktree path on stdout, and exits 3 when the
+  request needs a decision, such as a new branch that already exists. `--dry-run` previews the
+  plan.
+* `setup-worktree`: copies gitignored files that match the repo's `.worktreeinclude`. The
+  `## Worktree provisioning` section in CLAUDE.md is no longer read.
+* `setup-worktree`: in a non-Hoist repo, copies locals and installs dependencies, but skips the
+  plugin, Gradle, and launcher steps.
 
 ## 1.7.0 - 2026-10-06
 

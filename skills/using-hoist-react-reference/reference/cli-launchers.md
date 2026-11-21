@@ -1,17 +1,22 @@
 # hoist-react CLI launchers
 
+These launchers are for `@xh/hoist` before v91 only. From v91, `@xh/hoist` ships no CLI, and the app reads its docs through the Hoist Docs MCP server (`@xh/hoist-docs`). There, `client-app/node_modules/.bin/hoist-docs` is the Hoist Docs server, so a `bin/hoist-docs` launcher starts the server instead of answering a query.
+
+To tell which applies, check `client-app/node_modules/@xh/hoist/package.json`. A `hoistDocs` key means v91 or later. Then do not install the launchers. If `bin/hoist-docs` or `bin/hoist-ts` exist, offer to delete them, and use the `mcp__hoist-docs__*` tools.
+
 The CLI surface runs through two project-local launchers, `bin/hoist-docs` and `bin/hoist-ts`. Each one is a short shell script that execs the `@xh/hoist` binary of the same name through `client-app/node_modules/.bin/`. Because they live at the project root, the agent can run them from its default working directory without a `cd`. Always run them as `./bin/hoist-...` from the app project root.
 
 ## Preflight
 
 Run this once per session, before the first `./bin/hoist-docs` or `./bin/hoist-ts` call. Skip it if you work through MCP only.
 
-1. Check that `./bin/hoist-docs` and `./bin/hoist-ts` exist at the project root.
-2. Read the first 3 lines of each. The second line should be exactly:
+1. Check that `client-app/node_modules/@xh/hoist/package.json` has no `hoistDocs` key. If it has one, stop: the app is on v91 or later, as described above.
+2. Check that `./bin/hoist-docs` and `./bin/hoist-ts` exist at the project root.
+3. Read the first 3 lines of each. The second line should be exactly:
 
        # hoist-ai-launcher: hoist-react/v2
 
-3. Run a smoke check to confirm that the launcher resolves its target:
+4. Run a smoke check to confirm that the launcher resolves its target:
 
        ./bin/hoist-docs --help
 
@@ -33,6 +38,7 @@ Run this procedure when:
 ### Prerequisites
 
 - The app is a Hoist project: `client-app/package.json` lists `@xh/hoist`, directly or through a client plugin.
+- The installed `@xh/hoist` is earlier than v91: its `package.json` has no `hoistDocs` key. If `node_modules` is not installed, check the version in the lockfile.
 - `client-app/node_modules` is populated, that is, the app's package manager install has run from `client-app/`. The launchers install without it, but they fail at runtime until the packages are present.
 
 If `node_modules` is missing, tell the user it is a separate step. Still install the launchers. The two steps are independent.
