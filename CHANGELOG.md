@@ -8,6 +8,14 @@
   parse the primer.
 * `hoist-upgrade`: runs codemods that an upgrade guide ships, and records spots they could not
   convert as judgment calls. Agent docs are also checked for the patterns a codemod replaced.
+* `hoist-upgrade`: refreshes a `v1` install snippet before it reinstalls the hoist-core tools on
+  hoist-core v43 or v44.
+* `hoist-upgrade`: regenerates the Gradle lockfiles after it bumps `hoistCoreVersion`, in apps
+  that use dependency locking. It used to leave them stale, so the next build failed.
+* `hoist-upgrade`: plans and bumps hoist-core and `@xh/hoist-dev-utils` to the newest release
+  compatible with the target, not the minimum the compatibility matrix requires.
+* `using-hoist-core-reference`: the hoist-core install snippet moves to `v2`, which works under
+  Grails 8. The refresh is required on hoist-core v43 and v44, where the `v1` snippet fails.
 
 ## 1.10.0 - 2026-11-19
 
