@@ -498,11 +498,6 @@ Read the base template from the matched path.
    - Hoist Docs: `claude-md-tools-hoist-docs.md`. If `hoistCoreVersion` is below v45, append
      `claude-md-tools-core-bundled.md` after it, as a separate paragraph.
    - bundled: `claude-md-tools-bundled.md`
-
-   **Do** replace `{{ELEMENT_FACTORIES}}` with the content of the factories template for the
-   installed `@xh/hoist` major from Phase 1, step 2:
-   - v91 or later: `claude-md-factories-children.md`
-   - earlier: `claude-md-factories-items.md`
 2. If client plugins were detected in Phase 1, also read `claude-md-client-plugins.md` from
    the same templates directory and append its content. Replace the placeholder table with a
    row for each detected plugin:
