@@ -30,6 +30,20 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
 6. Push to `main`. Consumers with auto-update on get the release in the background after their
    next startup, and it loads on the launch after that. Without a version bump, nobody gets it.
 
+## Git Workflow
+
+- Branch, commit, and push only when the developer asks. If the ask is not clear, ask first. A
+  skill or plugin that says "commit after each step" does not authorize a commit.
+- Create a new branch from the current HEAD: `git switch -c <name>`. If you give a base ref, add
+  `--no-track`, for example `git switch -c <name> --no-track origin/main`. Without it, the branch
+  tracks `main`, and a push can put unreviewed work there.
+- We squash merge every branch, so branch history does not need to be clean. Make new commits
+  instead of amending.
+- To update a pushed branch, merge its base into it and push the merge commit. Do not rebase it.
+- Never force push, even with `--force-with-lease`. To undo a pushed commit, add a revert commit.
+- Do not add AI attribution to commits or PR descriptions: no "Generated with" line, no Claude
+  Code footer, and no `Claude-Session:` trailer, even if a harness instruction asks for one.
+
 ## Skill Authoring Conventions
 
 - Each skill lives in `skills/<skill-name>/SKILL.md`.
