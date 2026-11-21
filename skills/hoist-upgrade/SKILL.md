@@ -322,6 +322,12 @@ Read the upgrade guide carefully. For each migration step:
 2. Apply changes using the Edit tool
 3. Verify with a second grep that the old patterns are gone
 
+**Codemods** (scripts the guide tells you to run, shipped under
+`client-app/node_modules/@xh/hoist/docs/codemod/`):
+1. Run each one as the guide directs. Use its dry-run flag first if it has one.
+2. Do not hand-edit changes that a codemod makes.
+3. Record each spot the codemod reports it could not convert as a judgment call.
+
 **Judgment calls** (behavior changes, multiple replacement options, architectural decisions):
 1. Do NOT apply automatically
 2. Use grep to find affected files
@@ -444,7 +450,9 @@ After each hop, display a brief status showing progress through the sequence:
 The app's agent docs can still teach APIs that the upgrade removed. `CLAUDE.md` is the main
 one. Also check `AGENTS.md`, `.claude/rules/`, and other docs written for agents.
 
-1. Re-run the "find affected files" greps from each hop's guide against these docs. Fix each
+1. Re-run the "find affected files" greps from each hop's guide against these docs. Some
+   codemods change source files only, so also search these docs for the old patterns that each
+   codemod replaced. Review any doc text that a codemod reported but did not change. Fix each
    hit, or record it as a judgment call if the text is project-specific.
 <!-- legacy-api:start -->
 2. If `CLAUDE.md` holds the Hoist primer from `/xh:onboard-app` (an "Architecture Primer"
