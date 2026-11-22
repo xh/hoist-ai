@@ -126,3 +126,4 @@ description, or a document. It also loads when you review a diff that includes c
 ### Backend (run from project root)
 - Dev server: `./gradlew bootRun`
 - Production build: `./gradlew war`
+{{GRADLE_LOCKS}}

@@ -86,7 +86,12 @@ version if determinable.
 **Detect Gradle dependency locking.** The app locks its server dependencies if a
 `gradle.lockfile` sits at the project root, or `build.gradle` has a `dependencyLocking` block.
 Record this for Phase 3e. Also record whether `build.gradle` or `gradle.properties` reads
-`runHoistInline`.
+`runHoistInline`, or guards locking on another inline flag.
+
+In a locked app, also read the locked version: `grep '^io.xh:hoist-core:' gradle.lockfile`. It is
+the version the app builds with, and it covers apps that get hoist-core through a plugin. If it
+differs from `hoistCoreVersion`, the locks are stale. Note that in the plan, and regenerate them
+in the first hop as in Phase 3e, step 4, even if that hop does not bump hoist-core.
 
 **Assess server-side significance:** Check `CLAUDE.md` for notes about server-side complexity.
 Also scan the Grails app package (e.g. `grails-app/controllers/`, `grails-app/services/`) for
@@ -399,9 +404,11 @@ To bump:
    ```bash
    ./gradlew dependencies --write-locks -PrunHoistInline=false
    ```
-   Keep `-PrunHoistInline=false` if the build reads `runHoistInline`. A run in inline mode wipes
-   the lock state. Then check that `grep '^io.xh:hoist-core:' gradle.lockfile` shows the new
-   version. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` in the hop commit. Do not
+   Keep `-PrunHoistInline=false` if the build reads `runHoistInline`. If it guards locking on
+   another inline flag, pass that flag as `false` too. A run in inline mode wipes the lock state.
+   If step 5 removed the install snippet, delete `gradle.lockfile` before the run.
+   `--write-locks` keeps the entries of a configuration that no longer exists. Then check that
+   `grep '^io.xh:hoist-core:' gradle.lockfile` shows the new version. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` in the hop commit. Do not
    edit a lockfile by hand. If the run fails, show the error and stop for the developer. For
    details, read the hoist-core "Dependency Locking" doc if the reference tools serve it.
 5. **Refresh or remove the hoist-core MCP+CLI launchers if they were previously installed.**
@@ -705,6 +712,9 @@ when they don't apply.
 {Include if hoistCoreVersion >= 39.0 and below v45 AND bin/hoist-core-mcp does NOT exist:}
 - [ ] Install the hoist-core MCP+CLI tools now that you're eligible (>= v39.0):
       run `/xh:onboard-app` -- it will detect the new eligibility and offer to install
+{Include if the app has no Gradle dependency locking:}
+- [ ] Turn on Gradle dependency locking, which XH recommends for all Hoist apps. See the
+      hoist-core "Dependency Locking" doc.
 {Include if client plugins were detected:}
 - [ ] Verify client plugin compatibility with the upgraded Hoist version
 - [ ] Open / merge the pull request for this upgrade branch

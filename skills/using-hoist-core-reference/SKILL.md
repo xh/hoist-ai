@@ -74,6 +74,14 @@ Shown for Hoist Docs. With the bundled tools, use the matching `mcp__hoist-core_
 
 Everything from here to [When the tools aren't available](#when-the-tools-arent-available) applies only to hoist-core v39 to v44. From v45, hoist-core no longer publishes `io.xh:hoist-core-mcp`, so `installHoistCoreTools` fails, and Hoist Docs serves hoist-core instead. On v45 or later, follow [Removing the bundled tools](#removing-the-bundled-tools) if they are still installed.
 
+### Apps with Gradle dependency locking
+
+An app locks its server dependencies if a `gradle.lockfile` sits at the project root. Adding, refreshing or removing the install snippet changes the locked graph, because the snippet adds a `hoistCoreCli` configuration. Under `STRICT` locking, a configuration with no lock state fails to resolve, so `installHoistCoreTools` fails until the locks are regenerated. After each edit to the snippet, and before any Gradle task, run this from the project root:
+
+    ./gradlew dependencies --write-locks -PrunHoistInline=false
+
+Keep `-PrunHoistInline=false` if the build reads `runHoistInline`. A run in inline mode wipes the lock state. After a removal, delete `gradle.lockfile` before the run. `--write-locks` keeps the entries of a configuration that no longer exists, so the old `hoistCoreCli` lines would stay. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` with the `build.gradle` change. Do not edit a lockfile by hand.
+
 ### CLI preflight (do once per session before first CLI use)
 
 Skip this if you're working through MCP only. For the CLI surface, before the first `./bin/hoist-core-*` call in a session, verify the launchers are present and functional:
@@ -206,7 +214,7 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
     // end hoist-ai-snippet
     ```
 
-3. **Run the install task.**
+3. **Run the install task.** In a locked app, [regenerate the locks](#apps-with-gradle-dependency-locking) first.
 
     ```bash
     ./gradlew installHoistCoreTools
@@ -272,7 +280,7 @@ This is an **in-place edit of the user's source-controlled `build.gradle`**, not
 
 5. **Apply the refresh via Edit** -- replace the bounded block byte-for-byte with the canonical (merging in any preserved hand-edits). If the snippet was unstamped, add the markers as part of the refresh.
 
-6. **Re-run the install task** to regenerate launchers with the new logic:
+6. **Re-run the install task** to regenerate launchers with the new logic. In a locked app, [regenerate the locks](#apps-with-gradle-dependency-locking) first:
 
        ./gradlew installHoistCoreTools
 
@@ -291,7 +299,7 @@ Run this when the app is on hoist-core v45 or later and still has the bundled to
    - The `hoist-core` entry in `.mcp.json`. Keep the other entries.
    - In `.claude/settings.json` and `.claude/settings.local.json`: `hoist-core` in `enabledMcpjsonServers`, and the `mcp__hoist-core__*`, `Bash(./bin/hoist-core-*)` and `Bash(./gradlew installHoistCoreTools:*)` permissions. Add `mcp__hoist-docs__*` and `hoist-docs` in their place if the file allows the old ones.
    - Agent docs (`CLAUDE.md`, `AGENTS.md`) that send agents to `./bin/hoist-core-*` or `mcp__hoist-core__*`. Point them at the Hoist Docs tools with `library: "core"`.
-3. **Apply the removal** with Edit, then delete the launchers.
+3. **Apply the removal** with Edit, then delete the launchers. In a locked app, [regenerate the locks](#apps-with-gradle-dependency-locking) and commit them with the `build.gradle` change.
 4. **Tell the user to restart Claude Code**, so it drops the old server.
 
 ## When the tools aren't available
