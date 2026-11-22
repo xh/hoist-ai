@@ -1,7 +1,7 @@
 ---
 name: clear-writing
 description: |
-  House writing style for the prose that ships with Hoist code: CHANGELOG entries, PR descriptions, READMEs and design docs, code comments. Why this matters: unaided agents write durable text that is too long and reads as machine-made. Sentences run past 25 words and join with semicolons and em dashes, passive voice hides the actor, "leverage" and "seamless" creep in, and a PR body restates the diff and lists every file. That text lands in CHANGELOGs and PRs that humans read for years. TRIGGER when writing or updating a CHANGELOG entry or release notes; writing a PR title or description; writing a new document or substantially editing one (README, design doc, guide, ADR, CLAUDE.md, wiki page); reviewing a diff, branch, or PR that includes comments, JSDoc, or docs; or any ask to make text clearer, shorter, plainer, more readable, less verbose, less wordy, or less like AI wrote it. SKIP for a single code comment or commit message written in the normal flow of coding (apply the same rules, do not load the skill), chat replies to the user, code and identifiers, UI strings and error messages, and marketing copy.
+  House writing style for the prose that ships with Hoist code: CHANGELOG entries, PR descriptions, READMEs and design docs, code comments. Why this matters: unaided agents write durable text that is too long and reads as machine-made. Sentences run past 25 words and join with semicolons and em dashes, passive voice hides the actor, "leverage" and "seamless" creep in, and a PR body restates the diff and lists every file. That text lands in CHANGELOGs and PRs that humans read for years. TRIGGER when writing or updating a CHANGELOG entry, a `changelog.d/` fragment, or release notes; writing a PR title or description; writing a new document or substantially editing one (README, design doc, guide, ADR, CLAUDE.md, wiki page); reviewing a diff, branch, or PR that includes comments, JSDoc, or docs; or any ask to make text clearer, shorter, plainer, more readable, less verbose, less wordy, or less like AI wrote it. SKIP for a single code comment or commit message written in the normal flow of coding (apply the same rules, do not load the skill), chat replies to the user, code and identifiers, UI strings and error messages, and marketing copy.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -41,6 +41,12 @@ Start from the shape. Most bloat is structural, not lexical.
 reader, then the essential why. Put it under the section the project uses (Breaking Changes,
 New Features, Bug Fixes, Technical, Libraries). If the section is missing, add it in the order
 the project's older entries use.
+
+If the repo has a `changelog.d/` folder, the entry goes in a fragment there, never in
+`CHANGELOG.md`. Run the repo's changelog command, such as `pnpm changelog add fix "<text>"`, or
+edit `changelog.d/<branch>.md`. `changelog.d/README.md` names the command. A fragment has the same
+`###` sections and bullets but no version heading, and uses only the sections in
+`changelog.d/config.json`. If the repo has no `changelog.d/`, write the entry in `CHANGELOG.md`.
 
 Name an identifier only when the reader needs it to act: a config key, a flag, a public API.
 Leave out internal method names, file paths, exact counts, and version comparisons. Those rot.

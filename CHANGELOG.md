@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.12.0 - unreleased
+
+* `clear-writing`: in a repo with a `changelog.d/` folder, a new CHANGELOG entry goes in a fragment
+  there, never in `CHANGELOG.md`.
+* `hoist-upgrade`: once the app's `@xh/hoist-dev-utils` ships `xh-changelog` and the app has no
+  `changelog.d/`, the report offers changelog fragments as an optional next step.
+
 ## 1.11.0 - 2026-11-20
 
 * `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`

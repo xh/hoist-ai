@@ -656,6 +656,10 @@ when they don't apply.
 - [ ] Review hoist-core release notes if this project has significant server-side code
 {Include if hoist-dev-utils was bumped across a major with a new Node floor:}
 - [ ] Confirm CI / build agents meet the new minimum Node version
+{Include if `client-app/node_modules/.bin/xh-changelog` exists and the app has no `changelog.d/`:}
+- [ ] Optional: move new changelog entries to fragments, so pull requests stop conflicting over
+      `CHANGELOG.md`. Run `xh-changelog init` from `client-app/` with the app's package runner,
+      such as `pnpm exec xh-changelog init`, then review what it writes.
 {Include if the app is on v91+ and has no `hoist-docs` entry in `.mcp.json`:}
 - [ ] Set up Hoist Docs, the agent reference tools for v91 and later: run `/xh:onboard-app`
 {Include if hoistCoreVersion >= 39.0 and below v45 AND bin/hoist-core-mcp does NOT exist:}
