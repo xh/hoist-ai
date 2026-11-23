@@ -185,6 +185,8 @@ Then list the planned actions:
   they're not yet wired up, ask separately whether to install them (modifies `build.gradle`)
 {Both:}
 - [Add | Verify] the `xh@hoist-ai` plugin declaration in `.claude/settings.json`, with auto-update on
+- [Add | Verify] `Skill(xh:...)` permissions for the plugin's skills in `.claude/settings.json`
+- Check that this machine installs the plugin at user scope
 - [Create | Update] CLAUDE.md with Hoist conventions (~[N] lines)
 - [Include client plugin documentation (if plugins detected)]
 - Verify the reference tools in this environment
@@ -339,10 +341,11 @@ may not be running yet.
 
 ## Phase 3.2: Declare the Plugin
 
-The plugin runs onboarding, so the current developer has it. The other developers on the project
-get it from a declaration in the committed `.claude/settings.json`. Without one, a teammate who
-clones the repo never sees the plugin, and a developer who installed it by hand may run an old
-version.
+The committed `.claude/settings.json` declares the plugin for the whole team. The declaration
+turns the plugin on and keeps it current, but it does not install it. Each developer installs it
+once per machine, at user scope, which covers every project and worktree. A project-scope or
+local-scope install is a separate copy for one path. Claude Code updates it only when a session
+runs in that path, so it drifts to an old version.
 
 The declaration has two parts:
 
@@ -374,9 +377,32 @@ The declaration has two parts:
    leave it alone and name it in the Phase 6 report.
 6. Never write this declaration to `.claude/settings.local.json`. That file is per developer, and
    the point of this phase is a declaration the whole team gets.
+7. Add `Skill(xh:<name>)` to `permissions.allow` for each skill the plugin ships, so they run
+   without a prompt. The skills are the folders beside this skill's own folder that hold a
+   `SKILL.md`. Read the names from those folders, not from a fixed list, so the next run adds a
+   new skill. Add the missing entries and keep every other entry.
 
-Tell the developer to commit `.claude/settings.json`. Branches cut before that commit lack the
-declaration. `/xh:setup-worktree` covers that case for worktrees.
+Tell the developer to commit `.claude/settings.json`.
+
+### Check This Machine's Install
+
+Run `claude plugin list --json` and keep the records with `id` `xh@hoist-ai`. If `claude` is not
+on the `PATH`, skip this check and put the install command in the Phase 6 report.
+
+- **No record with `scope` `user`:** tell the developer the plugin has no user-scope install,
+  give them `claude plugin install xh@hoist-ai --scope user`, and offer to run it for them. It
+  takes effect in the next session. If they decline, put the command in the Phase 6 report.
+- **Records with `scope` `project` or `local` and a `projectPath` in this repo or its
+  worktrees:** do not remove them now, because this session may be running from one. List them in
+  the Phase 6 report with the cleanup steps below.
+
+To remove a per-project record, run the uninstall from its `projectPath`:
+
+- `local` scope: `claude plugin uninstall xh@hoist-ai --scope local`. It also removes the entry
+  from `.claude/settings.local.json`, which the user-scope install makes redundant.
+- `project` scope: `claude plugin uninstall xh@hoist-ai --scope project`, then
+  `git restore .claude/settings.json`. The uninstall deletes `xh@hoist-ai` from the committed
+  `enabledPlugins`, and the restore puts it back. Run it only after you commit the declaration.
 
 ## Phase 3.5: hoist-core Tools
 
@@ -618,6 +644,9 @@ calls out the CLI fallback for MCP-blocked environments:
 - **CLAUDE.md:** [Created | Updated (added N sections) | Already up to date]
 - **`.mcp.json`:** [Created | Updated (added entries: <list>) | Already configured]
 - **Plugin declaration:** [Added to `.claude/settings.json` -- commit it | Turned on auto-update | Already present | Left alone: `hoist-ai` points at <source>]
+- **Skill permissions:** [Added `Skill(xh:...)` for <names> | Already present]
+- **Plugin install:** [User scope, version <v> | Installed at user scope -- restart to load it | Not installed at user scope -- run `claude plugin install xh@hoist-ai --scope user`]
+- **Per-project installs:** [None | <scope> at <projectPath>, version <v> -- remove with <command from Phase 3.2>]
 - **Client plugins:** [N plugin(s) documented | None detected]
 
 {Hoist Docs mode:}

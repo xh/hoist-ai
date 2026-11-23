@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.13.0 - 2026-11-23
+
+* Install the plugin once per machine at user scope. `onboard-app` and `setup-worktree` check for
+  that install and offer it when it is missing.
+* `setup-worktree`: stops enabling the plugin in each worktree's local settings, and warns when
+  inherited local settings enable it. Script warnings are now single `WARNING:` lines.
+* `onboard-app`: allows each of the plugin's skills in the shared settings. The generated
+  CLAUDE.md tells agents to offer the install when they see no `xh:` skills.
+
 ## 1.12.0 - 2026-11-23
 
 * New `right-size` skill. It weighs the complexity a change adds against the cases it covers, and

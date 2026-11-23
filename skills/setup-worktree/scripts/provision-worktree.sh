@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# hoist-ai-script: setup-worktree/v2
+# hoist-ai-script: setup-worktree/v3
 #
 # Provision a ready-to-run git worktree for a Hoist app.
 #
@@ -22,14 +22,17 @@
 #   child process output, and all warnings go to stderr. The one exception is --help, which
 #   prints usage to stdout. Child processes get no stdin, so nothing can prompt.
 #
+#   Each warning is one stderr line whose first non-blank text is `WARNING:`. A warning never
+#   changes the exit code.
+#
 #   Each step starts with a stable stderr line of the form `==> <step>: <detail>`, for example
 #   `==> deps: pnpm install (client-app)`. Steps: fetch, plan, create, locals, toolchain,
 #   plugin, deps, gradle, launchers, parity, done.
 #
 # Non-Hoist repos:
 #   The script still creates the worktree, copies locals, activates the toolchain, and installs
-#   deps. It skips the Hoist steps (the xh@hoist-ai plugin, Gradle tooling, and launchers)
-#   unless their flags are passed explicitly, and says so in the plan.
+#   deps. It skips the Hoist steps (Gradle tooling and launchers) unless their flags are passed
+#   explicitly, and says so in the plan.
 #
 # Environment:
 #   Tools come from the caller's PATH and JAVA_HOME. A caller that skips the login shell may lack
@@ -87,9 +90,10 @@
 #                          Absent files, files tracked on the branch, and files already in the
 #                          worktree are skipped, so a re-run never overwrites edits.
 #   --enable-plugin <id>   Claude Code plugin to enable in the worktree's own
-#                          `.claude/settings.local.json`. Repeatable. Adds to `xh@hoist-ai`,
-#                          which is enabled in every Hoist repo. An id the file already sets, true or false,
-#                          is left alone.
+#                          `.claude/settings.local.json`. Repeatable. None by default: the
+#                          `xh@hoist-ai` plugin comes from a user-scope install, which covers
+#                          every worktree. An id the file already sets, true or false, is left
+#                          alone.
 #   --toolchain <name>     `mise` or `direnv`. Repeatable. Replaces detection, which finds mise
 #                          from `mise config ls` or a mise config file, and direnv from `.envrc`.
 #   --deps <dir>:<pm>      Install dependencies in <dir> with <pm> (`yarn`, `npm`, or `pnpm`).
@@ -111,7 +115,7 @@
 #   2. Copy gitignored locals.
 #   3. Trust and install mise / allow direnv. Trust is keyed to a directory path, so a new
 #      worktree always starts untrusted.
-#   4. Enable Claude Code plugins in the worktree's local settings.
+#   4. Enable the plugins passed with --enable-plugin in the worktree's local settings.
 #   5. Install dependencies with the package manager the lockfile names.
 #   6. Run Gradle tasks. `installHoistCoreTools` writes launchers with an absolute JAR path, so
 #      each worktree needs its own. Skipped from hoist-core v45, which publishes no tools JAR.
@@ -129,7 +133,6 @@ trap 'exit 1' ERR
 
 SCRIPT_NAME="provision-worktree.sh"
 DEFAULT_LOCALS=(.env .claude/settings.local.json)
-DEFAULT_PLUGIN="xh@hoist-ai"
 STEPS="locals plugin toolchain deps gradle launchers parity"
 # mise config files to look for when `mise config ls` is unavailable. `.tool-versions` is left
 # out on purpose: asdf reads it too, so it does not prove the app uses mise.
@@ -586,21 +589,18 @@ main() {
 
     # --- Detect facts -----------------------------------------------------
     # Outside a Hoist repo the script is a plain worktree provisioner: locals, toolchain, and
-    # deps still apply. The Hoist steps (plugin, Gradle tooling, launchers) are skipped unless
+    # deps still apply. The Hoist steps (Gradle tooling, launchers) are skipped unless
     # the caller passes them explicitly.
     local hoist=1
     detect_hoist || hoist=0
     skipped locals    || detect_locals
-    if [[ $hoist -eq 1 ]]; then
-        PLUGINS=("$DEFAULT_PLUGIN" ${PLUGINS[@]+"${PLUGINS[@]}"})
-    fi
     if ! skipped toolchain && [[ $TOOLCHAINS_SET -eq 0 ]]; then detect_toolchains; fi
     if ! skipped deps      && [[ $DEPS_SET -eq 0 ]];       then detect_deps; fi
     if [[ $hoist -eq 1 ]]; then
         if ! skipped gradle && [[ $GRADLE_SET -eq 0 ]]; then detect_gradle; fi
         skipped launchers || detect_launchers
     else
-        NOTES+=("not a Hoist repo, so the $DEFAULT_PLUGIN plugin, Gradle tooling, and launchers are skipped")
+        NOTES+=("not a Hoist repo, so Gradle tooling and launchers are skipped")
     fi
 
     # The skip list wins over explicit overrides too.
@@ -663,6 +663,18 @@ main() {
     [[ -z "$SYNC_WARNING" ]] || echo "    WARNING: branch $SYNC_WARNING" >&2
     echo "    locals:     ${LOCALS[*]:-none}"
     echo "    plugins:    ${PLUGINS[*]:-none}"
+    # The main checkout's local settings may enable xh@hoist-ai, for example from an old
+    # local-scope install. Copied into the worktree, the entry gives it its own install, which
+    # goes stale. Check the file the worktree will have: its own copy when adopting, else the
+    # one the locals step copies. Warn, do not edit: the file belongs to the developer.
+    local sl=".claude/settings.local.json" slf=""
+    if [[ -f "$DEST/$sl" ]]; then slf="$DEST/$sl"
+    elif [[ " ${LOCALS[*]-} " == *" $sl "* && -f "$REPO/$sl" ]]; then slf="$REPO/$sl"
+    fi
+    if [[ -n "$slf" && " ${PLUGINS[*]-} " != *" xh@hoist-ai "* ]] &&
+        grep -Eq '"xh@hoist-ai"[[:space:]]*:[[:space:]]*true' "$slf"; then
+        echo "    WARNING: $slf enables xh@hoist-ai. Remove the entry there and in every worktree that has it. The user-scope install covers every worktree." >&2
+    fi
     echo "    toolchain:  ${TOOLCHAINS[*]:-none}"
     echo "    deps:       ${DEPS[*]:-none}"
     echo "    gradle:     ${GRADLE_TASKS[*]:-none}"
@@ -762,16 +774,16 @@ main() {
     fi
 
     # --- Step 4: enable Claude Code plugins -------------------------------
-    # A plugin enabled only in the committed .claude/settings.json drops out on any branch
-    # older than that commit. A local entry keeps it on whatever the branch. A missing node
-    # is a warning: the worktree still works, and the fix is one line.
+    # Only the plugins passed with --enable-plugin. A local entry keeps a plugin on whatever
+    # the branch. Worktrees with an xh@hoist-ai entry got their own local-scope installs, which
+    # went stale, so it is not enabled here: its user-scope install covers every worktree.
+    # A missing node is a warning: the worktree still works, and the fix is one line.
     if [[ ${#PLUGINS[@]} -gt 0 ]]; then
         echo "==> plugin: enabling in .claude/settings.local.json"
         local settings="$DEST/.claude/settings.local.json"
         for id in "${PLUGINS[@]}"; do
             if ! has_cmd node "$DEST"; then
-                echo "    WARNING: node is not on PATH. Add \"enabledPlugins\": {\"$id\": true}" >&2
-                echo "    to $settings by hand." >&2
+                echo "    WARNING: node is not on PATH. Add \"enabledPlugins\": {\"$id\": true} to $settings by hand." >&2
                 continue
             fi
             mkdir -p "$DEST/.claude"
@@ -796,8 +808,7 @@ main() {
                     fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
                     console.log("enabled");
                 }' "$settings" "$id" 2>&1)"; then
-                echo "    WARNING: could not update $settings: $result" >&2
-                echo "    Add \"enabledPlugins\": {\"$id\": true} by hand." >&2
+                echo "    WARNING: could not update $settings: ${result%%$'\n'*}. Add \"enabledPlugins\": {\"$id\": true} by hand." >&2
                 continue
             fi
             echo "    $result $id"
@@ -868,7 +879,7 @@ main() {
             if [[ "$src" == "$dst" ]]; then
                 echo "    ok      $tool: $dst"
             else
-                echo "    WARNING $tool differs. Repo: $src / worktree: $dst" >&2
+                echo "    WARNING: $tool differs. Repo: $src / worktree: $dst" >&2
             fi
         done
     fi
