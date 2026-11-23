@@ -280,7 +280,8 @@ Follow 3A in Hoist Docs mode, 3B in bundled mode (Phase 1, step 9).
 4. **Remove the old hoist-react launchers.** If `bin/hoist-docs` or `bin/hoist-ts` exist, and
    their second line is `# hoist-ai-launcher: hoist-react/...`, delete them. From v91 the
    `bin/hoist-docs` launcher would start the Hoist Docs server instead of answering a query. If
-   either file lacks that stamp, leave it and name it in the Phase 6 report.
+   either file lacks that stamp, leave it and name it in the Phase 6 report. If `.gitignore`
+   lists `bin/hoist-docs` or `bin/hoist-ts`, remove those lines.
 5. **Update settings that name the old server.** In `.claude/settings.json` and
    `.claude/settings.local.json`, if present:
    - In `enabledMcpjsonServers`, replace `hoist-react` with `hoist-docs`.

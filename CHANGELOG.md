@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.11.0 - 2026-11-22
+## 1.11.0 - 2026-11-23
 
 * `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`
   key, as hoist-react v91 does, and names `item` / `items` as legacy aliases. The JSX
@@ -16,12 +16,17 @@
 * `hoist-upgrade`: regenerates the Gradle lockfiles after it bumps `hoistCoreVersion`, in apps
   that use dependency locking. It used to leave them stale, so the next build failed. It also
   reads the locked hoist-core version, and suggests locking to apps without it.
+* `hoist-upgrade`: also removes the bundled hoist-core tools on v45 when only their `.mcp.json`
+  entry remains.
 * `hoist-upgrade`: plans and bumps hoist-core and `@xh/hoist-dev-utils` to the newest release
   compatible with the target, not the minimum the compatibility matrix requires.
 * `using-hoist-core-reference`: the hoist-core install snippet moves to `v2`, which works under
   Grails 8. The refresh is required on hoist-core v43 and v44, where the `v1` snippet fails.
 * `using-hoist-core-reference`: regenerates the Gradle lockfiles after it adds, refreshes or
   removes the install snippet. In a locked app, `installHoistCoreTools` failed without them.
+* `using-hoist-react-reference`: on v91 and later, offers `onboard-app` to clean up leftover
+  bundled tools, not just to delete the launchers. `onboard-app` also removes their
+  `.gitignore` lines.
 
 ## 1.10.0 - 2026-11-19
 

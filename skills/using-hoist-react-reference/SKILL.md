@@ -61,7 +61,7 @@ Each rule below removes a lookup that agents often waste. Apply them in this ord
 
 Before `@xh/hoist` v91, the CLI commands run through project-local launchers at `./bin/hoist-docs` and `./bin/hoist-ts`. Before the first CLI call in a session, run the preflight in [reference/cli-launchers.md](reference/cli-launchers.md). Skip it if you use MCP only. The same file has the install procedure for missing, stale, or broken launchers.
 
-From v91 there is no CLI, and the launchers break: `bin/hoist-docs` would start the Hoist Docs MCP server instead. If `client-app/node_modules/@xh/hoist/package.json` has a `hoistDocs` key, the app is on v91 or later. Do not install the launchers there, and offer to delete any that exist.
+From v91 there is no CLI, and the launchers break: `bin/hoist-docs` would start the Hoist Docs MCP server instead. If `client-app/node_modules/@xh/hoist/package.json` has a `hoistDocs` key, the app is on v91 or later. Do not install the launchers there. If the launchers or a `hoist-react` entry in `.mcp.json` remain, offer to run `/xh:onboard-app`. It moves the app to Hoist Docs and removes the old entry, launchers and permissions.
 
 ## When the tools are not available
 

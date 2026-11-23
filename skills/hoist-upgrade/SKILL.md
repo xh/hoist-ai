@@ -408,12 +408,13 @@ To bump:
    another inline flag, pass that flag as `false` too. A run in inline mode wipes the lock state.
    If step 5 removed the install snippet, delete `gradle.lockfile` before the run.
    `--write-locks` keeps the entries of a configuration that no longer exists. Then check that
-   `grep '^io.xh:hoist-core:' gradle.lockfile` shows the new version. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` in the hop commit. Do not
-   edit a lockfile by hand. If the run fails, show the error and stop for the developer. For
-   details, read the hoist-core "Dependency Locking" doc if the reference tools serve it.
+   `grep '^io.xh:hoist-core:' gradle.lockfile` shows the new version. Commit `gradle.lockfile`
+   and `buildscript-gradle.lockfile` in the hop commit. Do not edit a lockfile by hand. If the
+   run fails, show the error and stop for the developer. For details, read the hoist-core
+   "Dependency Locking" doc if the reference tools serve it.
 5. **Refresh or remove the hoist-core MCP+CLI launchers if they were previously installed.**
-   Check whether `bin/hoist-core-mcp` exists at the project root, or `build.gradle` defines
-   `installHoistCoreTools`.
+   Check whether `bin/hoist-core-mcp` exists at the project root, `build.gradle` defines
+   `installHoistCoreTools`, or `.mcp.json` has a `hoist-core` entry.
    - **New `hoistCoreVersion` v45 or later:** v45 publishes no `io.xh:hoist-core-mcp`, so
      `installHoistCoreTools` fails. Do not run it. Remove the bundled tools: `Glob` for
      `**/using-hoist-core-reference/SKILL.md` and follow **Removing the bundled tools**. It
