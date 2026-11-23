@@ -2,9 +2,9 @@
 
 ## 1.12.0 - unreleased
 
-* New `complexity-tradeoff` skill. It weighs the complexity a change adds against the cases it
-  covers, and offers a menu of options from simplest to most complete. It loads when a developer
-  asks whether a change is as simple as it can be, and for PRs and reviews of such changes.
+* New `right-size` skill. It weighs the complexity a change adds against the cases it covers, and
+  offers a menu of options from simplest to most complete. It loads when a developer asks whether a
+  change is as simple as it can be, and for PRs and reviews of such changes.
 
 ## 1.11.0 - 2026-11-23
 

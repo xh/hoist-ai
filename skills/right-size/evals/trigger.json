@@ -40,6 +40,10 @@
     "should_trigger": true
   },
   {
+    "query": "Isn't all this overkill for something that almost never happens? Could it be simpler?",
+    "should_trigger": true
+  },
+  {
     "query": "Is this better than just refreshing all cells?",
     "should_trigger": true
   },

@@ -14,7 +14,7 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   hoist-upgrade/         Guided @xh/hoist version upgrade
   setup-worktree/        Runnable git worktree for a Hoist app
   clear-writing/         House style for prose that ships with code
-  complexity-tradeoff/   Menu of simpler options for a hardening change
+  right-size/            Menu of simpler options for a hardening change
   using-hoist-core-reference/    Authoritative reference for hoist-core; installs or removes its bundled MCP/CLI tools
   using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
 ```
