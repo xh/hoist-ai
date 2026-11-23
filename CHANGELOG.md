@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.11.0
+
+* `onboard-app`: lists the app's server-side client plugins in `hoistDocsLibraries` in
+  `gradle.properties`, so Hoist Docs serves their docs beside hoist-core's. It removes a plugin
+  that publishes no docs index, and reports a missing `gradle.lockfile`, where Hoist Docs reads
+  their versions.
+* `using-hoist-core-reference`: explains a missing hoist-core version, and a client plugin in
+  `hoistDocsLibraries` that did not load.
+
 ## 1.10.0 - 2026-11-19
 
 * Supports Hoist Docs (`@xh/hoist-docs`), the one MCP server for hoist-react and hoist-core that
