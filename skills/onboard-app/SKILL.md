@@ -176,6 +176,7 @@ Then list the planned actions:
 - [Add | Verify] `@xh/hoist-docs` as a `client-app` dev dependency
 - [Configure | Verify] the `hoist-docs` server in `.mcp.json` [, replacing the `hoist-react` entry]
 - [Remove the old `bin/hoist-docs` / `bin/hoist-ts` launchers (if present)]
+- [List the server-side client plugins in `hoistDocsLibraries` in `gradle.properties`]
 - [hoist-core v45+: remove the old hoist-core tools (if present; asks first, edits `build.gradle`)]
 - [hoist-core v39 to v44: Hoist Docs serves hoist-react only; ask whether to install the hoist-core
   tools (modifies `build.gradle`)]
@@ -299,6 +300,21 @@ Follow 3A in Hoist Docs mode, 3B in bundled mode (Phase 1, step 9).
    `HOIST_DOCS_MAVEN_SNAPSHOT_REPO` for snapshots. Credentials go in `HOIST_DOCS_MAVEN_USER`
    and `HOIST_DOCS_MAVEN_PASSWORD`, set in the developer's environment rather than the
    committed file. Behind an HTTP proxy, add `NODE_USE_ENV_PROXY=1`.
+7. **List the server-side client plugins.** Hoist Docs serves the docs index of each Grails
+   library listed in `hoistDocsLibraries` in `gradle.properties`, at the version `gradle.lockfile`
+   locks. Add the `group:artifact` of each server-side client plugin from Phase 1, step 3, with no
+   version, comma-separated, and keep any entries already there:
+   ```properties
+   hoistDocsLibraries=com.clientname:clientname-hoist
+   ```
+   Do not list `io.xh:hoist-core`. Hoist Docs finds it without the entry. Phase 5 removes any
+   plugin that publishes no docs index.
+
+   Hoist Docs reads these versions, and hoist-core's version when a plugin brings it in, from
+   `gradle.lockfile`. If the project has no `gradle.lockfile` (Phase 1, step 5), do not change
+   the build. Name it in the Phase 6 report: enable dependency locking in `build.gradle`
+   (`dependencyLocking { lockAllConfigurations() }`), run
+   `./gradlew dependencies --write-locks -PrunHoistInline=false`, and commit the lockfile.
 
 Phase 5 checks the server without a restart. Claude Code connects to it after the next restart.
 
@@ -587,6 +603,12 @@ the environment). Check each surface in a way that works without a restart.
    - **`core` under "Not loaded"** with "has no docs-index artifact": expected for hoist-core
      before v45. Otherwise the reason names the Maven problem. Behind a mirror or proxy, add the
      settings from Phase 3A, step 6, and run the script again.
+   - **A `hoistDocsLibraries` plugin under "Not loaded"** with "has no docs-index artifact": the
+     plugin publishes no docs index. Remove it from `hoistDocsLibraries` and name it in the
+     report. For another reason, keep the entry and surface the reason.
+   - **A `hoistDocsLibraries` plugin neither listed nor under "Not loaded"**: the installed
+     `@xh/hoist-docs` does not read `hoistDocsLibraries` yet. Keep the entry. It takes effect when
+     the app updates `@xh/hoist-docs`.
    - **"Hoist Docs is not installed"**: the `client-app` install did not run. Surface it.
    - **"Hoist Docs did not start"**: surface the error.
 2. **Opportunistic MCP ping.** Call `mcp__hoist-docs__hoist-ping` if the tool is in your context.
@@ -655,6 +677,8 @@ calls out the CLI fallback for MCP-blocked environments:
 - **MCP entry:** [Written | Already present] [; replaced the `hoist-react` entry]
 - **Server check:** [Serves <libraries and versions from the ping script> | Failed: <reason>]
 - **Not loaded:** [None | <library and reason, e.g. hoist-core 44.1.0 ships no docs index>]
+- **Client plugin docs:** [Listed in `hoistDocsLibraries`: <plugins> | Removed <plugins>: no docs index | No server-side client plugins]
+- **gradle.lockfile:** [Present | Missing: enable dependency locking, run `./gradlew dependencies --write-locks -PrunHoistInline=false`, and commit the lockfile]
 - **MCP runtime:** [Active (verified via ping) | Will activate on Claude Code restart, or remain dormant if the environment blocks MCP]
 - **Removed:** [<old launchers, entries and settings removed> | Nothing to remove]
 - **hoist-core:** [Served by Hoist Docs | Bundled hoist-core tools: installed / already installed / user deferred (hoist-core before v45)]
