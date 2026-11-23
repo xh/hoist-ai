@@ -65,14 +65,14 @@ grep -q 'off origin/develop' <<<"$ERR" && ok "default base origin/develop" || ba
 grep -q 'deps:       client-app:pnpm' <<<"$ERR" && ok "detects pnpm" || bad "pnpm detection"
 grep -q 'gradle:     installHoistCoreTools' <<<"$ERR" && ok "detects gradle task" || bad "gradle detection"
 grep -q 'secrets/a.key' <<<"$ERR" && ! grep -q 'secrets/b.txt' <<<"$ERR" && ok ".worktreeinclude matched" || bad "worktreeinclude: $ERR"
-grep -q 'plugins:    xh@hoist-ai' <<<"$ERR" && ok "plugin in hoist repo" || bad "plugin"
+grep -q 'plugins:    none' <<<"$ERR" && ok "no plugin by default" || bad "plugin default: $ERR"
 
 # 2. Real run.
 run --repo "$T/app" --branch feature/foo
 [[ $RC -eq 0 && "$OUT" == "$WT" ]] && ok "real run stdout is path only" || bad "real run rc=$RC out=[$OUT] err=$ERR"
 [[ $(printf '%s' "$OUT" | wc -l | tr -d ' ') == 0 ]] && ok "stdout single line" || bad "stdout lines"
 [[ -f "$WT/.env" && -f "$WT/secrets/a.key" && ! -e "$WT/secrets/b.txt" ]] && ok "locals copied" || bad "locals"
-grep -q '"xh@hoist-ai": true' "$WT/.claude/settings.local.json" && ok "plugin enabled" || bad "plugin file"
+! grep -q 'xh@hoist-ai' "$WT/.claude/settings.local.json" 2>/dev/null && ok "xh plugin not enabled locally" || bad "plugin file"
 [[ -f "$WT/client-app/node_modules.stub" ]] && ok "deps installed" || bad "deps"
 grep -q 'hoist-ai-launcher' "$WT/bin/hoist-docs" && grep -qF '$0' "$WT/bin/hoist-ts" && ok "launchers from templates" || bad "launchers"
 grep -q '==> deps: pnpm install (client-app)' <<<"$ERR" && ok "step marker" || bad "step marker"
@@ -225,6 +225,11 @@ run --repo "$T/app" --branch r5b --dest "$T/x/../y" --dry-run
 # R7. --skip plugin beats --enable-plugin.
 run --repo "$T/app" --branch r7 --skip plugin --enable-plugin a@b --dry-run
 grep -q 'plugins:    none' <<<"$ERR" && ok "R7 skip plugin wins" || bad "R7: $ERR"
+
+# R8. --enable-plugin still writes the worktree's local settings.
+run --repo "$T/app" --branch r8 --enable-plugin a@b
+grep -q '"a@b": true' "$T/app-worktrees/r8/.claude/settings.local.json" && ok "R8 enable-plugin writes" || bad "R8: $ERR"
+git -C "$T/app" worktree remove --force "$T/app-worktrees/r8"
 
 # R9. --local outside the repo -> 2.
 run --repo "$T/app" --branch r9 --local ../outside.txt --dry-run

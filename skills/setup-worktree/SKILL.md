@@ -78,7 +78,7 @@ plan shows a wrong fact. Run the script with `--help` for the full contract.
 |------|--------|
 | `--dest <abs path>` | Use another destination. Default: `<repo>-worktrees/<branch>` next to the repo. |
 | `--local <relpath>` | Copy one more gitignored file. Adds to the detected set. |
-| `--enable-plugin <id>` | Enable one more plugin in the worktree. Adds to `xh@hoist-ai`. |
+| `--enable-plugin <id>` | Enable a plugin in the worktree's `.claude/settings.local.json`. None by default. The `xh@hoist-ai` plugin comes from its user-scope install. |
 | `--toolchain`, `--deps`, `--gradle-task` | Replace detection for that step. |
 | `--skip <step>` | Skip a step: `locals`, `plugin`, `toolchain`, `deps`, `gradle`, `launchers`, or `parity`. |
 
