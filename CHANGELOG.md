@@ -2,22 +2,12 @@
 
 ## 1.13.0 - 2026-11-23
 
-* `setup-worktree`: no longer enables `xh@hoist-ai` in each worktree's
-  `.claude/settings.local.json`. Worktrees with that entry got their own local-scope installs,
-  which went stale. The user-scope install covers every worktree. `--enable-plugin` still works
-  for other plugins.
-* `setup-worktree`: the plan warns when the local settings a worktree gets enable `xh@hoist-ai`.
-  The skill also checks that the machine installs the plugin at user scope. Without that install,
-  sessions in the worktree have no `xh` skills.
-* `setup-worktree`: each script warning is now one stderr line that starts with `WARNING:`, as
-  `--help` documents, so callers can detect them.
-* `onboard-app`: checks that this machine installs the plugin at user scope. When it does not,
-  it gives the install command and offers to run it. It lists per-project installs with the steps
-  to remove them.
-* `onboard-app`: adds a `Skill(xh:<name>)` permission for each of the plugin's skills to the
-  shared settings. It reads the names from the plugin, so a re-run picks up new skills.
-* `onboard-app`: the generated CLAUDE.md tells agents to check for the `xh:` skills. When they
-  are missing, the agent gives the developer the user-scope install command and offers to run it.
+* Install the plugin once per machine at user scope. `onboard-app` and `setup-worktree` check for
+  that install and offer it when it is missing.
+* `setup-worktree`: stops enabling the plugin in each worktree's local settings, and warns when
+  inherited local settings enable it. Script warnings are now single `WARNING:` lines.
+* `onboard-app`: allows each of the plugin's skills in the shared settings. The generated
+  CLAUDE.md tells agents to offer the install when they see no `xh:` skills.
 
 ## 1.12.0 - 2026-11-23
 
