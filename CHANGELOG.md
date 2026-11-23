@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.14.1 - 2026-11-23
+
+* `onboard-app`: stops listing a repo's project-scope plugin records for removal. Claude Code
+  recreates them on the next session, so they are expected. Local-scope records are still listed.
+
 ## 1.14.0 - 2026-11-23
 
 * `onboard-app`: lists the app's server-side client plugins in `hoistDocsLibraries` in

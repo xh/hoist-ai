@@ -36,20 +36,18 @@ claude plugin install xh@hoist-ai --scope user
 ```
 
 This installs one copy for every project and worktree on this machine. Install it once per
-machine. Do not also install it at project or local scope. Each of those installs is a separate
-copy for one path. Claude Code updates it only when a session runs in that path, so it falls
-behind. If Claude Code offers to install the plugin for one project, decline.
+machine. Do not also install it at project or local scope by hand.
 
-To find per-project installs, run `claude plugin list --json` and look for `xh@hoist-ai` records
-with a `scope` of `project` or `local`. Remove each one from its `projectPath`:
+Claude Code adds a `project` record by itself when a session starts in a repo whose committed
+settings enable the plugin. That record is expected. Leave it alone.
+
+A `local` record comes from an `xh@hoist-ai` entry in a folder's `.claude/settings.local.json`.
+To find one, run `claude plugin list --json` and look for an `xh@hoist-ai` record with a `scope`
+of `local`. Remove it from its `projectPath`. This also removes the entry:
 
 ```sh
 claude plugin uninstall xh@hoist-ai --scope local
-claude plugin uninstall xh@hoist-ai --scope project && git restore .claude/settings.json
 ```
-
-The project-scope uninstall also deletes `xh@hoist-ai` from the committed
-`.claude/settings.json`. The `git restore` puts it back.
 
 ### 3. Turn On Auto-Update
 
