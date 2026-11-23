@@ -91,6 +91,12 @@ for orientation. Each one routes you to the right reference tool. The hoist-core
 loads on a request to install, upgrade or remove the hoist-core tools. You do not need to
 invoke them.
 
+The shared `.claude/settings.json` enables XH's `xh@hoist-ai` plugin, but enabling does not
+install it. Each developer should install it once per machine at user scope, which covers every
+repo and worktree and auto-updates. If no `xh:` skills appear in your available skills, tell the
+developer the plugin is missing and give them the command
+`claude plugin install xh@hoist-ai --scope user`. Offer to run it for them.
+
 {{REFERENCE_TOOLS}}
 
 ### hoist-core (server-side)
