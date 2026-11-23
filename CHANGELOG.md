@@ -2,11 +2,9 @@
 
 ## 1.12.0 - unreleased
 
-* New `complexity-tradeoff` skill. It names each mechanism a change adds and scores the case it
-  covers by likelihood and cost. It then presents a menu of options from simplest to most
-  complete, for the developer to choose from. It loads itself when a developer asks whether a
-  change is as simple as it can be, or what a race or failure would cost. It also loads for a PR
-  description or review of such a change.
+* New `complexity-tradeoff` skill. It weighs the complexity a change adds against the cases it
+  covers, and offers a menu of options from simplest to most complete. It loads when a developer
+  asks whether a change is as simple as it can be, and for PRs and reviews of such changes.
 
 ## 1.11.0 - 2026-11-23
 

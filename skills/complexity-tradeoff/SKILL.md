@@ -71,7 +71,8 @@ Rules for the menu:
 - Do not build the most complete option by default and then offer to remove parts of it.
 
 Run this step before you write the mechanism when the design is yours. Run it on the diff when
-the mechanism is already written, by you or by someone else.
+the mechanism is already written, by you or by someone else. Scale it to the mechanism. When it
+is a few lines of a standard pattern, state the case it covers in one sentence and skip the menu.
 
 ## Step 4: Record the call
 
@@ -130,10 +131,11 @@ only when its value changed. The scoping saved value getters and formatters on t
 columns of a grid, once per column move. The tree walk cost fifteen lines, a public method and a
 second place that had to know what `borders: false` means.
 
-The second draft kept one guard, skipping grids with no bordered groups. The developer asked
-whether it was safer to always refresh. The guard matched exactly the one rule Hoist ships, so it
-protected nothing an app rule might need, and a read of the refresh path plus a test in the inline
-editing demo showed the refresh never touches focus or an open editor. The final handler:
+The second draft kept one guard: skip the refresh on grids with no bordered groups. The developer
+asked whether it was safer to always refresh. The guard knew only the border rule that Hoist
+ships. An app's own cell class rule can also depend on column position, and the guard would skip
+it. The refresh was safe on every grid. A read of the refresh path, and a test with an open cell
+editor, showed that it never touches focus or an editor. The final handler:
 
 ```ts
 onDisplayedColumnsChanged = ev => ev.api.refreshCells();
