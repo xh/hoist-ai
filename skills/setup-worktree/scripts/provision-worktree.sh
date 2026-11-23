@@ -22,6 +22,9 @@
 #   child process output, and all warnings go to stderr. The one exception is --help, which
 #   prints usage to stdout. Child processes get no stdin, so nothing can prompt.
 #
+#   Each warning is one stderr line whose first non-blank text is `WARNING:`. A warning never
+#   changes the exit code.
+#
 #   Each step starts with a stable stderr line of the form `==> <step>: <detail>`, for example
 #   `==> deps: pnpm install (client-app)`. Steps: fetch, plan, create, locals, toolchain,
 #   plugin, deps, gradle, launchers, parity, done.
@@ -660,6 +663,18 @@ main() {
     [[ -z "$SYNC_WARNING" ]] || echo "    WARNING: branch $SYNC_WARNING" >&2
     echo "    locals:     ${LOCALS[*]:-none}"
     echo "    plugins:    ${PLUGINS[*]:-none}"
+    # The main checkout's local settings may enable xh@hoist-ai, for example from an old
+    # local-scope install. Copied into the worktree, the entry gives it its own install, which
+    # goes stale. Check the file the worktree will have: its own copy when adopting, else the
+    # one the locals step copies. Warn, do not edit: the file belongs to the developer.
+    local sl=".claude/settings.local.json" slf=""
+    if [[ -f "$DEST/$sl" ]]; then slf="$DEST/$sl"
+    elif [[ " ${LOCALS[*]-} " == *" $sl "* && -f "$REPO/$sl" ]]; then slf="$REPO/$sl"
+    fi
+    if [[ -n "$slf" && " ${PLUGINS[*]-} " != *" xh@hoist-ai "* ]] &&
+        grep -Eq '"xh@hoist-ai"[[:space:]]*:[[:space:]]*true' "$slf"; then
+        echo "    WARNING: $slf enables xh@hoist-ai. Remove the entry there and in every worktree that has it. The user-scope install covers every worktree." >&2
+    fi
     echo "    toolchain:  ${TOOLCHAINS[*]:-none}"
     echo "    deps:       ${DEPS[*]:-none}"
     echo "    gradle:     ${GRADLE_TASKS[*]:-none}"
@@ -739,14 +754,6 @@ main() {
             echo "    copied $rel"
         done
     fi
-    # The main checkout's local settings may enable xh@hoist-ai, for example from an old
-    # local-scope install. The copy then gives this worktree its own install, which goes stale.
-    # Warn, do not edit: the file belongs to the developer.
-    if [[ -f "$DEST/.claude/settings.local.json" && " ${PLUGINS[*]-} " != *" xh@hoist-ai "* ]] &&
-        grep -Eq '"xh@hoist-ai"[[:space:]]*:[[:space:]]*true' "$DEST/.claude/settings.local.json"; then
-        echo "    WARNING: .claude/settings.local.json enables xh@hoist-ai. Remove that entry here and in" >&2
-        echo "    $REPO/.claude/settings.local.json. The user-scope install covers every worktree." >&2
-    fi
 
     # --- Step 3: activate path-scoped toolchain managers ------------------
     # Runs before the install and Gradle, so the pinned Node and Java are on PATH.
@@ -776,8 +783,7 @@ main() {
         local settings="$DEST/.claude/settings.local.json"
         for id in "${PLUGINS[@]}"; do
             if ! has_cmd node "$DEST"; then
-                echo "    WARNING: node is not on PATH. Add \"enabledPlugins\": {\"$id\": true}" >&2
-                echo "    to $settings by hand." >&2
+                echo "    WARNING: node is not on PATH. Add \"enabledPlugins\": {\"$id\": true} to $settings by hand." >&2
                 continue
             fi
             mkdir -p "$DEST/.claude"
@@ -802,8 +808,7 @@ main() {
                     fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
                     console.log("enabled");
                 }' "$settings" "$id" 2>&1)"; then
-                echo "    WARNING: could not update $settings: $result" >&2
-                echo "    Add \"enabledPlugins\": {\"$id\": true} by hand." >&2
+                echo "    WARNING: could not update $settings: ${result%%$'\n'*}. Add \"enabledPlugins\": {\"$id\": true} by hand." >&2
                 continue
             fi
             echo "    $result $id"
@@ -874,7 +879,7 @@ main() {
             if [[ "$src" == "$dst" ]]; then
                 echo "    ok      $tool: $dst"
             else
-                echo "    WARNING $tool differs. Repo: $src / worktree: $dst" >&2
+                echo "    WARNING: $tool differs. Repo: $src / worktree: $dst" >&2
             fi
         done
     fi

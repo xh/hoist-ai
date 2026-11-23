@@ -6,9 +6,11 @@
   `.claude/settings.local.json`. Worktrees with that entry got their own local-scope installs,
   which went stale. The user-scope install covers every worktree. `--enable-plugin` still works
   for other plugins.
-* `setup-worktree`: warns when the copied local settings enable `xh@hoist-ai`, and checks that
-  the machine installs the plugin at user scope. Without that install, sessions in the worktree
-  have no `xh` skills.
+* `setup-worktree`: the plan warns when the local settings a worktree gets enable `xh@hoist-ai`.
+  The skill also checks that the machine installs the plugin at user scope. Without that install,
+  sessions in the worktree have no `xh` skills.
+* `setup-worktree`: each script warning is now one stderr line that starts with `WARNING:`, as
+  `--help` documents, so callers can detect them.
 * `onboard-app`: checks that this machine installs the plugin at user scope. When it does not,
   it gives the install command and offers to run it. It lists per-project installs with the steps
   to remove them.

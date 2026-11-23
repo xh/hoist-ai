@@ -234,8 +234,13 @@ git -C "$T/app" worktree remove --force "$T/app-worktrees/r8"
 # R8b. A local settings file that enables xh@hoist-ai is copied with a warning.
 cp "$T/app/.claude/settings.local.json" "$T/sl.bak"
 echo '{"enabledPlugins":{"xh@hoist-ai": true}}' > "$T/app/.claude/settings.local.json"
+run --repo "$T/app" --branch r8b --dry-run
+grep -Eq '^ *WARNING: .*settings.local.json enables xh@hoist-ai' <<<"$ERR" && ok "R8b dry run warns on inherited xh entry" || bad "R8b dry: $ERR"
 run --repo "$T/app" --branch r8b
-grep -q 'WARNING: .claude/settings.local.json enables xh@hoist-ai' <<<"$ERR" && ok "R8b warns on inherited xh entry" || bad "R8b: $ERR"
+[[ $(grep -c 'enables xh@hoist-ai' <<<"$ERR") -eq 1 ]] && ok "R8b real run warns once" || bad "R8b: $ERR"
+cp "$T/sl.bak" "$T/app/.claude/settings.local.json"
+run --repo "$T/app" --branch r8b
+grep -q "r8b/.claude/settings.local.json enables xh@hoist-ai" <<<"$ERR" && ok "R8b adopted worktree's own copy warns" || bad "R8b adopt: $ERR"
 echo '{"enabledPlugins":{"xh@hoist-ai": false}}' > "$T/app/.claude/settings.local.json"
 run --repo "$T/app" --branch r8c
 ! grep -q 'enables xh@hoist-ai' <<<"$ERR" && ok "R8c opt-out entry does not warn" || bad "R8c: $ERR"
@@ -324,6 +329,9 @@ WT="$T/hd-worktrees/feature-hd"
   && ok "H1 hoist-core v45 skips installHoistCoreTools" || bad "H1 gradle rc=$RC $ERR"
 [[ $RC -eq 0 && ! -e "$WT/bin/hoist-docs" ]] && grep -q 'launchers: skipped' <<<"$ERR" \
   && ok "H1 @xh/hoist v91 skips the CLI launchers" || bad "H1 launchers rc=$RC $ERR"
+
+# W. Every warning line starts with WARNING: (after indent), per the --help contract.
+! grep -nE 'echo "[[:space:]]*WARNING[^:]' "$SCRIPT" && ok "W warnings use the WARNING: prefix" || bad "W prefix"
 
 echo "== $PASS passed, $FAIL failed ($BASH_BIN)"
 [[ $FAIL -eq 0 ]]

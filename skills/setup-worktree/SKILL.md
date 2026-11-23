@@ -69,8 +69,9 @@ java version mismatch, or a plugin entry the script could not write. A branch WA
 script did not update an existing branch that is behind its remote. The branch diverged, or the
 worktree has uncommitted changes. Tell the user the install ran on the older code.
 
-A WARNING that `settings.local.json` enables `xh@hoist-ai` means the main checkout's local
-settings carried that entry into the worktree. Offer to remove the entry from both files.
+A WARNING that a `settings.local.json` enables `xh@hoist-ai` names the file. It is the main
+checkout's file, which the worktree copies, or an adopted worktree's own. Offer to remove the
+entry. The dry run shows it too, so you can remove it before the copy.
 
 ## Step 5: Check the plugin install
 
