@@ -359,9 +359,8 @@ may not be running yet.
 
 The committed `.claude/settings.json` declares the plugin for the whole team. The declaration
 turns the plugin on and keeps it current, but it does not install it. Each developer installs it
-once per machine, at user scope, which covers every project and worktree. A project-scope or
-local-scope install is a separate copy for one path. Claude Code updates it only when a session
-runs in that path, so it drifts to an old version.
+once per machine, at user scope, which covers every project and worktree. Claude Code also adds
+a project-scope record when a session starts in the repo. That is expected.
 
 The declaration has two parts:
 
@@ -408,17 +407,13 @@ on the `PATH`, skip this check and put the install command in the Phase 6 report
 - **No record with `scope` `user`:** tell the developer the plugin has no user-scope install,
   give them `claude plugin install xh@hoist-ai --scope user`, and offer to run it for them. It
   takes effect in the next session. If they decline, put the command in the Phase 6 report.
-- **Records with `scope` `project` or `local` and a `projectPath` in this repo or its
-  worktrees:** do not remove them now, because this session may be running from one. List them in
-  the Phase 6 report with the cleanup steps below.
-
-To remove a per-project record, run the uninstall from its `projectPath`:
-
-- `local` scope: `claude plugin uninstall xh@hoist-ai --scope local`. It also removes the entry
-  from `.claude/settings.local.json`, which the user-scope install makes redundant.
-- `project` scope: `claude plugin uninstall xh@hoist-ai --scope project`, then
-  `git restore .claude/settings.json`. The uninstall deletes `xh@hoist-ai` from the committed
-  `enabledPlugins`, and the restore puts it back. Run it only after you commit the declaration.
+- **Records with `scope` `project`:** expected. Claude Code adds one by itself when a session
+  starts in a repo whose committed settings enable the plugin. Do not report them or remove them.
+- **Records with `scope` `local` and a `projectPath` in this repo or its worktrees:** they come
+  from an `xh@hoist-ai` entry in that folder's `.claude/settings.local.json`. Do not remove them
+  now, because this session may be running from one. List them in the Phase 6 report, with the
+  command to run from each `projectPath`: `claude plugin uninstall xh@hoist-ai --scope local`. It
+  also removes the entry.
 
 ## Phase 3.5: hoist-core Tools
 
@@ -668,7 +663,7 @@ calls out the CLI fallback for MCP-blocked environments:
 - **Plugin declaration:** [Added to `.claude/settings.json` -- commit it | Turned on auto-update | Already present | Left alone: `hoist-ai` points at <source>]
 - **Skill permissions:** [Added `Skill(xh:...)` for <names> | Already present]
 - **Plugin install:** [User scope, version <v> | Installed at user scope -- restart to load it | Not installed at user scope -- run `claude plugin install xh@hoist-ai --scope user`]
-- **Per-project installs:** [None | <scope> at <projectPath>, version <v> -- remove with <command from Phase 3.2>]
+- **Local installs:** [None | <projectPath>, version <v> -- remove with `claude plugin uninstall xh@hoist-ai --scope local` from that folder]
 - **Client plugins:** [N plugin(s) documented | None detected]
 
 {Hoist Docs mode:}
