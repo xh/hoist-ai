@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.14.0 - 2026-11-23
+## 1.14.0 - Unreleased
 
 * `clear-writing`: in a repo with a `changelog.d/` folder, a new CHANGELOG entry goes in a fragment
   there, never in `CHANGELOG.md`.
