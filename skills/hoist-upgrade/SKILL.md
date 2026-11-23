@@ -1,7 +1,7 @@
 ---
 name: hoist-upgrade
-description: Upgrade a Hoist app's `@xh/hoist` dependency across one or more major versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, checks the hoist-react version-compatibility matrix and bumps `@xh/hoist-dev-utils` when the target version requires or recommends it, bumps `hoistCoreVersion` (and refreshes the hoist-core MCP+CLI launchers if previously installed), and produces a comprehensive upgrade report.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-react__hoist-ping, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-list-docs, mcp__hoist-react__hoist-read-doc, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols, mcp__hoist-react__hoist-get-members
+description: Upgrade a Hoist app's `@xh/hoist` dependency across one or more major versions. Reads per-version upgrade guides, auto-applies mechanical code migrations, flags judgment calls, checks the hoist-react version-compatibility matrix and bumps `@xh/hoist-dev-utils` when the target version requires or recommends it, bumps `hoistCoreVersion` (and refreshes or removes the hoist-core MCP+CLI launchers), moves the app's agent tooling to Hoist Docs when it crosses v91, and produces a comprehensive upgrade report.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, mcp__hoist-docs__hoist-ping, mcp__hoist-docs__hoist-search-docs, mcp__hoist-docs__hoist-list-docs, mcp__hoist-docs__hoist-read-doc, mcp__hoist-docs__hoist-get-symbol, mcp__hoist-docs__hoist-search-symbols, mcp__hoist-docs__hoist-get-members, mcp__hoist-react__hoist-ping, mcp__hoist-react__hoist-search-docs, mcp__hoist-react__hoist-list-docs, mcp__hoist-react__hoist-read-doc, mcp__hoist-react__hoist-get-symbol, mcp__hoist-react__hoist-search-symbols, mcp__hoist-react__hoist-get-members
 ---
 
 # Hoist Version Upgrade
@@ -82,6 +82,16 @@ Read `gradle.properties` at the project root. Extract the `hoistCoreVersion` val
 If the version is not set directly (e.g. it is inherited from a client-specific Grails plugin
 dependency), check `build.gradle` for the plugin dependency and note the transitive hoist-core
 version if determinable.
+
+**Detect Gradle dependency locking.** The app locks its server dependencies if a
+`gradle.lockfile` sits at the project root, or `build.gradle` has a `dependencyLocking` block.
+Record this for Phase 3e. Also record whether `build.gradle` or `gradle.properties` reads
+`runHoistInline`, or guards locking on another inline flag.
+
+In a locked app, also read the locked version: `grep '^io.xh:hoist-core:' gradle.lockfile`. It is
+the version the app builds with, and it covers apps that get hoist-core through a plugin. If it
+differs from `hoistCoreVersion`, the locks are stale. Note that in the plan, and regenerate them
+in the first hop as in Phase 3e, step 4, even if that hop does not bump hoist-core.
 
 **Assess server-side significance:** Check `CLAUDE.md` for notes about server-side complexity.
 Also scan the Grails app package (e.g. `grails-app/controllers/`, `grails-app/services/`) for
@@ -178,12 +188,27 @@ tables. If the doc or its dev-utils section is missing at plan time, note that i
 and rely on the per-hop post-install check in Phase 3f.
 
 For the target version (and each intermediate hop), note:
-- **hoist-core:** Min Core Required / Recommended Core vs the current `hoistCoreVersion`.
+- **hoist-core:** Min Core Required / Recommended Core vs the current `hoistCoreVersion`. Also
+  check the hoist-core reverse-lookup table: a hoist-core release can set a minimum hoist-react.
+  Never plan a `hoistCoreVersion` whose minimum hoist-react is above the target. hoist-core v45
+  requires hoist-react v91, so an app already on hoist-core v45 can only target v91 or later.
 - **hoist-dev-utils:** Min Dev-Utils Required / Recommended Dev-Utils vs the app's current
   `@xh/hoist-dev-utils` (Phase 1). Also check the doc's reverse-lookup table -- each dev-utils
   major sets its own minimum hoist-react and may raise the minimum Node version.
 
-Record any required or recommended bumps for the plan display below.
+**Plan the newest compatible version, never the bare minimum.** The Min and Recommended columns
+set a floor. The planned version is the newest stable release that is compatible with the target
+on every side:
+- **hoist-core:** the newest release at or above Min Core Required and Recommended Core, in a
+  major no higher than Max Core Tested, whose own minimum hoist-react is at or below the target.
+  List the releases with
+  `curl -s https://repo1.maven.org/maven2/io/xh/hoist-core/maven-metadata.xml`. If Maven Central
+  is not reachable, ask the developer for the newest release in that major. Plan it even if the
+  current `hoistCoreVersion` already meets the minimum.
+- **hoist-dev-utils:** the newest release of the highest major whose minimum hoist-react is at or
+  below the target, from `npm view @xh/hoist-dev-utils versions --json`. Skip prereleases.
+
+Record each planned bump for the plan display below.
 
 ### 4. Check guide availability
 
@@ -229,8 +254,8 @@ Do not proceed until the developer confirms the plugin approach.
 
 - **Branch:** upgrade/hoist-v{current}-to-v{target} (or existing branch if found)
 - **Commits:** One per version hop
-- **hoist-core:** {current version from gradle.properties}
-- **hoist-dev-utils:** {current} -> {planned bump per compatibility matrix, or "no change required"}
+- **hoist-core:** {current version from gradle.properties} -> {newest compatible release, or "no change"}
+- **hoist-dev-utils:** {current} -> {newest compatible release, or "no change"}
 - **Server complexity:** {Minimal (stock) | Significant (custom controllers/services)}
 - **Client plugins:** {Detected plugins, or "None detected"}
 - **Package manager:** {detected package manager}
@@ -319,6 +344,12 @@ Read the upgrade guide carefully. For each migration step:
 2. Apply changes using the Edit tool
 3. Verify with a second grep that the old patterns are gone
 
+**Codemods** (scripts the guide tells you to run, shipped under
+`client-app/node_modules/@xh/hoist/docs/codemod/`):
+1. Run each one as the guide directs. Use its dry-run flag first if it has one.
+2. Do not hand-edit changes that a codemod makes.
+3. Record each spot the codemod reports it could not convert as a judgment call.
+
 **Judgment calls** (behavior changes, multiple replacement options, architectural decisions):
 1. Do NOT apply automatically
 2. Use grep to find affected files
@@ -326,11 +357,24 @@ Read the upgrade guide carefully. For each migration step:
 4. These will be included in the upgrade report for developer review
 
 When migration involves API changes and you need to verify new API shapes, prefer the
-before/after code examples in the upgrade guide. For other lookups, use the hoist-react CLI from
-`client-app/`: `npx hoist-ts search|symbol|members` and `npx hoist-docs search|read`. The CLI
-reads the installed version on each call. The MCP server reads it only at startup, so until it
-is reconnected in Phase 4, its docs and symbols describe the pre-upgrade version. Do not use
-the MCP tools between the first install and that reconnect.
+before/after code examples in the upgrade guide. The MCP server reads the installed version only
+at startup, so until it is reconnected in Phase 4, its docs and symbols describe the pre-upgrade
+version. Do not use the MCP tools between the first install and that reconnect. Instead:
+- On a hop to v90 or earlier, use the hoist-react CLI from `client-app/`:
+  `npx hoist-ts search|symbol|members` and `npx hoist-docs search|read`. It reads the installed
+  version on each call.
+- On a hop to v91 or later, `@xh/hoist` ships no CLI, and `npx hoist-docs` runs the Hoist Docs
+  server instead. `Read` the docs and TypeScript source under `client-app/node_modules/@xh/hoist/`.
+
+**Agent tooling at v91.** When a hop lands on v91 or later, and the app still uses the tools
+bundled with `@xh/hoist` (a `hoist-react` entry in `.mcp.json`, or `bin/hoist-docs` and
+`bin/hoist-ts` launchers), the v91 guide's "Switch Agents to Hoist Docs" step applies. Treat it
+as a mechanical change. `Glob` for `**/onboard-app/SKILL.md` and apply its Phase 3A, steps 1 to
+6, which add `@xh/hoist-docs`, write the `hoist-docs` entry, and remove the old entry, launchers
+and permissions. Ask the step 6 Maven question only if `build.gradle` resolves Hoist from a
+mirror. Also update `CLAUDE.md` and other agent docs that name the old tools, as in Phase 3j.
+Leave the bundled hoist-core tools to Phase 3e. If the app never had a `hoist-react` entry, do
+not add Hoist Docs unasked: list it under Next Steps instead.
 
 ### 3e. Check and bump hoist-core version
 
@@ -341,27 +385,59 @@ the guide and the matrix should agree; if they differ, honor the stricter requir
 If a requirement is found, compare against the current `hoistCoreVersion` from
 `gradle.properties` (read in Phase 1).
 
-If the current version is below the requirement:
-1. Bump `hoistCoreVersion` in `gradle.properties` to the required version.
+Bump hoist-core in this hop if the current version is below the hop's requirement, or if this is
+the last hop and the current version is below the version planned in Phase 2. Bump to the newest
+release that is compatible with this hop's target, by the rules in Phase 2, step 3. On the last
+hop, that is the planned version. Never bump to the bare minimum when a newer compatible release
+exists.
+
+To bump:
+1. Set `hoistCoreVersion` in `gradle.properties` to that version.
 2. Prominently note this change for the upgrade report.
 3. If the project has significant server-side code (detected in Phase 1), add a prominent
    warning that the hoist-core upgrade may require additional server-side review.
-4. **Refresh the hoist-core MCP+CLI launchers if they were previously installed.** Check
-   whether `bin/hoist-core-mcp` exists at the project root. If it does, the launchers embed an
-   absolute path to a version-suffixed JAR (e.g. `hoist-core-mcp-{old}-all.jar`) and are now
-   stale. Re-run:
+4. **Regenerate the Gradle lockfiles** if the app uses dependency locking (Phase 1). Gradle does
+   not update a lockfile when a version changes. A raised version fails the build, and a lowered
+   one passes and keeps the old version. Do this after every edit this hop makes to
+   `gradle.properties` or `build.gradle`, including the snippet refresh or removal in step 5,
+   and before step 5 runs any Gradle task. From the project root:
    ```bash
-   ./gradlew installHoistCoreTools
+   ./gradlew dependencies --write-locks -PrunHoistInline=false
    ```
-   This refreshes the launchers to point at the new version's JAR. Verify with
-   `./bin/hoist-core-docs ping` (returns `hoist-core CLI is running.`). Note the refresh in
-   the upgrade report.
-5. **Surface the install-eligibility transition** if relevant. If the bumped `hoistCoreVersion`
-   is `>= 39.0` AND `bin/hoist-core-mcp` does NOT exist (i.e., the install task was never run
-   here), the user is now eligible for the hoist-core MCP server + `hoist-core-docs` /
-   `hoist-core-symbols` CLI tools (introduced in v39.0). Add a "Next Steps" item to the upgrade
-   report: "Install the hoist-core MCP+CLI tools by running `/xh:onboard-app` -- onboarding
-   will detect the new eligibility and offer to install."
+   Keep `-PrunHoistInline=false` if the build reads `runHoistInline`. If it guards locking on
+   another inline flag, pass that flag as `false` too. A run in inline mode wipes the lock state.
+   If step 5 removed the install snippet, delete `gradle.lockfile` before the run.
+   `--write-locks` keeps the entries of a configuration that no longer exists. Then check that
+   `grep '^io.xh:hoist-core:' gradle.lockfile` shows the new version. Commit `gradle.lockfile`
+   and `buildscript-gradle.lockfile` in the hop commit. Do not edit a lockfile by hand. If the
+   run fails, show the error and stop for the developer. For details, read the hoist-core
+   "Dependency Locking" doc if the reference tools serve it.
+5. **Refresh or remove the hoist-core MCP+CLI launchers if they were previously installed.**
+   Check whether `bin/hoist-core-mcp` exists at the project root, `build.gradle` defines
+   `installHoistCoreTools`, or `.mcp.json` has a `hoist-core` entry.
+   - **New `hoistCoreVersion` v45 or later:** v45 publishes no `io.xh:hoist-core-mcp`, so
+     `installHoistCoreTools` fails. Do not run it. Remove the bundled tools: `Glob` for
+     `**/using-hoist-core-reference/SKILL.md` and follow **Removing the bundled tools**. It
+     edits `build.gradle`, so show the developer the change first. Hoist Docs serves hoist-core
+     from v45, once `@xh/hoist` is on v91 or later. Note the removal in the upgrade report.
+   - **New `hoistCoreVersion` below v45:** the launchers embed an absolute path to a
+     version-suffixed JAR (e.g. `hoist-core-mcp-{old}-all.jar`) and are now stale. If the new
+     version is v43 or later (Grails 8) and `build.gradle` has a
+     `// hoist-ai-snippet: hoist-core-install/v1` marker or none, refresh the install snippet
+     first. Follow "Refreshing a stale install snippet" in `using-hoist-core-reference`. The `v1`
+     snippet fails under Grails 8. Then re-run:
+     ```bash
+     ./gradlew installHoistCoreTools
+     ```
+     This refreshes the launchers to point at the new version's JAR. Verify with
+     `./bin/hoist-core-docs ping` (returns `hoist-core CLI is running.`). Note the refresh in
+     the upgrade report.
+6. **Surface the install-eligibility transition** if relevant. If the bumped `hoistCoreVersion`
+   is `>= 39.0` and below v45, AND `bin/hoist-core-mcp` does NOT exist (i.e., the install task
+   was never run here), the user is now eligible for the hoist-core MCP server +
+   `hoist-core-docs` / `hoist-core-symbols` CLI tools (introduced in v39.0). Add a "Next Steps"
+   item to the upgrade report: "Install the hoist-core MCP+CLI tools by running
+   `/xh:onboard-app` -- onboarding will detect the new eligibility and offer to install."
 
 ### 3f. Check and bump hoist-dev-utils version
 
@@ -370,8 +446,11 @@ hop's just-installed target version -- and compare the target's Min/Recommended 
 against the app's current `@xh/hoist-dev-utils`. The upgrade guide's "Prerequisites" section
 may also state a dev-utils requirement; honor the stricter of the two.
 
-If a bump is required or recommended:
-1. Update `@xh/hoist-dev-utils` in `client-app/package.json` `devDependencies` and re-run the
+If a bump is required or recommended, or this is the last hop and the version planned in Phase 2
+is newer than the current one:
+1. Update `@xh/hoist-dev-utils` in `client-app/package.json` `devDependencies` to the newest
+   release compatible with this hop's target, by the rules in Phase 2, step 3. Never use the
+   bare minimum when a newer compatible release exists. Re-run the
    install command from `client-app/`. The bump belongs in this hop's change -- package.json
    and lockfile land together in the hop commit.
 2. Review breaking changes for the dev-utils versions being crossed. The published dev-utils
@@ -388,7 +467,7 @@ If a bump is required or recommended:
    directly -- phantom dependencies that yarn's hoisting concealed will fail to resolve.
 4. Prominently note the bump for the upgrade report.
 
-If the current dev-utils already satisfies the target's requirements, no action is needed.
+If the current dev-utils is already the newest compatible release, no action is needed.
 
 ### 3g. Handle client plugin version (if applicable)
 
@@ -422,7 +501,9 @@ After each hop, display a brief status showing progress through the sequence:
 The app's agent docs can still teach APIs that the upgrade removed. `CLAUDE.md` is the main
 one. Also check `AGENTS.md`, `.claude/rules/`, and other docs written for agents.
 
-1. Re-run the "find affected files" greps from each hop's guide against these docs. Fix each
+1. Re-run the "find affected files" greps from each hop's guide against these docs. Some
+   codemods change source files only, so also search these docs for the old patterns that each
+   codemod replaced. Review any doc text that a codemod reported but did not change. Fix each
    hit, or record it as a judgment call if the text is project-specific.
 <!-- legacy-api:start -->
 2. If `CLAUDE.md` holds the Hoist primer from `/xh:onboard-app` (an "Architecture Primer"
@@ -447,7 +528,14 @@ opportunistic and safe to skip in environments that block MCP.
 
 ### 1. Verify the upgraded developer-tools surfaces
 
-**hoist-react CLI (universal, always run).** From `client-app/`, run:
+**On v91 or later: Hoist Docs (always run, if the app uses it).** `Glob` for
+`**/onboard-app/templates/hoist-docs-ping.sh` and run it with `bash` from the project root. It
+starts the project's Hoist Docs server once, without MCP, and prints the versions it serves,
+with the reason for any library not loaded. Confirm it lists the upgraded `@xh/hoist` version.
+`core` under "Not loaded" is expected for hoist-core before v45. Interpret other results as in
+the onboard-app skill's Phase 5. Surface any errors before continuing.
+
+**Before v91: hoist-react CLI (universal, always run).** From `client-app/`, run:
 
 ```bash
 npx hoist-docs index
@@ -457,17 +545,19 @@ This reads from `client-app/node_modules/@xh/hoist/...` and always reflects the 
 version. A clean docs index print confirms the upgraded surface is reachable. Surface any
 errors before continuing.
 
-**hoist-react MCP reconnect (only if MCP is part of your workflow).** The MCP server is still
-serving the pre-upgrade version's types and docs. Prompt the developer:
+**MCP reconnect (only if MCP is part of your workflow).** The MCP server is still serving the
+pre-upgrade version's types and docs. On v91 or later, and if this upgrade switched the app to
+Hoist Docs, the new `hoist-docs` server needs a restart of Claude Code rather than `/mcp`.
+Otherwise prompt the developer:
 
 > "If you use MCP in this environment, please run `/mcp` in Claude Code to reconnect the
-> hoist-react server, then say 'continue'. If you don't use MCP (for example, in MCP-blocked
-> enterprise environments), say 'skip' -- the CLI surface above is the working path and
+> Hoist reference server ({hoist-docs | hoist-react}), then say 'continue'. If you don't use
+> MCP (for example, in MCP-blocked enterprise environments), say 'skip' -- the check above
 > already reflects the upgrade."
 
-After 'continue': call `mcp__hoist-react__hoist-ping` to confirm. After 'skip', or if the ping
-fails or the tool isn't in your context, proceed without error -- the CLI verification above is
-sufficient.
+After 'continue': call `hoist-ping` on that server (`mcp__hoist-docs__hoist-ping` or
+`mcp__hoist-react__hoist-ping`) to confirm. After 'skip', or if the ping fails or the tool isn't
+in your context, proceed without error -- the check above is sufficient.
 
 **hoist-core CLI (only if launchers were refreshed in Phase 3e).** If Phase 3e re-ran
 `installHoistCoreTools`, run:
@@ -573,15 +663,17 @@ when they don't apply.
 - Production build: {pass | fail | not run}
 - Dev server startup: {pass | fail | not run}
 - Tests: {pass | fail per suite | no suite | not run}
-- hoist-react CLI (`npx hoist-docs index`): {ok | error}
-- hoist-react MCP reconnect: {reconnected | skipped | failed}
+- Hoist Docs server check (v91+): {serves <versions> | error | N/A}
+- hoist-react CLI (`npx hoist-docs index`, before v91): {ok | error | N/A}
+- MCP reconnect: {reconnected | restart needed | skipped | failed}
 - hoist-core CLI (if launchers refreshed): {ok | error | N/A}
 
 ### hoist-core Changes
 {Include only if hoistCoreVersion was bumped.}
 
-- {old} -> {new} (required by {hop or guide reference})
-- Launchers: {refreshed via installHoistCoreTools, ping verified | not previously installed -- skipped}
+- {old} -> {new}, the newest compatible release (minimum {min}, from {hop or guide reference})
+- Gradle lockfiles: {regenerated, hoist-core locked at {new} | no dependency locking | failed: {error}}
+- Launchers: {refreshed via installHoistCoreTools, ping verified | removed (v45+ is served by Hoist Docs) | not previously installed -- skipped}
 - {If significant server-side code was detected in Phase 1, add a one-line note that
   server-side review is recommended.}
 
@@ -590,6 +682,13 @@ when they don't apply.
 
 - {old} -> {new} (required/recommended for hoist-react v{version} per the compatibility matrix)
 - {Note any new Node version floor or config changes from the dev-utils CHANGELOG.}
+
+### Agent Tooling
+{Include only if this upgrade switched the app to Hoist Docs.}
+
+- Added `@xh/hoist-docs`, and the `hoist-docs` server in `.mcp.json`
+- Removed: {old `.mcp.json` entries, launchers and permissions}
+- Restart Claude Code to start the new server.
 
 ### Agent Docs
 {Include only if Phase 3j changed anything.}
@@ -609,9 +708,14 @@ when they don't apply.
 - [ ] Review hoist-core release notes if this project has significant server-side code
 {Include if hoist-dev-utils was bumped across a major with a new Node floor:}
 - [ ] Confirm CI / build agents meet the new minimum Node version
-{Include if hoistCoreVersion >= 39.0 AND bin/hoist-core-mcp does NOT exist:}
+{Include if the app is on v91+ and has no `hoist-docs` entry in `.mcp.json`:}
+- [ ] Set up Hoist Docs, the agent reference tools for v91 and later: run `/xh:onboard-app`
+{Include if hoistCoreVersion >= 39.0 and below v45 AND bin/hoist-core-mcp does NOT exist:}
 - [ ] Install the hoist-core MCP+CLI tools now that you're eligible (>= v39.0):
       run `/xh:onboard-app` -- it will detect the new eligibility and offer to install
+{Include if the app has no Gradle dependency locking:}
+- [ ] Turn on Gradle dependency locking, which XH recommends for all Hoist apps. See the
+      hoist-core "Dependency Locking" doc.
 {Include if client plugins were detected:}
 - [ ] Verify client plugin compatibility with the upgraded Hoist version
 - [ ] Open / merge the pull request for this upgrade branch

@@ -6,7 +6,7 @@ This is a Hoist application built on `@xh/hoist` (hoist-react) and `hoist-core`.
 
 ### hoist-react (client-side)
 
-Read the Architecture Primer below. Then use the MCP tools for full documentation on any topic. In MCP-blocked environments, use the `./bin/hoist-docs` and `./bin/hoist-ts` CLI launchers instead. The `using-hoist-react-reference` skill loads itself when you author Hoist code and routes you to the right surface.
+Read the Architecture Primer below. Then use the Hoist reference tools, described under Hoist Reference Skills, for full documentation on any topic. The `using-hoist-react-reference` skill loads itself when you author Hoist code and routes you to them.
 
 #### Architecture Primer
 
@@ -21,18 +21,23 @@ A Hoist application has three artifact types:
 **Element factories over JSX.** Hoist uses element factory functions, not JSX:
 ```typescript
 // ✅ Hoist style
-panel({title: 'Users', items: [grid(), button({text: 'Refresh'})]})
-
+panel({title: 'Users', children: [grid(), button({text: 'Refresh'})]})
+```
+```tsx
 // ❌ Not used in Hoist
 <Panel title="Users"><Grid /><Button text="Refresh" /></Panel>
 ```
+
+Pass child elements with the standard React `children` key. A container component destructures
+`children` from its props and passes it on as `children`. `item` and `items` are legacy aliases
+for `children`. Do not use them in new code.
 
 **Components.** Create a component with `hoistCmp.factory`. Each component declares its model relationship:
 ```typescript
 export const userList = hoistCmp.factory({
     model: creates(UserListModel),  // Component creates and owns this model
     render({model}) {
-        return panel({title: 'Users', item: grid()});
+        return panel({title: 'Users', children: grid()});
     }
 });
 ```
@@ -82,13 +87,11 @@ navigation (`navigate`, `appendRoute`), and app state (`appState`, `darkTheme`).
 
 The `xh` Claude Code plugin ships two reference skills: `using-hoist-react-reference` and
 `using-hoist-core-reference`. They load themselves when you are about to author Hoist code or ask
-for orientation. Each one routes you to the right MCP tool or CLI command. The hoist-core skill also
-loads on a request to install or upgrade the hoist-core MCP and CLI tools. You do not need to
+for orientation. Each one routes you to the right reference tool. The hoist-core skill also
+loads on a request to install, upgrade or remove the hoist-core tools. You do not need to
 invoke them.
 
-Each skill has two interchangeable surfaces: MCP tools when MCP is enabled, and CLI launchers once
-installed. In MCP-blocked environments the CLI is the working path, and the skills route to it. If
-neither surface is reachable, run `/xh:onboard-app` to configure them.
+{{REFERENCE_TOOLS}}
 
 ### hoist-core (server-side)
 
@@ -100,12 +103,7 @@ neither surface is reachable, run `/xh:onboard-app` to configure them.
 - Production build: `./gradlew war`
 
 For server-side work, the `using-hoist-core-reference` skill routes you to the hoist-core
-developer tools. Two surfaces ship from the same fat JAR:
-
-- **MCP tools**: `mcp__hoist-core__*`. Available when MCP is enabled, after you run
-  `installHoistCoreTools` and restart Claude Code.
-- **CLI launchers**: `./bin/hoist-core-docs` and `./bin/hoist-core-symbols`, once installed. These
-  work in any environment, including MCP-blocked ones.
+reference tools described under Hoist Reference Skills.
 
 The hoist-core docs are also on GitHub at https://github.com/xh/hoist-core.
 
@@ -128,3 +126,4 @@ description, or a document. It also loads when you review a diff that includes c
 ### Backend (run from project root)
 - Dev server: `./gradlew bootRun`
 - Production build: `./gradlew war`
+{{GRADLE_LOCKS}}

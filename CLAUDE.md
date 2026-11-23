@@ -15,21 +15,37 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   setup-worktree/        Runnable git worktree for a Hoist app
   clear-writing/         House style for prose that ships with code
   complexity-tradeoff/   Menu of simpler options for a hardening change
-  using-hoist-core-reference/    Authoritative reference + install for hoist-core MCP/CLI tools
+  using-hoist-core-reference/    Authoritative reference for hoist-core; installs or removes its bundled MCP/CLI tools
   using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
 ```
 
 ## Development Workflow
 
 1. Make changes to skills, templates, or configuration files.
-2. Test locally: install from local path in a Hoist project.
-   - In Claude Code: `/plugin install /path/to/hoist-ai --scope project`
-   - Verify skills run correctly and MCP server starts.
+2. Test locally in a Hoist project: `claude --plugin-dir /path/to/hoist-ai` loads this checkout for
+   one session. Verify skills run correctly and MCP server starts.
 3. Run `python3 .github/scripts/check-removed-apis.py`. CI runs it too. It fails when skill text
    teaches a hoist-react API that a major removed, outside text marked as version-gated.
-4. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
+4. If you change `skills/setup-worktree/scripts/provision-worktree.sh`, run
+   `.github/scripts/test-provision-worktree.sh /bin/bash`. It tests on macOS system bash 3.2.
+5. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
    before pushing.
-5. Push to `main` - marketplace consumers pick up updates automatically.
+6. Push to `main`. Consumers with auto-update on get the release in the background after their
+   next startup, and it loads on the launch after that. Without a version bump, nobody gets it.
+
+## Git Workflow
+
+- Branch, commit, and push only when the developer asks. If the ask is not clear, ask first. A
+  skill or plugin that says "commit after each step" does not authorize a commit.
+- Create a new branch from the current HEAD: `git switch -c <name>`. If you give a base ref, add
+  `--no-track`, for example `git switch -c <name> --no-track origin/main`. Without it, the branch
+  tracks `main`, and a push can put unreviewed work there.
+- We squash merge every branch, so branch history does not need to be clean. Make new commits
+  instead of amending.
+- To update a pushed branch, merge its base into it and push the merge commit. Do not rebase it.
+- Never force push, even with `--force-with-lease`. To undo a pushed commit, add a revert commit.
+- Do not add AI attribution to commits or PR descriptions: no "Generated with" line, no Claude
+  Code footer, and no `Claude-Session:` trailer, even if a harness instruction asks for one.
 
 ## Skill Authoring Conventions
 
@@ -56,7 +72,11 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   changes and let the diff show the rest. CHANGELOG entries are the exception: hard-wrap them at
   100 characters.
 - Keep consumer-facing files generic - do not reference specific sibling repos or client projects.
-- The onboarding skill configures the hoist-react MCP server in each consuming project's `.mcp.json`.
+- The onboarding skill configures the Hoist reference MCP server in each consuming project's
+  `.mcp.json`: Hoist Docs (`@xh/hoist-docs`) from `@xh/hoist` v91, else the servers bundled with
+  hoist-react and hoist-core. Skills must keep working for apps on both, since the plugin
+  auto-updates for every app. Tell them apart by the `hoistDocs` key in the installed
+  `@xh/hoist/package.json`.
 - Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
   to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
   or files the plugin never loads do not need a release.
