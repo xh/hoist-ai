@@ -12,6 +12,9 @@ Hoist application development. Maintained by Extremely Heavy Industries (https:/
 skills/                  Plugin skills (invoked via /xh:skill-name)
   onboard-app/           Project setup and AI configuration
   hoist-upgrade/         Guided @xh/hoist version upgrade
+  setup-worktree/        Runnable git worktree for a Hoist app
+  clear-writing/         House style for prose that ships with code
+  right-size/            Menu of simpler options for a hardening change
   using-hoist-core-reference/    Authoritative reference for hoist-core; installs or removes its bundled MCP/CLI tools
   using-hoist-react-reference/   Authoritative reference for the @xh/hoist React framework
 ```
@@ -25,10 +28,47 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
    teaches a hoist-react API that a major removed, outside text marked as version-gated.
 4. If you change `skills/setup-worktree/scripts/provision-worktree.sh`, run
    `.github/scripts/test-provision-worktree.sh /bin/bash`. It tests on macOS system bash 3.2.
-5. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
-   before pushing.
-6. Push to `main`. Consumers with auto-update on get the release in the background after their
-   next startup, and it loads on the launch after that. Without a version bump, nobody gets it.
+5. If the change ships new behavior to consumers, release a new version. See Releases below.
+6. Merge or push to `main`.
+
+## Releases
+
+Claude Code updates a plugin only when the `version` in `.claude-plugin/plugin.json` changes.
+Consumers with auto-update on get a new version in the background after their next startup, and it
+loads on the launch after that. A change that reaches `main` without a new version never reaches
+them.
+
+- A version is released once it is on `main`. Never reuse it. Never add entries to its CHANGELOG
+  section, except to correct the record. A later change ships under the next version.
+- A change to any file outside the repo-only paths ships to consumers, so it needs a new version
+  and a CHANGELOG entry. This includes a typo fix in a skill. The repo-only paths are the CI files,
+  `CLAUDE.md`, `README.md`, `CHANGELOG.md`, and skill `evals/` folders. The script below holds the
+  full list.
+- Bump the minor version by default and the patch version for a small fix. Bump the major version
+  for a change consumers must act on, such as a renamed or removed skill.
+- When you bump the version, head the new CHANGELOG section `## X.Y.Z - YYYY-MM-DD` with the date.
+  Before the merge to `main`, merge `main` into the branch. If another change took the number,
+  bump again and update the heading and its date.
+- To ship several changes as one version, merge their pull requests into a staging branch. Then
+  merge that branch to `main`. The changes share one version and one CHANGELOG section.
+- CI runs `.github/scripts/check-version-bump.py` on pull requests into `main` and on pushes to
+  `main`. It fails when shipped files change without a higher version. The push check runs after
+  the commit is on `main`, so before a direct push, run `git fetch` and then the script with
+  `origin/main` as the base.
+
+## Git Workflow
+
+- Branch, commit, and push only when the developer asks. If the ask is not clear, ask first. A
+  skill or plugin that says "commit after each step" does not authorize a commit.
+- Create a new branch from the current HEAD: `git switch -c <name>`. If you give a base ref, add
+  `--no-track`, for example `git switch -c <name> --no-track origin/main`. Without it, the branch
+  tracks `main`, and a push can put unreviewed work there.
+- We squash merge every branch, so branch history does not need to be clean. Make new commits
+  instead of amending.
+- To update a pushed branch, merge its base into it and push the merge commit. Do not rebase it.
+- Never force push, even with `--force-with-lease`. To undo a pushed commit, add a revert commit.
+- Do not add AI attribution to commits or PR descriptions: no "Generated with" line, no Claude
+  Code footer, and no `Claude-Session:` trailer, even if a harness instruction asks for one.
 
 ## Skill Authoring Conventions
 
@@ -60,9 +100,6 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   hoist-react and hoist-core. Skills must keep working for apps on both, since the plugin
   auto-updates for every app. Tell them apart by the `hoistDocs` key in the installed
   `@xh/hoist/package.json`.
-- Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
-  to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
-  or files the plugin never loads do not need a release.
 - Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
   skill-creator best practices on the `description:` frontmatter: single paragraph with no
   blank-line breaks (the harness truncates display at blank lines); lead with a "Why this

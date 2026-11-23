@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.11.0
+## 1.14.0 - 2026-11-23
 
 * `onboard-app`: lists the app's server-side client plugins in `hoistDocsLibraries` in
   `gradle.properties`, so Hoist Docs serves their docs beside hoist-core's. It removes a plugin
@@ -8,6 +8,49 @@
   their versions.
 * `using-hoist-core-reference`: explains a missing hoist-core version, and a client plugin in
   `hoistDocsLibraries` that did not load.
+
+## 1.13.0 - 2026-11-23
+
+* Install the plugin once per machine at user scope. `onboard-app` and `setup-worktree` check for
+  that install and offer it when it is missing.
+* `setup-worktree`: stops enabling the plugin in each worktree's local settings, and warns when
+  inherited local settings enable it. Script warnings are now single `WARNING:` lines.
+* `onboard-app`: allows each of the plugin's skills in the shared settings. The generated
+  CLAUDE.md tells agents to offer the install when they see no `xh:` skills.
+
+## 1.12.0 - 2026-11-23
+
+* New `right-size` skill. It weighs the complexity a change adds against the cases it covers, and
+  offers a menu of options from simplest to most complete. It loads when a developer asks whether a
+  change is as simple as it can be, and for PRs and reviews of such changes.
+* `onboard-app`: in apps with Gradle dependency locking, the generated CLAUDE.md tells agents to
+  regenerate the lockfiles after a server dependency change. The hoist-core version is read from
+  the lockfile.
+* `hoist-upgrade`: refreshes a `v1` install snippet before it reinstalls the hoist-core tools on
+  hoist-core v43 or v44.
+* `hoist-upgrade`: regenerates the Gradle lockfiles after it bumps `hoistCoreVersion`, in apps
+  that use dependency locking. It used to leave them stale, so the next build failed. It also
+  reads the locked hoist-core version, and suggests locking to apps without it.
+* `hoist-upgrade`: also removes the bundled hoist-core tools on v45 when only their `.mcp.json`
+  entry remains.
+* `hoist-upgrade`: plans and bumps hoist-core and `@xh/hoist-dev-utils` to the newest release
+  compatible with the target, not the minimum the compatibility matrix requires.
+* `using-hoist-core-reference`: the hoist-core install snippet moves to `v2`, which works under
+  Grails 8. The refresh is required on hoist-core v43 and v44, where the `v1` snippet fails.
+* `using-hoist-core-reference`: regenerates the Gradle lockfiles after it adds, refreshes or
+  removes the install snippet. In a locked app, `installHoistCoreTools` failed without them.
+* `using-hoist-react-reference`: on v91 and later, offers `onboard-app` to clean up leftover
+  bundled tools, not just to delete the launchers. `onboard-app` also removes their
+  `.gitignore` lines.
+
+## 1.11.0 - 2026-11-20
+
+* `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`
+  key, as hoist-react v91 does, and names `item` / `items` as legacy aliases. The JSX
+  counter-example moves to its own `tsx` block, so a codemod that edits doc code blocks can
+  parse the primer.
+* `hoist-upgrade`: runs codemods that an upgrade guide ships, and records spots they could not
+  convert as judgment calls. Agent docs are also checked for the patterns a codemod replaced.
 
 ## 1.10.0 - 2026-11-19
 

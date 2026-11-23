@@ -74,6 +74,14 @@ Shown for Hoist Docs. With the bundled tools, use the matching `mcp__hoist-core_
 
 Everything from here to [When the tools aren't available](#when-the-tools-arent-available) applies only to hoist-core v39 to v44. From v45, hoist-core no longer publishes `io.xh:hoist-core-mcp`, so `installHoistCoreTools` fails, and Hoist Docs serves hoist-core instead. On v45 or later, follow [Removing the bundled tools](#removing-the-bundled-tools) if they are still installed.
 
+### Apps with Gradle dependency locking
+
+An app locks its server dependencies if a `gradle.lockfile` sits at the project root. Adding, refreshing or removing the install snippet changes the locked graph, because the snippet adds a `hoistCoreCli` configuration. Under `STRICT` locking, a configuration with no lock state fails to resolve, so `installHoistCoreTools` fails until the locks are regenerated. After each edit to the snippet, and before any Gradle task, run this from the project root:
+
+    ./gradlew dependencies --write-locks -PrunHoistInline=false
+
+Keep `-PrunHoistInline=false` if the build reads `runHoistInline`. A run in inline mode wipes the lock state. After a removal, delete `gradle.lockfile` before the run. `--write-locks` keeps the entries of a configuration that no longer exists, so the old `hoistCoreCli` lines would stay. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` with the `build.gradle` change. Do not edit a lockfile by hand.
+
 ### CLI preflight (do once per session before first CLI use)
 
 Skip this if you're working through MCP only. For the CLI surface, before the first `./bin/hoist-core-*` call in a session, verify the launchers are present and functional:
@@ -89,9 +97,9 @@ Skip this if you're working through MCP only. For the CLI surface, before the fi
 
        grep -E '^// hoist-ai-snippet: hoist-core-install/v[0-9]+' build.gradle
 
-   The current canonical version is **`v1`**. Three possible outcomes:
-   - **Match on `v1`**: snippet is current. No action.
-   - **Match on a lower version** (e.g. `v0`): snippet has drifted from the canonical. Jump to **[Refreshing a stale install snippet](#refreshing-a-stale-install-snippet)** and offer to update.
+   The current canonical version is **`v2`**. Three possible outcomes:
+   - **Match on `v2`**: snippet is current. No action.
+   - **Match on a lower version** (e.g. `v1`): snippet has drifted from the canonical. Jump to **[Refreshing a stale install snippet](#refreshing-a-stale-install-snippet)** and offer to update. A `v1` snippet fails under Grails 8 (hoist-core v43+), so if `hoistCoreVersion` is 43.0 or later, the refresh is required, not optional - `installHoistCoreTools` will not run until it is applied.
    - **No match**: snippet was installed before the drift marker was introduced (or hand-removed). Treat the same as the lower-version case.
 
 If any launcher file is **missing**, jump to **[Installing the MCP server and CLI tools](#installing-the-mcp-server-and-cli-tools)** and run the full install procedure.
@@ -127,28 +135,27 @@ If `hoistCoreVersion` is below the floor, stop and recommend `/xh:hoist-upgrade`
    - CLI: `./bin/hoist-core-docs read mcp/README.md` (only if the launchers are already present from a prior install — typical when upgrading), OR
    - Read `mcp/README.md` directly from a sibling hoist-core checkout if available.
 
-   The README is the source of truth. The snippet below is a current-as-of-v39.0 mirror; if it diverges from what the README shows, trust the README.
+   The README is the source of truth. The snippet below is a current-as-of-v43.0 mirror; if it diverges from what the README shows, trust the README. Exception: apps on hoist-core before v43 have a README that still shows the older `v1` snippet. Use the `v2` mirror below for those apps - it works on Grails 7 / Gradle 8 as well as Grails 8 / Gradle 9.
 
 2. **Add the install snippet to the app's `build.gradle`.** Insert at the top level (outside any subproject block):
 
     ```groovy
-    // hoist-ai-snippet: hoist-core-install/v1 -- DO NOT REMOVE (drift marker, see hoist-core/mcp/README.md)
+    // hoist-ai-snippet: hoist-core-install/v2 -- DO NOT REMOVE (drift marker, see hoist-core/mcp/README.md)
     configurations {
         hoistCoreCli
     }
 
-    dependencies {
-        // Resolve the active hoist-core version lazily from the runtime classpath. Works whether
-        // hoist-core is declared directly, via gradle.properties, or pulled in transitively via a
-        // client plugin -- the install task stays aligned with whatever hoist-core version actually
-        // resolves at build time.
-        hoistCoreCli providers.provider {
-            def hc = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
-                .find { it.moduleVersion?.group == 'io.xh' && it.moduleVersion?.name == 'hoist-core' }
-            if (!hc) throw new GradleException(
-                'hoist-core not found on the runtimeClasspath -- cannot install hoist-core tools.')
-            "io.xh:hoist-core-mcp:${hc.moduleVersion.version}:all@jar"
-        }
+    // Resolve the active hoist-core version lazily from the runtime classpath, so the install task
+    // stays aligned with whatever version actually resolves at build time. `withDependencies` defers
+    // this to when `hoistCoreCli` is resolved (task execution), avoiding configuration-time resolution
+    // of runtimeClasspath -- which under the Grails/Spring Boot plugin would lock `developmentOnly`
+    // before its afterEvaluate hook can populate it.
+    configurations.hoistCoreCli.withDependencies { deps ->
+        def hc = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+            .find { it.moduleVersion?.group == 'io.xh' && it.moduleVersion?.name == 'hoist-core' }
+        if (!hc) throw new GradleException(
+            'hoist-core not found on the runtimeClasspath -- cannot install hoist-core tools.')
+        deps.add(project.dependencies.create("io.xh:hoist-core-mcp:${hc.moduleVersion.version}:all@jar"))
     }
 
     tasks.register('installHoistCoreTools', Sync) {
@@ -207,7 +214,7 @@ exec "\$JAVA" -jar "${jar.absolutePath}" ${args} "\$@"
     // end hoist-ai-snippet
     ```
 
-3. **Run the install task.**
+3. **Run the install task.** In a locked app, [regenerate the locks](#apps-with-gradle-dependency-locking) first.
 
     ```bash
     ./gradlew installHoistCoreTools
@@ -273,7 +280,7 @@ This is an **in-place edit of the user's source-controlled `build.gradle`**, not
 
 5. **Apply the refresh via Edit** -- replace the bounded block byte-for-byte with the canonical (merging in any preserved hand-edits). If the snippet was unstamped, add the markers as part of the refresh.
 
-6. **Re-run the install task** to regenerate launchers with the new logic:
+6. **Re-run the install task** to regenerate launchers with the new logic. In a locked app, [regenerate the locks](#apps-with-gradle-dependency-locking) first:
 
        ./gradlew installHoistCoreTools
 
@@ -292,7 +299,7 @@ Run this when the app is on hoist-core v45 or later and still has the bundled to
    - The `hoist-core` entry in `.mcp.json`. Keep the other entries.
    - In `.claude/settings.json` and `.claude/settings.local.json`: `hoist-core` in `enabledMcpjsonServers`, and the `mcp__hoist-core__*`, `Bash(./bin/hoist-core-*)` and `Bash(./gradlew installHoistCoreTools:*)` permissions. Add `mcp__hoist-docs__*` and `hoist-docs` in their place if the file allows the old ones.
    - Agent docs (`CLAUDE.md`, `AGENTS.md`) that send agents to `./bin/hoist-core-*` or `mcp__hoist-core__*`. Point them at the Hoist Docs tools with `library: "core"`.
-3. **Apply the removal** with Edit, then delete the launchers.
+3. **Apply the removal** with Edit, then delete the launchers. In a locked app, [regenerate the locks](#apps-with-gradle-dependency-locking) and commit them with the `build.gradle` change.
 4. **Tell the user to restart Claude Code**, so it drops the old server.
 
 ## When the tools aren't available
@@ -301,7 +308,7 @@ If no hoist-core reference tools are in your context:
 
 1. **hoist-core v45 or later:** Hoist Docs serves hoist-core. If `.mcp.json` has no `hoist-docs` entry, offer `/xh:onboard-app`. If it has one, Claude Code needs a restart, or the environment blocks MCP. If `hoist-ping` lists no `core` library, it gives the reason: usually the Maven fetch of the hoist-core docs index. Behind an organization's Maven mirror, set `HOIST_DOCS_MAVEN_REPO` and `HOIST_DOCS_MAVEN_SNAPSHOT_REPO` (plus `HOIST_DOCS_MAVEN_USER` and `HOIST_DOCS_MAVEN_PASSWORD` if it needs credentials) in the `env` of the `hoist-docs` entry. Behind an HTTP proxy, also set `NODE_USE_ENV_PROXY=1`.
 
-   If it found no hoist-core version, hoist-core probably comes through a client plugin and the project has no `gradle.lockfile`, where Hoist Docs reads the version. Recommend enabling dependency locking in `build.gradle` (`dependencyLocking { lockAllConfigurations() }`), running `./gradlew dependencies --write-locks` and committing the lockfile.
+   If it found no hoist-core version, hoist-core probably comes through a client plugin and the project has no `gradle.lockfile`, where Hoist Docs reads the version. Recommend enabling dependency locking in `build.gradle` (`dependencyLocking { lockAllConfigurations() }`), running `./gradlew dependencies --write-locks -PrunHoistInline=false` and committing the lockfile.
 
    `hoist-ping` also names any library in `hoistDocsLibraries` in `gradle.properties` that did not load. Usually the plugin publishes no docs index, or `HOIST_DOCS_MAVEN_REPO` does not point at the repository that hosts it.
 2. **hoist-core v39 to v44:** offer to [install the bundled tools](#installing-the-mcp-server-and-cli-tools). This is almost always the right next step for an app on these versions.

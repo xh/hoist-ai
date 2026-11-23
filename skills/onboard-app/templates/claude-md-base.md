@@ -21,18 +21,23 @@ A Hoist application has three artifact types:
 **Element factories over JSX.** Hoist uses element factory functions, not JSX:
 ```typescript
 // ✅ Hoist style
-panel({title: 'Users', items: [grid(), button({text: 'Refresh'})]})
-
+panel({title: 'Users', children: [grid(), button({text: 'Refresh'})]})
+```
+```tsx
 // ❌ Not used in Hoist
 <Panel title="Users"><Grid /><Button text="Refresh" /></Panel>
 ```
+
+Pass child elements with the standard React `children` key. A container component destructures
+`children` from its props and passes it on as `children`. `item` and `items` are legacy aliases
+for `children`. Do not use them in new code.
 
 **Components.** Create a component with `hoistCmp.factory`. Each component declares its model relationship:
 ```typescript
 export const userList = hoistCmp.factory({
     model: creates(UserListModel),  // Component creates and owns this model
     render({model}) {
-        return panel({title: 'Users', item: grid()});
+        return panel({title: 'Users', children: grid()});
     }
 });
 ```
@@ -86,6 +91,12 @@ for orientation. Each one routes you to the right reference tool. The hoist-core
 loads on a request to install, upgrade or remove the hoist-core tools. You do not need to
 invoke them.
 
+The shared `.claude/settings.json` enables XH's `xh@hoist-ai` plugin, but enabling does not
+install it. Each developer should install it once per machine at user scope, which covers every
+repo and worktree and auto-updates. If no `xh:` skills appear in your available skills, tell the
+developer the plugin is missing and give them the command
+`claude plugin install xh@hoist-ai --scope user`. Offer to run it for them.
+
 {{REFERENCE_TOOLS}}
 
 ### hoist-core (server-side)
@@ -121,3 +132,4 @@ description, or a document. It also loads when you review a diff that includes c
 ### Backend (run from project root)
 - Dev server: `./gradlew bootRun`
 - Production build: `./gradlew war`
+{{GRADLE_LOCKS}}

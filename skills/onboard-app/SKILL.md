@@ -80,9 +80,12 @@ a React/TypeScript frontend in `client-app/`. Key locations:
 
 4. Confirm standard project structure: check that `build.gradle`, `grails-app/`, and
    `gradle.properties` exist at the project root.
-5. Read `gradle.properties` and extract `hoistCoreVersion`. If `hoistCoreVersion` is not present
-   (i.e. it is inherited from a client-specific Grails plugin), determine the resolved version
-   using Gradle's dependency graph:
+5. Read `gradle.properties` and extract `hoistCoreVersion`. If a `gradle.lockfile` sits at the
+   project root, the app uses Gradle dependency locking. Record that for Phase 4, and read the
+   locked version with `grep '^io.xh:hoist-core:' gradle.lockfile`. It is the version the app
+   builds with. If `hoistCoreVersion` is not present (i.e. it is inherited from a client-specific
+   Grails plugin) and there is no lockfile, determine the resolved version using Gradle's
+   dependency graph:
    ```bash
    ./gradlew dependencies --configuration runtimeClasspath | grep hoist-core
    ```
@@ -183,6 +186,8 @@ Then list the planned actions:
   they're not yet wired up, ask separately whether to install them (modifies `build.gradle`)
 {Both:}
 - [Add | Verify] the `xh@hoist-ai` plugin declaration in `.claude/settings.json`, with auto-update on
+- [Add | Verify] `Skill(xh:...)` permissions for the plugin's skills in `.claude/settings.json`
+- Check that this machine installs the plugin at user scope
 - [Create | Update] CLAUDE.md with Hoist conventions (~[N] lines)
 - [Include client plugin documentation (if plugins detected)]
 - Verify the reference tools in this environment
@@ -278,7 +283,8 @@ Follow 3A in Hoist Docs mode, 3B in bundled mode (Phase 1, step 9).
 4. **Remove the old hoist-react launchers.** If `bin/hoist-docs` or `bin/hoist-ts` exist, and
    their second line is `# hoist-ai-launcher: hoist-react/...`, delete them. From v91 the
    `bin/hoist-docs` launcher would start the Hoist Docs server instead of answering a query. If
-   either file lacks that stamp, leave it and name it in the Phase 6 report.
+   either file lacks that stamp, leave it and name it in the Phase 6 report. If `.gitignore`
+   lists `bin/hoist-docs` or `bin/hoist-ts`, remove those lines.
 5. **Update settings that name the old server.** In `.claude/settings.json` and
    `.claude/settings.local.json`, if present:
    - In `enabledMcpjsonServers`, replace `hoist-react` with `hoist-docs`.
@@ -305,10 +311,10 @@ Follow 3A in Hoist Docs mode, 3B in bundled mode (Phase 1, step 9).
    plugin that publishes no docs index.
 
    Hoist Docs reads these versions, and hoist-core's version when a plugin brings it in, from
-   `gradle.lockfile`. If the project has no `gradle.lockfile`, do not change the build. Name it in
-   the Phase 6 report: enable dependency locking in `build.gradle`
-   (`dependencyLocking { lockAllConfigurations() }`), run `./gradlew dependencies --write-locks`,
-   and commit the lockfile.
+   `gradle.lockfile`. If the project has no `gradle.lockfile` (Phase 1, step 5), do not change
+   the build. Name it in the Phase 6 report: enable dependency locking in `build.gradle`
+   (`dependencyLocking { lockAllConfigurations() }`), run
+   `./gradlew dependencies --write-locks -PrunHoistInline=false`, and commit the lockfile.
 
 Phase 5 checks the server without a restart. Claude Code connects to it after the next restart.
 
@@ -351,10 +357,11 @@ may not be running yet.
 
 ## Phase 3.2: Declare the Plugin
 
-The plugin runs onboarding, so the current developer has it. The other developers on the project
-get it from a declaration in the committed `.claude/settings.json`. Without one, a teammate who
-clones the repo never sees the plugin, and a developer who installed it by hand may run an old
-version.
+The committed `.claude/settings.json` declares the plugin for the whole team. The declaration
+turns the plugin on and keeps it current, but it does not install it. Each developer installs it
+once per machine, at user scope, which covers every project and worktree. A project-scope or
+local-scope install is a separate copy for one path. Claude Code updates it only when a session
+runs in that path, so it drifts to an old version.
 
 The declaration has two parts:
 
@@ -386,9 +393,32 @@ The declaration has two parts:
    leave it alone and name it in the Phase 6 report.
 6. Never write this declaration to `.claude/settings.local.json`. That file is per developer, and
    the point of this phase is a declaration the whole team gets.
+7. Add `Skill(xh:<name>)` to `permissions.allow` for each skill the plugin ships, so they run
+   without a prompt. The skills are the folders beside this skill's own folder that hold a
+   `SKILL.md`. Read the names from those folders, not from a fixed list, so the next run adds a
+   new skill. Add the missing entries and keep every other entry.
 
-Tell the developer to commit `.claude/settings.json`. Branches cut before that commit lack the
-declaration. `/xh:setup-worktree` covers that case for worktrees.
+Tell the developer to commit `.claude/settings.json`.
+
+### Check This Machine's Install
+
+Run `claude plugin list --json` and keep the records with `id` `xh@hoist-ai`. If `claude` is not
+on the `PATH`, skip this check and put the install command in the Phase 6 report.
+
+- **No record with `scope` `user`:** tell the developer the plugin has no user-scope install,
+  give them `claude plugin install xh@hoist-ai --scope user`, and offer to run it for them. It
+  takes effect in the next session. If they decline, put the command in the Phase 6 report.
+- **Records with `scope` `project` or `local` and a `projectPath` in this repo or its
+  worktrees:** do not remove them now, because this session may be running from one. List them in
+  the Phase 6 report with the cleanup steps below.
+
+To remove a per-project record, run the uninstall from its `projectPath`:
+
+- `local` scope: `claude plugin uninstall xh@hoist-ai --scope local`. It also removes the entry
+  from `.claude/settings.local.json`, which the user-scope install makes redundant.
+- `project` scope: `claude plugin uninstall xh@hoist-ai --scope project`, then
+  `git restore .claude/settings.json`. The uninstall deletes `xh@hoist-ai` from the committed
+  `enabledPlugins`, and the restore puts it back. Run it only after you commit the declaration.
 
 ## Phase 3.5: hoist-core Tools
 
@@ -503,6 +533,13 @@ Read the base template from the matched path.
 
    The generated CLAUDE.md should show only the commands that match the project's actual
    package manager -- not both with a "(or X)" parenthetical that implies a preference.
+
+   **Do** replace `{{GRADLE_LOCKS}}` if the app uses Gradle dependency locking (Phase 1, step 5).
+   Otherwise delete the line. Drop `-PrunHoistInline=false` if the build does not read
+   `runHoistInline`:
+   ```
+   - After a server dependency or version change: `./gradlew dependencies --write-locks -PrunHoistInline=false`. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` with the change. Never edit a lockfile by hand.
+   ```
 
    **Do** replace `{{MODEL_PRIMER}}` with the full content of the models template for the
    decorator style detected in Phase 1, from the same templates directory:
@@ -629,6 +666,9 @@ calls out the CLI fallback for MCP-blocked environments:
 - **CLAUDE.md:** [Created | Updated (added N sections) | Already up to date]
 - **`.mcp.json`:** [Created | Updated (added entries: <list>) | Already configured]
 - **Plugin declaration:** [Added to `.claude/settings.json` -- commit it | Turned on auto-update | Already present | Left alone: `hoist-ai` points at <source>]
+- **Skill permissions:** [Added `Skill(xh:...)` for <names> | Already present]
+- **Plugin install:** [User scope, version <v> | Installed at user scope -- restart to load it | Not installed at user scope -- run `claude plugin install xh@hoist-ai --scope user`]
+- **Per-project installs:** [None | <scope> at <projectPath>, version <v> -- remove with <command from Phase 3.2>]
 - **Client plugins:** [N plugin(s) documented | None detected]
 
 {Hoist Docs mode:}
@@ -638,7 +678,7 @@ calls out the CLI fallback for MCP-blocked environments:
 - **Server check:** [Serves <libraries and versions from the ping script> | Failed: <reason>]
 - **Not loaded:** [None | <library and reason, e.g. hoist-core 44.1.0 ships no docs index>]
 - **Client plugin docs:** [Listed in `hoistDocsLibraries`: <plugins> | Removed <plugins>: no docs index | No server-side client plugins]
-- **gradle.lockfile:** [Present | Missing: enable dependency locking, run `./gradlew dependencies --write-locks`, and commit the lockfile]
+- **gradle.lockfile:** [Present | Missing: enable dependency locking, run `./gradlew dependencies --write-locks -PrunHoistInline=false`, and commit the lockfile]
 - **MCP runtime:** [Active (verified via ping) | Will activate on Claude Code restart, or remain dormant if the environment blocks MCP]
 - **Removed:** [<old launchers, entries and settings removed> | Nothing to remove]
 - **hoist-core:** [Served by Hoist Docs | Bundled hoist-core tools: installed / already installed / user deferred (hoist-core before v45)]

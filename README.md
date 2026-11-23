@@ -25,21 +25,31 @@ Claude Code plugin for AI-augmented Hoist application development, by
 
 ### 1. Add the Marketplace
 
-In a Claude Code session:
-
-```
-/plugin marketplace add xh/hoist-ai
+```sh
+claude plugin marketplace add xh/hoist-ai
 ```
 
 ### 2. Install the Plugin
 
-```
-/plugin install xh@hoist-ai
+```sh
+claude plugin install xh@hoist-ai --scope user
 ```
 
-This installs the plugin at user scope: one copy for every project and worktree on this machine.
-Install it once per machine. Do not also install it at project or local scope. Separate installs
-per project are harder to keep current, and projects can drift to different versions.
+This installs one copy for every project and worktree on this machine. Install it once per
+machine. Do not also install it at project or local scope. Each of those installs is a separate
+copy for one path. Claude Code updates it only when a session runs in that path, so it falls
+behind. If Claude Code offers to install the plugin for one project, decline.
+
+To find per-project installs, run `claude plugin list --json` and look for `xh@hoist-ai` records
+with a `scope` of `project` or `local`. Remove each one from its `projectPath`:
+
+```sh
+claude plugin uninstall xh@hoist-ai --scope local
+claude plugin uninstall xh@hoist-ai --scope project && git restore .claude/settings.json
+```
+
+The project-scope uninstall also deletes `xh@hoist-ai` from the committed
+`.claude/settings.json`. The `git restore` puts it back.
 
 ### 3. Turn On Auto-Update
 
@@ -52,7 +62,7 @@ loaded, so run `/reload-plugins` or restart to use the new one. To update by han
 
 ```sh
 claude plugin marketplace update hoist-ai
-claude plugin update xh@hoist-ai
+claude plugin update xh@hoist-ai --scope user
 ```
 
 Claude Code clones the marketplace over SSH first. Without a GitHub SSH key, for example on a
@@ -69,7 +79,8 @@ In any Hoist project directory:
 This will:
 1. Detect your project and its installed Hoist versions.
 2. Show what it found and what it plans to configure.
-3. Declare the plugin in `.claude/settings.json`, with auto-update on, so teammates get it.
+3. Declare the plugin in `.claude/settings.json`, with auto-update on, so teammates get it. It
+   also allows the plugin's skills, and checks that this machine installs it at user scope.
 4. Generate or merge a CLAUDE.md with Hoist conventions (after your confirmation).
 5. Verify the reference tools: on v91 and later, by starting Hoist Docs once and listing the
    versions it serves.
@@ -82,6 +93,7 @@ This will:
 | Upgrade | `/xh:hoist-upgrade` | Upgrade `@xh/hoist` across one or more major versions |
 | Worktree | `/xh:setup-worktree` | Create a runnable git worktree for a Hoist app |
 | Clear Writing | `/xh:clear-writing` | House style for CHANGELOG entries, PR descriptions, docs, and comments |
+| Right Size | `/xh:right-size` | Weighs the complexity a change adds against the cases it covers, and offers a menu from simplest to most complete. Loads itself when you ask whether a change is as simple as it can be, or say it feels over-engineered |
 | hoist-react reference | `/xh:using-hoist-react-reference` | Routes Hoist React questions to the docs and TypeScript API tools. Loads itself when you write Hoist code |
 | hoist-core reference | `/xh:using-hoist-core-reference` | Routes hoist-core questions to its docs and symbol tools. Loads itself when you write Grails/Groovy code, and installs or removes the bundled tools of hoist-core v39 to v44 |
 
@@ -99,11 +111,12 @@ manager. On success, stdout holds only the worktree path. Progress goes to stder
 means the request needs a decision, such as a new branch name that already exists. Run it with
 `--help` for the full contract.
 
-Call it from Claude Code's clone of this marketplace, which tracks `main`:
-`~/.claude/plugins/marketplaces/hoist-ai/skills/setup-worktree/scripts/provision-worktree.sh`.
-That layout belongs to Claude Code and can change. As a fallback, use the highest version under
-`~/.claude/plugins/cache/hoist-ai/xh/`. A symlink to the script also works, for example in
-`~/.local/bin`.
+Call it from the installed plugin, so it matches the skill. Run `claude plugin list --json`, take
+the `xh@hoist-ai` record with `scope` `user`, and append
+`skills/setup-worktree/scripts/provision-worktree.sh` to its `installPath`. As a fallback, use
+the highest version under `~/.claude/plugins/cache/hoist-ai/xh/`. That layout belongs to Claude
+Code and can change. Do not call the copy in `~/.claude/plugins/marketplaces/hoist-ai/`: that
+clone tracks `main`, so it can run ahead of the installed version.
 
 The script uses the caller's `PATH` and `JAVA_HOME`. A hook or editor process often skips the
 login shell, so set both before you call the script. Do not capture stdout through an
@@ -140,8 +153,10 @@ project. Claude Code reads it only after a developer accepts the folder's trust 
 not install the plugin: each developer installs it once per machine, as in
 [Installation](#installation).
 
-A branch cut before this commit has no `enabledPlugins` entry, so `/xh:setup-worktree` also
-enables the plugin in each new worktree's `.claude/settings.local.json`.
+Onboarding also adds a `Skill(xh:<name>)` entry to `permissions.allow` for each of the plugin's
+skills, such as `Skill(xh:clear-writing)`. Claude Code has no rule that matches every skill of a
+plugin, so each skill needs its own entry. Run `/xh:onboard-app` again after an update that adds a
+skill.
 
 A plugin cannot grant permissions. To stop prompts, add the Hoist tools to the same file. From
 `@xh/hoist` v91, with Hoist Docs:
