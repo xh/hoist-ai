@@ -38,11 +38,12 @@ Consumers with auto-update on get a new version in the background after their ne
 loads on the launch after that. A change that reaches `main` without a new version never reaches
 them.
 
-- A version is released once it is on `main`. Never reuse it, and never add entries to its
-  CHANGELOG section. A later change ships under the next version.
-- Bump the version and add a CHANGELOG entry only when a change ships new behavior to consumers,
-  such as edits to skills, templates, or scripts. Changes to docs, repo-only files, or files the
-  plugin never loads do not need a release.
+- A version is released once it is on `main`. Never reuse it. Never add entries to its CHANGELOG
+  section, except to correct the record. A later change ships under the next version.
+- A change to any file outside the repo-only paths ships to consumers, so it needs a new version
+  and a CHANGELOG entry. This includes a typo fix in a skill. The repo-only paths are the CI files,
+  `CLAUDE.md`, `README.md`, `CHANGELOG.md`, and skill `evals/` folders. The script below holds the
+  full list.
 - Bump the minor version by default and the patch version for a small fix. Bump the major version
   for a change consumers must act on, such as a renamed or removed skill.
 - On a branch, head the new CHANGELOG section `## X.Y.Z - unreleased`. Before the merge to `main`,
@@ -52,8 +53,10 @@ them.
   merge that branch to `main`. The changes share one version and one CHANGELOG section.
 - CI runs `.github/scripts/check-version-bump.py` on pull requests into `main` and on pushes to
   `main`. It fails when shipped files change without a higher version, or when the top CHANGELOG
-  heading does not name that version with a date. The script lists the repo-only paths. To run it
-  locally, pass `origin/main` as the base.
+  heading does not name that version with a date. A release PR stays red until you date the
+  heading. That is the merge gate, and the message says so.
+- The push check runs after the commit is on `main`, when consumers can already have it. Before a
+  direct push to `main`, run `git fetch` and then the script with `origin/main` as the base.
 
 ## Git Workflow
 

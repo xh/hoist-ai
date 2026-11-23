@@ -37,7 +37,14 @@ REPO_ONLY = [
 
 
 def git(*args):
-    return subprocess.run(['git', *args], check=True, capture_output=True, text=True).stdout
+    result = subprocess.run(['git', *args], capture_output=True, text=True)
+    if result.returncode:
+        sys.exit(
+            f'git {" ".join(args)} failed:\n{result.stderr.strip()}\n'
+            'The base commit may be missing, for example after a force push. '
+            'Run the check locally against origin/main.'
+        )
+    return result.stdout
 
 
 def version_at(ref):
@@ -56,8 +63,11 @@ def main():
         sys.exit(__doc__)
     base = sys.argv[1]
     head = sys.argv[2] if len(sys.argv) == 3 else 'HEAD'
+    if not base.strip('0'):
+        sys.exit(f'No base commit to compare with: "{base}".')
 
-    changed = git('diff', '--name-only', f'{base}...{head}').split()
+    # Without --no-renames, a file moved out of a shipped path lists only its new path.
+    changed = git('diff', '--no-renames', '--name-only', f'{base}...{head}').splitlines()
     shipped = [path for path in changed if not any(p.search(path) for p in REPO_ONLY)]
     if not shipped:
         print('Only repo-only files changed. No new version needed.')
@@ -73,7 +83,12 @@ def main():
 
     changelog = git('show', f'{head}:{CHANGELOG}').splitlines()
     heading = next((line for line in changelog if line.startswith('## ')), '(none)')
-    if not re.fullmatch(rf'## {re.escape(head_version)} - \d{{4}}-\d{{2}}-\d{{2}}', heading):
+    if heading == f'## {head_version} - unreleased':
+        errors.append(
+            f'The top {CHANGELOG} heading is "{heading}". This is expected during review. '
+            'Replace "unreleased" with the date just before you merge.'
+        )
+    elif not re.fullmatch(rf'## {re.escape(head_version)} - \d{{4}}-\d{{2}}-\d{{2}}', heading):
         errors.append(
             f'The top {CHANGELOG} heading is "{heading}". '
             f'Expected "## {head_version} - YYYY-MM-DD", dated for the release.'
