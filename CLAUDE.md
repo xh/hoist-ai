@@ -46,17 +46,15 @@ them.
   full list.
 - Bump the minor version by default and the patch version for a small fix. Bump the major version
   for a change consumers must act on, such as a renamed or removed skill.
-- On a branch, head the new CHANGELOG section `## X.Y.Z - unreleased`. Before the merge to `main`,
-  merge `main` into the branch and check that the version is still above the version on `main`. If
-  another change took the number, bump again. Then replace `unreleased` with the date.
+- When you bump the version, head the new CHANGELOG section `## X.Y.Z - YYYY-MM-DD` with the date.
+  Before the merge to `main`, merge `main` into the branch. If another change took the number,
+  bump again and update the heading and its date.
 - To ship several changes as one version, merge their pull requests into a staging branch. Then
   merge that branch to `main`. The changes share one version and one CHANGELOG section.
 - CI runs `.github/scripts/check-version-bump.py` on pull requests into `main` and on pushes to
-  `main`. It fails when shipped files change without a higher version, or when the top CHANGELOG
-  heading does not name that version with a date. A release PR stays red until you date the
-  heading. That is the merge gate, and the message says so.
-- The push check runs after the commit is on `main`, when consumers can already have it. Before a
-  direct push to `main`, run `git fetch` and then the script with `origin/main` as the base.
+  `main`. It fails when shipped files change without a higher version. The push check runs after
+  the commit is on `main`, so before a direct push, run `git fetch` and then the script with
+  `origin/main` as the base.
 
 ## Git Workflow
 
