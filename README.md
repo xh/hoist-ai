@@ -38,8 +38,8 @@ claude plugin install xh@hoist-ai --scope user
 This installs one copy for every project and worktree on this machine. Install it once per
 machine. Do not also install it at project or local scope by hand.
 
-Claude Code adds a `project` record by itself when a session starts in a repo whose committed
-settings enable the plugin. That record is expected. Leave it alone.
+On a machine with the plugin installed, Claude Code adds a `project` record by itself when a
+session starts in a repo whose committed settings enable the plugin. That record is expected. Leave it alone.
 
 A `local` record comes from an `xh@hoist-ai` entry in a folder's `.claude/settings.local.json`.
 To find one, run `claude plugin list --json` and look for an `xh@hoist-ai` record with a `scope`

@@ -359,9 +359,8 @@ may not be running yet.
 
 The committed `.claude/settings.json` declares the plugin for the whole team. The declaration
 turns the plugin on and keeps it current, but it does not install it. Each developer installs it
-once per machine, at user scope, which covers every project and worktree. A project-scope or
-local-scope install is a separate copy for one path. Claude Code updates it only when a session
-runs in that path, so it drifts to an old version.
+once per machine, at user scope, which covers every project and worktree. Claude Code also adds
+a project-scope record when a session starts in the repo. That is expected.
 
 The declaration has two parts:
 
