@@ -80,9 +80,12 @@ a React/TypeScript frontend in `client-app/`. Key locations:
 
 4. Confirm standard project structure: check that `build.gradle`, `grails-app/`, and
    `gradle.properties` exist at the project root.
-5. Read `gradle.properties` and extract `hoistCoreVersion`. If `hoistCoreVersion` is not present
-   (i.e. it is inherited from a client-specific Grails plugin), determine the resolved version
-   using Gradle's dependency graph:
+5. Read `gradle.properties` and extract `hoistCoreVersion`. If a `gradle.lockfile` sits at the
+   project root, the app uses Gradle dependency locking. Record that for Phase 4, and read the
+   locked version with `grep '^io.xh:hoist-core:' gradle.lockfile`. It is the version the app
+   builds with. If `hoistCoreVersion` is not present (i.e. it is inherited from a client-specific
+   Grails plugin) and there is no lockfile, determine the resolved version using Gradle's
+   dependency graph:
    ```bash
    ./gradlew dependencies --configuration runtimeClasspath | grep hoist-core
    ```
@@ -277,7 +280,8 @@ Follow 3A in Hoist Docs mode, 3B in bundled mode (Phase 1, step 9).
 4. **Remove the old hoist-react launchers.** If `bin/hoist-docs` or `bin/hoist-ts` exist, and
    their second line is `# hoist-ai-launcher: hoist-react/...`, delete them. From v91 the
    `bin/hoist-docs` launcher would start the Hoist Docs server instead of answering a query. If
-   either file lacks that stamp, leave it and name it in the Phase 6 report.
+   either file lacks that stamp, leave it and name it in the Phase 6 report. If `.gitignore`
+   lists `bin/hoist-docs` or `bin/hoist-ts`, remove those lines.
 5. **Update settings that name the old server.** In `.claude/settings.json` and
    `.claude/settings.local.json`, if present:
    - In `enabledMcpjsonServers`, replace `hoist-react` with `hoist-docs`.
@@ -487,6 +491,13 @@ Read the base template from the matched path.
 
    The generated CLAUDE.md should show only the commands that match the project's actual
    package manager -- not both with a "(or X)" parenthetical that implies a preference.
+
+   **Do** replace `{{GRADLE_LOCKS}}` if the app uses Gradle dependency locking (Phase 1, step 5).
+   Otherwise delete the line. Drop `-PrunHoistInline=false` if the build does not read
+   `runHoistInline`:
+   ```
+   - After a server dependency or version change: `./gradlew dependencies --write-locks -PrunHoistInline=false`. Commit `gradle.lockfile` and `buildscript-gradle.lockfile` with the change. Never edit a lockfile by hand.
+   ```
 
    **Do** replace `{{MODEL_PRIMER}}` with the full content of the models template for the
    decorator style detected in Phase 1, from the same templates directory:
