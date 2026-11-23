@@ -2,6 +2,9 @@
 
 ## 1.12.0 - unreleased
 
+* New `right-size` skill. It weighs the complexity a change adds against the cases it covers, and
+  offers a menu of options from simplest to most complete. It loads when a developer asks whether a
+  change is as simple as it can be, and for PRs and reviews of such changes.
 * `clear-writing`: in a repo with a `changelog.d/` folder, a new CHANGELOG entry goes in a fragment
   there, never in `CHANGELOG.md`.
 * `hoist-upgrade`: once the app's `@xh/hoist-dev-utils` ships `xh-changelog` and the app has no
