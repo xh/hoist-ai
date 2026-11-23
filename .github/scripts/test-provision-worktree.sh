@@ -231,6 +231,18 @@ run --repo "$T/app" --branch r8 --enable-plugin a@b
 grep -q '"a@b": true' "$T/app-worktrees/r8/.claude/settings.local.json" && ok "R8 enable-plugin writes" || bad "R8: $ERR"
 git -C "$T/app" worktree remove --force "$T/app-worktrees/r8"
 
+# R8b. A local settings file that enables xh@hoist-ai is copied with a warning.
+cp "$T/app/.claude/settings.local.json" "$T/sl.bak"
+echo '{"enabledPlugins":{"xh@hoist-ai": true}}' > "$T/app/.claude/settings.local.json"
+run --repo "$T/app" --branch r8b
+grep -q 'WARNING: .claude/settings.local.json enables xh@hoist-ai' <<<"$ERR" && ok "R8b warns on inherited xh entry" || bad "R8b: $ERR"
+echo '{"enabledPlugins":{"xh@hoist-ai": false}}' > "$T/app/.claude/settings.local.json"
+run --repo "$T/app" --branch r8c
+! grep -q 'enables xh@hoist-ai' <<<"$ERR" && ok "R8c opt-out entry does not warn" || bad "R8c: $ERR"
+cp "$T/sl.bak" "$T/app/.claude/settings.local.json"
+git -C "$T/app" worktree remove --force "$T/app-worktrees/r8b"
+git -C "$T/app" worktree remove --force "$T/app-worktrees/r8c"
+
 # R9. --local outside the repo -> 2.
 run --repo "$T/app" --branch r9 --local ../outside.txt --dry-run
 [[ $RC -eq 2 ]] && ok "R9 local with .. -> 2" || bad "R9 rc=$RC"

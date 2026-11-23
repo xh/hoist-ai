@@ -739,6 +739,14 @@ main() {
             echo "    copied $rel"
         done
     fi
+    # The main checkout's local settings may enable xh@hoist-ai, for example from an old
+    # local-scope install. The copy then gives this worktree its own install, which goes stale.
+    # Warn, do not edit: the file belongs to the developer.
+    if [[ -f "$DEST/.claude/settings.local.json" && " ${PLUGINS[*]-} " != *" xh@hoist-ai "* ]] &&
+        grep -Eq '"xh@hoist-ai"[[:space:]]*:[[:space:]]*true' "$DEST/.claude/settings.local.json"; then
+        echo "    WARNING: .claude/settings.local.json enables xh@hoist-ai. Remove that entry here and in" >&2
+        echo "    $REPO/.claude/settings.local.json. The user-scope install covers every worktree." >&2
+    fi
 
     # --- Step 3: activate path-scoped toolchain managers ------------------
     # Runs before the install and Gradle, so the pinned Node and Java are on PATH.

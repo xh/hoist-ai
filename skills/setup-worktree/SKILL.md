@@ -69,6 +69,18 @@ java version mismatch, or a plugin entry the script could not write. A branch WA
 script did not update an existing branch that is behind its remote. The branch diverged, or the
 worktree has uncommitted changes. Tell the user the install ran on the older code.
 
+A WARNING that `settings.local.json` enables `xh@hoist-ai` means the main checkout's local
+settings carried that entry into the worktree. Offer to remove the entry from both files.
+
+## Step 5: Check the plugin install
+
+A session in the new worktree loads the `xh` plugin only from a user-scope install. A project or
+local install covers one path, so it does not reach the worktree. Run `claude plugin list --json`
+and look for a record with `id` `xh@hoist-ai` and `scope` `user`. If there is none, tell the user
+that sessions in the worktree will not have the `xh` skills. Give them
+`claude plugin install xh@hoist-ai --scope user` and offer to run it for them. If `claude` is not
+on the `PATH`, give the command and skip the check.
+
 ## Overrides
 
 Detection covers most apps. Pass an override only when the user asks for something else or the
