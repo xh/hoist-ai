@@ -111,11 +111,12 @@ manager. On success, stdout holds only the worktree path. Progress goes to stder
 means the request needs a decision, such as a new branch name that already exists. Run it with
 `--help` for the full contract.
 
-Call it from Claude Code's clone of this marketplace, which tracks `main`:
-`~/.claude/plugins/marketplaces/hoist-ai/skills/setup-worktree/scripts/provision-worktree.sh`.
-That layout belongs to Claude Code and can change. As a fallback, use the highest version under
-`~/.claude/plugins/cache/hoist-ai/xh/`. A symlink to the script also works, for example in
-`~/.local/bin`.
+Call it from the installed plugin, so it matches the skill. Run `claude plugin list --json`, take
+the `xh@hoist-ai` record with `scope` `user`, and append
+`skills/setup-worktree/scripts/provision-worktree.sh` to its `installPath`. As a fallback, use
+the highest version under `~/.claude/plugins/cache/hoist-ai/xh/`. That layout belongs to Claude
+Code and can change. Do not call the copy in `~/.claude/plugins/marketplaces/hoist-ai/`: that
+clone tracks `main`, so it can run ahead of the installed version.
 
 The script uses the caller's `PATH` and `JAVA_HOME`. A hook or editor process often skips the
 login shell, so set both before you call the script. Do not capture stdout through an
