@@ -28,10 +28,32 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
    teaches a hoist-react API that a major removed, outside text marked as version-gated.
 4. If you change `skills/setup-worktree/scripts/provision-worktree.sh`, run
    `.github/scripts/test-provision-worktree.sh /bin/bash`. It tests on macOS system bash 3.2.
-5. If the change ships new behavior to consumers, bump the version in `.claude-plugin/plugin.json`
-   before pushing.
-6. Push to `main`. Consumers with auto-update on get the release in the background after their
-   next startup, and it loads on the launch after that. Without a version bump, nobody gets it.
+5. If the change ships new behavior to consumers, release a new version. See Releases below.
+6. Merge or push to `main`.
+
+## Releases
+
+Claude Code updates a plugin only when the `version` in `.claude-plugin/plugin.json` changes.
+Consumers with auto-update on get a new version in the background after their next startup, and it
+loads on the launch after that. A change that reaches `main` without a new version never reaches
+them.
+
+- A version is released once it is on `main`. Never reuse it, and never add entries to its
+  CHANGELOG section. A later change ships under the next version.
+- Bump the version and add a CHANGELOG entry only when a change ships new behavior to consumers,
+  such as edits to skills, templates, or scripts. Changes to docs, repo-only files, or files the
+  plugin never loads do not need a release.
+- Bump the minor version by default and the patch version for a small fix. Bump the major version
+  for a change consumers must act on, such as a renamed or removed skill.
+- On a branch, head the new CHANGELOG section `## X.Y.Z - unreleased`. Before the merge to `main`,
+  merge `main` into the branch and check that the version is still above the version on `main`. If
+  another change took the number, bump again. Then replace `unreleased` with the date.
+- To ship several changes as one version, merge their pull requests into a staging branch. Then
+  merge that branch to `main`. The changes share one version and one CHANGELOG section.
+- CI runs `.github/scripts/check-version-bump.py` on pull requests into `main` and on pushes to
+  `main`. It fails when shipped files change without a higher version, or when the top CHANGELOG
+  heading does not name that version with a date. The script lists the repo-only paths. To run it
+  locally, pass `origin/main` as the base.
 
 ## Git Workflow
 
@@ -77,9 +99,6 @@ skills/                  Plugin skills (invoked via /xh:skill-name)
   hoist-react and hoist-core. Skills must keep working for apps on both, since the plugin
   auto-updates for every app. Tell them apart by the `hoistDocs` key in the installed
   `@xh/hoist/package.json`.
-- Bump the `plugin.json` version and add a CHANGELOG entry only when a change ships new behavior
-  to consumers, such as edits to skills, templates, or scripts. Changes to docs, repo-only files,
-  or files the plugin never loads do not need a release.
 - Before bumping `plugin.json` for a release that touches a model-invokable skill, follow
   skill-creator best practices on the `description:` frontmatter: single paragraph with no
   blank-line breaks (the harness truncates display at blank lines); lead with a "Why this

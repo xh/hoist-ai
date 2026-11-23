@@ -12,3 +12,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check skills for removed hoist-react APIs
         run: python3 .github/scripts/check-removed-apis.py
+
+  # A change that reaches main must ship under a new version, or consumers never get it.
+  # Pull requests into other branches, such as a staging branch, skip this check.
+  version-bump:
+    if: github.event_name == 'push' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check that changes to main ship a new version
+        run: python3 .github/scripts/check-version-bump.py "$BASE"
+        env:
+          BASE: ${{ github.event_name == 'push' && github.event.before || github.event.pull_request.base.sha }}

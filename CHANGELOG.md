@@ -1,22 +1,13 @@
 # Changelog
 
-## 1.12.0 - unreleased
+## 1.12.0 - 2026-11-23
 
 * New `right-size` skill. It weighs the complexity a change adds against the cases it covers, and
   offers a menu of options from simplest to most complete. It loads when a developer asks whether a
   change is as simple as it can be, and for PRs and reviews of such changes.
-
-## 1.11.0 - 2026-11-23
-
-* `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`
-  key, as hoist-react v91 does, and names `item` / `items` as legacy aliases. The JSX
-  counter-example moves to its own `tsx` block, so a codemod that edits doc code blocks can
-  parse the primer.
 * `onboard-app`: in apps with Gradle dependency locking, the generated CLAUDE.md tells agents to
   regenerate the lockfiles after a server dependency change. The hoist-core version is read from
   the lockfile.
-* `hoist-upgrade`: runs codemods that an upgrade guide ships, and records spots they could not
-  convert as judgment calls. Agent docs are also checked for the patterns a codemod replaced.
 * `hoist-upgrade`: refreshes a `v1` install snippet before it reinstalls the hoist-core tools on
   hoist-core v43 or v44.
 * `hoist-upgrade`: regenerates the Gradle lockfiles after it bumps `hoistCoreVersion`, in apps
@@ -33,6 +24,15 @@
 * `using-hoist-react-reference`: on v91 and later, offers `onboard-app` to clean up leftover
   bundled tools, not just to delete the launchers. `onboard-app` also removes their
   `.gitignore` lines.
+
+## 1.11.0 - 2026-11-20
+
+* `onboard-app`: the CLAUDE.md primer passes child elements with the standard React `children`
+  key, as hoist-react v91 does, and names `item` / `items` as legacy aliases. The JSX
+  counter-example moves to its own `tsx` block, so a codemod that edits doc code blocks can
+  parse the primer.
+* `hoist-upgrade`: runs codemods that an upgrade guide ships, and records spots they could not
+  convert as judgment calls. Agent docs are also checked for the patterns a codemod replaced.
 
 ## 1.10.0 - 2026-11-19
 
