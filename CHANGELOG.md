@@ -1,11 +1,25 @@
 # Changelog
 
-## 1.14.0 - Unreleased
+## 1.15.0 - Unreleased
 
 * `clear-writing`: in a repo with a `changelog.d/` folder, a new CHANGELOG entry goes in a fragment
   there, never in `CHANGELOG.md`.
 * `hoist-upgrade`: once the app's `@xh/hoist-dev-utils` ships `xh-changelog` and the app has no
   `changelog.d/`, the report offers changelog fragments as an optional next step.
+
+## 1.14.1 - 2026-11-23
+
+* `onboard-app`: stops listing a repo's project-scope plugin records for removal. Claude Code
+  recreates them on the next session, so they are expected. Local-scope records are still listed.
+
+## 1.14.0 - 2026-11-23
+
+* `onboard-app`: lists the app's server-side client plugins in `hoistDocsLibraries` in
+  `gradle.properties`, so Hoist Docs serves their docs beside hoist-core's. It removes a plugin
+  that publishes no docs index, and reports a missing `gradle.lockfile`, where Hoist Docs reads
+  their versions.
+* `using-hoist-core-reference`: explains a missing hoist-core version, and a client plugin in
+  `hoistDocsLibraries` that did not load.
 
 ## 1.13.0 - 2026-11-23
 

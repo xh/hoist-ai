@@ -307,6 +307,10 @@ Run this when the app is on hoist-core v45 or later and still has the bundled to
 If no hoist-core reference tools are in your context:
 
 1. **hoist-core v45 or later:** Hoist Docs serves hoist-core. If `.mcp.json` has no `hoist-docs` entry, offer `/xh:onboard-app`. If it has one, Claude Code needs a restart, or the environment blocks MCP. If `hoist-ping` lists no `core` library, it gives the reason: usually the Maven fetch of the hoist-core docs index. Behind an organization's Maven mirror, set `HOIST_DOCS_MAVEN_REPO` and `HOIST_DOCS_MAVEN_SNAPSHOT_REPO` (plus `HOIST_DOCS_MAVEN_USER` and `HOIST_DOCS_MAVEN_PASSWORD` if it needs credentials) in the `env` of the `hoist-docs` entry. Behind an HTTP proxy, also set `NODE_USE_ENV_PROXY=1`.
+
+   If it found no hoist-core version, hoist-core probably comes through a client plugin and the project has no `gradle.lockfile`, where Hoist Docs reads the version. Recommend enabling dependency locking in `build.gradle` (`dependencyLocking { lockAllConfigurations() }`), running `./gradlew dependencies --write-locks -PrunHoistInline=false` and committing the lockfile.
+
+   `hoist-ping` also names any library in `hoistDocsLibraries` in `gradle.properties` that did not load. Usually the plugin publishes no docs index, or `HOIST_DOCS_MAVEN_REPO` does not point at the repository that hosts it.
 2. **hoist-core v39 to v44:** offer to [install the bundled tools](#installing-the-mcp-server-and-cli-tools). This is almost always the right next step for an app on these versions.
 3. If the user declines, or the project is on `hoistCoreVersion < 39.0` and they don't want to upgrade right now, do **not** improvise hoist-core APIs from training data - class names and member signatures evolve, and stale guesses produce real bugs. Tell the user the limitation explicitly.
 4. As a last resort, read the docs and source for the app's version: from a sibling hoist-core checkout if there is one, or from https://github.com/xh/hoist-core at the matching release tag. Surface this as a workaround, not a steady state.

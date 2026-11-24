@@ -46,7 +46,8 @@ If the repo has a `changelog.d/` folder, the entry goes in a fragment there, nev
 `CHANGELOG.md`. Run the repo's changelog command, such as `pnpm changelog add fix "<text>"`, or
 edit `changelog.d/<branch>.md`. `changelog.d/README.md` names the command. A fragment has the same
 `###` sections and bullets but no version heading, and uses only the sections in
-`changelog.d/config.json`. If the repo has no `changelog.d/`, write the entry in `CHANGELOG.md`.
+`changelog.d/config.json`. Run the command's `check` to validate it. If the repo has no
+`changelog.d/`, write the entry in `CHANGELOG.md`.
 
 Name an identifier only when the reader needs it to act: a config key, a flag, a public API.
 Leave out internal method names, file paths, exact counts, and version comparisons. Those rot.
