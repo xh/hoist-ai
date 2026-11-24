@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15.0 - 2026-11-24
+
+* `clear-writing`: in a repo with a `changelog.d/` folder, a new CHANGELOG entry goes in a fragment
+  there, never in `CHANGELOG.md`.
+* `hoist-upgrade`: once the app's `@xh/hoist-dev-utils` ships `xh-changelog` and the app has no
+  `changelog.d/`, the report offers changelog fragments as an optional next step.
+
 ## 1.14.1 - 2026-11-23
 
 * `onboard-app`: stops listing a repo's project-scope plugin records for removal. Claude Code
